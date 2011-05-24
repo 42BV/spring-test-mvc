@@ -4,7 +4,7 @@ Spring MVC Test Support
 
 The goal of this project is to faciliate the creation of integration tests for _Spring MVC_ applications. At present it contains server-side support only but will have client-side support added as well.
 
-This code is intended for inclusion in the _"spring-test"__ module of the __Spring Framework__. Its present home here allows us to evolve it on a flexible release schedule and with community feedback potentially accommodating a wide range of scenarios.
+This code is intended for inclusion in the `spring-test` module of the __Spring Framework__. Its present home here allows us to evolve it on a flexible release schedule and with community feedback potentially accommodating a wide range of scenarios.
 
 Server-Side
 ===========
@@ -15,7 +15,7 @@ Annotated-controllers depend on Spring MVC to handle many things such as mapping
 
 To test all that you may instantiate an in-memory Servlet container driving requests with _JWebUnit_ or you may use a test tool such as _JMeter_ or _Selenium_. These options however require running a Servlet container and can only perform black-box testing.
 
-The aim of this project is to provide a more "lightweight" and more integrated alternative by building on the familiar `MockHttpServletRequest` and the `MockHttpServletResponse` from the _"spring-test"_ module and without the need for a Servlet container. Whether you want to point to one controller or to test with your complete web application context setup, it should be easy to send a request and verify the results.
+The aim of this project is to provide a more "lightweight" and more integrated alternative by building on the familiar `MockHttpServletRequest` and the `MockHttpServletResponse` from the `spring-test` module and without the need for a Servlet container. Whether you want to point to one controller or to test with your complete web application context setup, it should be easy to send a request and verify the results.
 
 Examples
 --------
