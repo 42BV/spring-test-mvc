@@ -57,8 +57,8 @@ public class MvcResultMatchers {
 		return ModelAndViewMatchers.noBindingErrors();
 	}
 	
-	public static MvcResultMatcher modelAttributesHaveErrors(String...names) {
-		return ModelAndViewMatchers.modelAttributesHaveErrors(names);
+	public static MvcResultMatcher modelAttributesWithErrors(String...names) {
+		return ModelAndViewMatchers.modelAttributesWithErrors(names);
 	}
 
 	public static MvcResultMatcher modelAttributesPresent(String...names) {

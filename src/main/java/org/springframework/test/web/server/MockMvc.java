@@ -26,21 +26,21 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.web.util.UriTemplate;
 
 /**
- * <strong>Main entry point for server-side Spring MVC testing</strong>. 
+ * <strong>Main entry point for server-side Spring MVC test support.</strong>
  * 
  */
-public class MockMvcServer {
+public class MockMvc {
 
 	private final ServletContext servletContext;
 	
-	private final MvcDispatcher mvcDispatcher;
+	private final MockMvcDispatcher mvcDispatcher;
 
 	private boolean mapOnly;
 	
 	/**
-	 * To create a {@link MockMvcServer} see methods in {@code MvcServerBuilders}.
+	 * To create a {@link MockMvc} see methods in {@code MvcServerBuilders}.
 	 */
-	MockMvcServer(ServletContext servletContext, MvcDispatcher mvcDispatcher) {
+	MockMvc(ServletContext servletContext, MockMvcDispatcher mvcDispatcher) {
 		this.servletContext = servletContext;
 		this.mvcDispatcher = mvcDispatcher;
 	}

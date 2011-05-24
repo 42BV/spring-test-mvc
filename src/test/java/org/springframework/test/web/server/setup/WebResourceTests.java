@@ -21,8 +21,8 @@ import static org.springframework.test.web.server.matcher.MvcResultMatchers.cont
 import static org.springframework.test.web.server.matcher.MvcResultMatchers.forwardedUrl;
 import static org.springframework.test.web.server.matcher.MvcResultMatchers.responseBodyContains;
 import static org.springframework.test.web.server.matcher.MvcResultMatchers.status;
-import static org.springframework.test.web.server.setup.MvcServerBuilders.annotationConfigSetup;
-import static org.springframework.test.web.server.setup.MvcServerBuilders.xmlConfigSetup;
+import static org.springframework.test.web.server.setup.MockMvcBuilders.annotationConfigMvcSetup;
+import static org.springframework.test.web.server.setup.MockMvcBuilders.xmlConfigMvcSetup;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -34,7 +34,7 @@ import org.junit.runners.Parameterized.Parameters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Controller;
-import org.springframework.test.web.server.MockMvcServer;
+import org.springframework.test.web.server.MockMvc;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -63,20 +63,20 @@ public class WebResourceTests {
 		});
 	}
 	
-	MockMvcServer mvcServer;
+	MockMvc mvcServer;
 	
 	public WebResourceTests(ConfigType configType, String webResourcePath, boolean isClasspathRelative) {
 		
 		if (ConfigType.XML.equals(configType)) {
 			String location = "classpath:org/springframework/test/web/server/setup/servlet-context.xml";
-			mvcServer = xmlConfigSetup(location)
+			mvcServer = xmlConfigMvcSetup(location)
 				.configureWarRootDir(webResourcePath, isClasspathRelative)
-				.buildServer();
+				.build();
 		}
 		else {
-			mvcServer = annotationConfigSetup(TestConfiguration.class)
+			mvcServer = annotationConfigMvcSetup(TestConfiguration.class)
 				.configureWarRootDir(webResourcePath, isClasspathRelative)
-				.buildServer();
+				.build();
 		}
 	}
 	

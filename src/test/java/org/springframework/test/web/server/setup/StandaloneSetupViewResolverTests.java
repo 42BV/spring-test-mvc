@@ -20,7 +20,7 @@ import static org.springframework.test.web.server.matcher.MvcResultMatchers.cont
 import static org.springframework.test.web.server.matcher.MvcResultMatchers.forwardedUrl;
 import static org.springframework.test.web.server.matcher.MvcResultMatchers.responseBody;
 import static org.springframework.test.web.server.matcher.MvcResultMatchers.status;
-import static org.springframework.test.web.server.setup.MvcServerBuilders.standaloneSetup;
+import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneMvcSetup;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,7 +31,7 @@ import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 import org.springframework.stereotype.Controller;
-import org.springframework.test.web.server.MockMvcServer;
+import org.springframework.test.web.server.MockMvc;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.View;
@@ -49,11 +49,11 @@ public class StandaloneSetupViewResolverTests {
 		InternalResourceViewResolver resolver = new InternalResourceViewResolver();
 		resolver.setViewClass(InternalResourceView.class);
 		
-		MockMvcServer server = standaloneSetup(new TestController())
+		MockMvc mockMvc = standaloneMvcSetup(new TestController())
 			.setViewResolvers(resolver)
-			.buildServer();
+			.build();
 		
-		server.get("/path")
+		mockMvc.get("/path")
 			.execute()
 				.andExpect(status(200))
 				.andExpect(forwardedUrl("fruitsAndVegetables"));
@@ -64,11 +64,11 @@ public class StandaloneSetupViewResolverTests {
 		
 		View view = new MappingJacksonJsonView();
 		
-		MockMvcServer server = standaloneSetup(new TestController())
+		MockMvc mockMvc = standaloneMvcSetup(new TestController())
 			.configureFixedViewResolver(view)
-			.buildServer();
+			.build();
 		
-		server.get("/path")
+		mockMvc.get("/path")
 			.execute()
 				.andExpect(status(200))
 				.andExpect(contentType("application/json"))
@@ -94,23 +94,23 @@ public class StandaloneSetupViewResolverTests {
 		viewResolver.setMediaTypes(mediaTypes);
 		viewResolver.setDefaultContentType(MediaType.TEXT_HTML);
 		
-		MockMvcServer server = standaloneSetup(new TestController())
+		MockMvc mockMvc = standaloneMvcSetup(new TestController())
 			.setViewResolvers(viewResolver, internalResourceViewResolver)
-			.buildServer();
+			.build();
 
-		server.get("/path.json")
+		mockMvc.get("/path.json")
 			.execute()
 				.andExpect(status(200))
 				.andExpect(contentType("application/json"))
 				.andExpect(responseBody("{\"vegetable\":\"cucumber\",\"fruit\":\"kiwi\"}"));
 
-		server.get("/path.xml")
+		mockMvc.get("/path.xml")
 			.execute()
 				.andExpect(status(200))
 				.andExpect(contentType("application/xml"))
 				.andExpect(responseBody("<string>cucumber</string>"));	// First attribute
 		
-		server.get("/path")
+		mockMvc.get("/path")
 			.execute()
 				.andExpect(status(200))
 				.andExpect(forwardedUrl("fruitsAndVegetables"));

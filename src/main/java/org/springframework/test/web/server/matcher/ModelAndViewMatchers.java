@@ -76,7 +76,7 @@ public abstract class ModelAndViewMatchers {
 		};
 	}
 
-	public static MvcResultMatcher modelAttributesHaveNoErrors(final String...names) {
+	public static MvcResultMatcher modelAttributesWithNoErrors(final String...names) {
 		return new ModelAndViewResultMatcher() {
 			protected void matchModelAndView(ModelAndView mav) {
 				AssertionErrors.assertNameValuesPresent("Model attribute", mav.getModelMap(), names);
@@ -90,7 +90,7 @@ public abstract class ModelAndViewMatchers {
 		};
 	}
 	
-	public static MvcResultMatcher modelAttributesHaveErrors(final String...names) {
+	public static MvcResultMatcher modelAttributesWithErrors(final String...names) {
 		return new ModelAndViewResultMatcher() {
 			protected void matchModelAndView(ModelAndView mav) {
 				AssertionErrors.assertNameValuesPresent("Model attribute", mav.getModelMap(), names);

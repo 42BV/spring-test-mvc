@@ -30,11 +30,10 @@ import org.springframework.web.servlet.RequestToViewNameTranslator;
 import org.springframework.web.servlet.ViewResolver;
 
 /**
- * Provides a method for building a {@link MockMvcServer}. Sub-classes must provide methods to initialize a 
- * WebApplicationContext and various Spring MVC infrastructure components. 
+ * A base class that supports building a {@link MockMvc} instance by assembling an {@link MvcSetup}.
  *
  */
-public abstract class AbstractMvcServerBuilder {
+public abstract class AbstractMockMvcBuilder {
 
 	private WebApplicationContext applicationContext;
 
@@ -50,7 +49,7 @@ public abstract class AbstractMvcServerBuilder {
 
 	private LocaleResolver localeResolver;
 
-	public final MockMvcServer buildServer() {
+	public final MockMvc build() {
 
 		applicationContext = initApplicationContext();
 		ServletContext servletContext = applicationContext.getServletContext();
@@ -66,9 +65,9 @@ public abstract class AbstractMvcServerBuilder {
 		localeResolver = initLocaleResolver();
 		
 		MvcSetup mvcSetup = createMvcSetup();
-		MvcDispatcher mvcDispatcher = new MvcDispatcher(mvcSetup);
+		MockMvcDispatcher mvcDispatcher = new MockMvcDispatcher(mvcSetup);
 		
-		return new MockMvcServer(servletContext, mvcDispatcher);
+		return new MockMvc(servletContext, mvcDispatcher);
 	}
 
 	protected abstract WebApplicationContext initApplicationContext();

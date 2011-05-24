@@ -24,8 +24,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.core.OrderComparator;
-import org.springframework.test.web.server.AbstractMvcServerBuilder;
-import org.springframework.test.web.server.MockMvcServer;
+import org.springframework.test.web.server.AbstractMockMvcBuilder;
+import org.springframework.test.web.server.MockMvc;
+import org.springframework.util.Assert;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerAdapter;
@@ -47,13 +48,23 @@ import org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 /**
- * Builds a {@link MockMvcServer} by detecting Spring MVC infrastructure components in a Spring 
+ * Builds a {@link MockMvc} by detecting Spring MVC infrastructure components in a Spring 
  * {@link WebApplicationContext}. 
  * 
  */
-public abstract class AbstractContextServerBuilder extends AbstractMvcServerBuilder {
-	
-	protected abstract WebApplicationContext getApplicationContext();
+public class ContextMockMvcBuilder extends AbstractMockMvcBuilder {
+
+	private final WebApplicationContext applicationContext;
+
+	public ContextMockMvcBuilder(WebApplicationContext applicationContext) {
+		Assert.notNull(applicationContext, "ApplicationContext is required");
+		this.applicationContext = applicationContext;
+	}
+
+	@Override
+	protected WebApplicationContext initApplicationContext() {
+		return applicationContext;
+	}
 	
 	@Override
 	protected List<HandlerMapping> initHandlerMappings() {
@@ -99,7 +110,7 @@ public abstract class AbstractContextServerBuilder extends AbstractMvcServerBuil
 	private <T> List<T> getOrderedBeans(Class<T> beanType) {
 		List<T> components = new ArrayList<T>();
 		Map<String, T> beans =
-			BeanFactoryUtils.beansOfTypeIncludingAncestors(getApplicationContext(), beanType, true, false);
+			BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, beanType, true, false);
 		if (!beans.isEmpty()) {
 			components.addAll(beans.values());
 			OrderComparator.sort(components);
@@ -121,7 +132,7 @@ public abstract class AbstractContextServerBuilder extends AbstractMvcServerBuil
 
 	private <T> T getBeanByName(String name, Class<T> requiredType, Class<? extends T> defaultType) {
 		try {
-			return getApplicationContext().getBean(name, requiredType);
+			return applicationContext.getBean(name, requiredType);
 		}
 		catch (NoSuchBeanDefinitionException ex) {
 			return (defaultType != null) ? BeanUtils.instantiate(defaultType) : null;
