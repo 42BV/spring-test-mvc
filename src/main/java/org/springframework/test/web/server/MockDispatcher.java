@@ -49,14 +49,14 @@ import org.springframework.web.servlet.ViewResolver;
  * but does not always behave in identical ways. For example invoking afterCompletion() on a HandlerInterceptor is 
  * not essential for integration testing since the same method can be unit tested.     
  * 
- * <p>Unlike the DispatcherServlet, the {@link MockMvcDispatcher} is stateful. It records contextual information during 
+ * <p>Unlike the DispatcherServlet, the {@link MockDispatcher} is stateful. It records contextual information during 
  * each invocation such as the request and the response, the mapped handler and handler interceptors, and the resulting 
  * ModelAndView. The recorded information may then be matched against application-specific expectations as defined by
  * {@link MvcResultActions}. Previously recorded context is cleared at the start of every dispatch invocation.
  * 
  * @NotThreadSafe
  */
-public class MockMvcDispatcher {
+public class MockDispatcher {
 	
 	private Log logger = LogFactory.getLog(getClass());
 	
@@ -73,9 +73,9 @@ public class MockMvcDispatcher {
 	private ModelAndView mav;
 	
 	/**
-	 * Create a {@link MockMvcDispatcher} with the provided {@link MvcSetup}.
+	 * Create a {@link MockDispatcher} with the provided {@link MvcSetup}.
 	 */
-	MockMvcDispatcher(MvcSetup setup) {
+	MockDispatcher(MvcSetup setup) {
 		this.mvcSetup = setup;
 	}
 

@@ -30,10 +30,10 @@ import org.springframework.web.servlet.RequestToViewNameTranslator;
 import org.springframework.web.servlet.ViewResolver;
 
 /**
- * A base class that supports building a {@link MockMvc} instance by assembling an {@link MvcSetup}.
+ * A base class that supports assembling an {@link MvcSetup} to build a {@link MockWebMvc} instance.
  *
  */
-public abstract class AbstractMockMvcBuilder {
+public abstract class AbstractSetupMvcBuilder {
 
 	private WebApplicationContext applicationContext;
 
@@ -49,7 +49,7 @@ public abstract class AbstractMockMvcBuilder {
 
 	private LocaleResolver localeResolver;
 
-	public final MockMvc build() {
+	public final MockWebMvc build() {
 
 		applicationContext = initApplicationContext();
 		ServletContext servletContext = applicationContext.getServletContext();
@@ -65,9 +65,9 @@ public abstract class AbstractMockMvcBuilder {
 		localeResolver = initLocaleResolver();
 		
 		MvcSetup mvcSetup = createMvcSetup();
-		MockMvcDispatcher mvcDispatcher = new MockMvcDispatcher(mvcSetup);
+		MockDispatcher mockDispatcher = new MockDispatcher(mvcSetup);
 		
-		return new MockMvc(servletContext, mvcDispatcher);
+		return new MockWebMvc(servletContext, mockDispatcher);
 	}
 
 	protected abstract WebApplicationContext initApplicationContext();

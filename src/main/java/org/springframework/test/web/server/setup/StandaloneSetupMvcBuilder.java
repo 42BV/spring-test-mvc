@@ -31,8 +31,8 @@ import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.mock.web.MockServletContext;
-import org.springframework.test.web.server.AbstractMockMvcBuilder;
-import org.springframework.test.web.server.MockMvc;
+import org.springframework.test.web.server.AbstractSetupMvcBuilder;
+import org.springframework.test.web.server.MockWebMvc;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.validation.Validator;
@@ -59,7 +59,7 @@ import org.springframework.web.servlet.view.BeanNameViewResolver;
 import org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator;
 
 /**
- * Builds a {@link MockMvc} by instantiating the required Spring MVC components directly rather than detecting
+ * Builds a {@link MockWebMvc} by instantiating the required Spring MVC components directly rather than detecting
  * them in a Spring ApplicationContext. This makes it possible to build more "lightweight" and very focused tests
  * involving one or just a few controllers.
  * 
@@ -68,7 +68,7 @@ import org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator;
  * fixed, no-op {@link View} is used effectively ignoring rendering.
  * 
  */ 
-public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
+public class StandaloneSetupMvcBuilder extends AbstractSetupMvcBuilder {
 	
 	private final Object[] controllers;
 	
@@ -84,32 +84,32 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 
 	private GenericWebApplicationContext applicationContext;
 
-	protected StandaloneMockMvcBuilder(Object[] controllers) {
+	protected StandaloneSetupMvcBuilder(Object[] controllers) {
 		Assert.isTrue(!ObjectUtils.isEmpty(controllers), "At least one controller is required");
 		this.controllers = controllers;
 	}
 
-	public StandaloneMockMvcBuilder setMessageConverters(HttpMessageConverter<?>...messageConverters) {
+	public StandaloneSetupMvcBuilder setMessageConverters(HttpMessageConverter<?>...messageConverters) {
 		this.messageConverters = Arrays.asList(messageConverters);
 		return this;
 	}
 
-	public StandaloneMockMvcBuilder setValidator(Validator validator) {
+	public StandaloneSetupMvcBuilder setValidator(Validator validator) {
 		this.validator = validator;
 		return this;
 	}
 
-	public StandaloneMockMvcBuilder setConversionService(FormattingConversionService conversionService) {
+	public StandaloneSetupMvcBuilder setConversionService(FormattingConversionService conversionService) {
 		this.conversionService = conversionService;
 		return this;
 	}
 	
-	public StandaloneMockMvcBuilder addInterceptors(HandlerInterceptor... interceptors) {
+	public StandaloneSetupMvcBuilder addInterceptors(HandlerInterceptor... interceptors) {
 		mapInterceptors(null, interceptors);
 		return this;
 	}
 
-	public StandaloneMockMvcBuilder mapInterceptors(String[] pathPatterns, HandlerInterceptor... interceptors) {
+	public StandaloneSetupMvcBuilder mapInterceptors(String[] pathPatterns, HandlerInterceptor... interceptors) {
 		for (HandlerInterceptor interceptor : interceptors) {
 			mappedInterceptors.add(new MappedInterceptor(pathPatterns, interceptor));
 		}
@@ -123,7 +123,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	 * 
 	 * @param view the default View to return for any view name
 	 */
-	public StandaloneMockMvcBuilder configureFixedViewResolver(View view) {
+	public StandaloneSetupMvcBuilder configureFixedViewResolver(View view) {
 		viewResolvers = Collections.singletonList(new FixedViewResolver(view));
 		return this;
 	}
@@ -136,7 +136,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	 * since there is no ApplicationContext.
 	 * 
 	 */
-	public StandaloneMockMvcBuilder setViewResolvers(ViewResolver...resolvers) {
+	public StandaloneSetupMvcBuilder setViewResolvers(ViewResolver...resolvers) {
 		viewResolvers = Arrays.asList(resolvers);
 		return this;
 	}

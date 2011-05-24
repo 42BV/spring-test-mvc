@@ -24,8 +24,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.core.OrderComparator;
-import org.springframework.test.web.server.AbstractMockMvcBuilder;
-import org.springframework.test.web.server.MockMvc;
+import org.springframework.test.web.server.AbstractSetupMvcBuilder;
+import org.springframework.test.web.server.MockWebMvc;
 import org.springframework.util.Assert;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
@@ -48,15 +48,15 @@ import org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 /**
- * Builds a {@link MockMvc} by detecting Spring MVC infrastructure components in a Spring 
+ * Builds a {@link MockWebMvc} by detecting Spring MVC infrastructure components in a Spring 
  * {@link WebApplicationContext}. 
  * 
  */
-public class ContextMockMvcBuilder extends AbstractMockMvcBuilder {
+public class ContextSetupMvcBuilder extends AbstractSetupMvcBuilder {
 
 	private final WebApplicationContext applicationContext;
 
-	public ContextMockMvcBuilder(WebApplicationContext applicationContext) {
+	public ContextSetupMvcBuilder(WebApplicationContext applicationContext) {
 		Assert.notNull(applicationContext, "ApplicationContext is required");
 		this.applicationContext = applicationContext;
 	}

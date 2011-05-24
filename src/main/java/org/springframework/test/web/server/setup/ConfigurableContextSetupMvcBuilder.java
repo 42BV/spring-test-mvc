@@ -28,12 +28,12 @@ import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * A {@link ContextMockMvcBuilder} variant that expects a Spring {@link ConfigurableWebApplicationContext} and 
+ * A {@link ContextSetupMvcBuilder} variant that expects a Spring {@link ConfigurableWebApplicationContext} and 
  * provides methods to further initialize the context by setting active profiles, applying 
  * {@link ApplicationContextInitializer}s to it and so on.
  * 
  */
-public class ConfigurableContextMockMvcBuilder extends ContextMockMvcBuilder {
+public class ConfigurableContextSetupMvcBuilder extends ContextSetupMvcBuilder {
 
 	private final ConfigurableWebApplicationContext applicationContext;
 	
@@ -41,7 +41,7 @@ public class ConfigurableContextMockMvcBuilder extends ContextMockMvcBuilder {
 
 	private ResourceLoader webResourceLoader = new FileSystemResourceLoader();
 	
-	protected ConfigurableContextMockMvcBuilder(ConfigurableWebApplicationContext applicationContext) {
+	protected ConfigurableContextSetupMvcBuilder(ConfigurableWebApplicationContext applicationContext) {
 		super(applicationContext);
 		this.applicationContext = applicationContext;
 	}
@@ -55,20 +55,20 @@ public class ConfigurableContextMockMvcBuilder extends ContextMockMvcBuilder {
 	 *  
 	 * @param warRootDir the Web application root directory (should not end with a slash)
 	 */
-	public ConfigurableContextMockMvcBuilder configureWarRootDir(String warRootDir, boolean isClasspathRelative) {
+	public ConfigurableContextSetupMvcBuilder configureWarRootDir(String warRootDir, boolean isClasspathRelative) {
 		this.webResourceBasePath = warRootDir;
 		this.webResourceLoader = isClasspathRelative ? new DefaultResourceLoader() : new FileSystemResourceLoader();
 		return this;
 	}
 	
-	public ConfigurableContextMockMvcBuilder activateProfiles(String...profiles) {
+	public ConfigurableContextSetupMvcBuilder activateProfiles(String...profiles) {
 		applicationContext.getEnvironment().setActiveProfiles(profiles);
 		return this;
 	}
 	
 	@SuppressWarnings("unchecked")
 	public <T extends ConfigurableWebApplicationContext> 
-			ConfigurableContextMockMvcBuilder applyInitializers(ApplicationContextInitializer<T>... initializers) {
+			ConfigurableContextSetupMvcBuilder applyInitializers(ApplicationContextInitializer<T>... initializers) {
 		
 		for (ApplicationContextInitializer<T> initializer : initializers) {
 			initializer.initialize((T) applicationContext);
