@@ -43,7 +43,7 @@ Test serving a resource by pointing to Spring MVC Java-based application configu
             .andExpect(contentType("application/octet-stream"))
             .andExpect(responseBodyContains("Spring={};"));
 
-For more examples see tests in the [org.springframework.test.web.server](tree/master/src/test/java/org/springframework/test/web/server) package.
+For more examples see tests in the [org.springframework.test.web.server](spring-test-mvc/tree/master/src/test/java/org/springframework/test/web/server) package.
 
 Limitations
 -----------
