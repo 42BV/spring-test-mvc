@@ -20,7 +20,7 @@ import static org.springframework.test.web.server.matcher.MvcResultMatchers.cont
 import static org.springframework.test.web.server.matcher.MvcResultMatchers.forwardedUrl;
 import static org.springframework.test.web.server.matcher.MvcResultMatchers.responseBody;
 import static org.springframework.test.web.server.matcher.MvcResultMatchers.status;
-import static org.springframework.test.web.server.setup.MockWebMvcBuilders.standaloneMvcSetup;
+import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneMvcSetup;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,7 +31,7 @@ import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 import org.springframework.stereotype.Controller;
-import org.springframework.test.web.server.MockWebMvc;
+import org.springframework.test.web.server.MockMvc;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.View;
@@ -49,7 +49,7 @@ public class StandaloneSetupViewResolverTests {
 		InternalResourceViewResolver resolver = new InternalResourceViewResolver();
 		resolver.setViewClass(InternalResourceView.class);
 		
-		MockWebMvc mockMvc = standaloneMvcSetup(new TestController())
+		MockMvc mockMvc = standaloneMvcSetup(new TestController())
 			.setViewResolvers(resolver)
 			.build();
 		
@@ -64,7 +64,7 @@ public class StandaloneSetupViewResolverTests {
 		
 		View view = new MappingJacksonJsonView();
 		
-		MockWebMvc mockMvc = standaloneMvcSetup(new TestController())
+		MockMvc mockMvc = standaloneMvcSetup(new TestController())
 			.configureFixedViewResolver(view)
 			.build();
 		
@@ -94,7 +94,7 @@ public class StandaloneSetupViewResolverTests {
 		viewResolver.setMediaTypes(mediaTypes);
 		viewResolver.setDefaultContentType(MediaType.TEXT_HTML);
 		
-		MockWebMvc mockMvc = standaloneMvcSetup(new TestController())
+		MockMvc mockMvc = standaloneMvcSetup(new TestController())
 			.setViewResolvers(viewResolver, internalResourceViewResolver)
 			.build();
 

@@ -33,7 +33,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 
 /**
  * A command class to build and execute a request. 
- * Use methods on {@link MockWebMvc} to obtain a new {@link MvcRequest} instance.
+ * Use methods on {@link MockMvc} to obtain a new {@link MvcRequest} instance.
  * Once obtained an {@link MvcRequest} can be executed, modified, and executed again any number of times.
  * 
  */
@@ -63,12 +63,12 @@ public class MvcRequest {
 
 	private final ServletContext servletContext;
 
-	private final MockWebMvc mvcServer;
+	private final MockMvc mvcServer;
 
 	/**
-	 * Use methods on {@link MockWebMvc} to obtain a new instance.
+	 * Use methods on {@link MockMvc} to obtain a new instance.
 	 */
-	MvcRequest(MockWebMvc mvcServer, ServletContext servletContext, URI uri, HttpMethod method) {
+	MvcRequest(MockMvc mvcServer, ServletContext servletContext, URI uri, HttpMethod method) {
 		this.uri = uri;
 		this.method = method;
 		this.servletContext = servletContext;

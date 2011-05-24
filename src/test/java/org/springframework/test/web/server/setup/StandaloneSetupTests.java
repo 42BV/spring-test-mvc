@@ -19,11 +19,11 @@ package org.springframework.test.web.server.setup;
 import static org.springframework.test.web.server.matcher.MvcResultMatchers.contentType;
 import static org.springframework.test.web.server.matcher.MvcResultMatchers.responseBody;
 import static org.springframework.test.web.server.matcher.MvcResultMatchers.status;
-import static org.springframework.test.web.server.setup.MockWebMvcBuilders.standaloneMvcSetup;
+import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneMvcSetup;
 
 import org.junit.Test;
 import org.springframework.stereotype.Controller;
-import org.springframework.test.web.server.MockWebMvc;
+import org.springframework.test.web.server.MockMvc;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -32,7 +32,7 @@ public class StandaloneSetupTests {
 	@Test
 	public void singleController() throws Exception {
 		
-		MockWebMvc mockMvc = standaloneMvcSetup(new TestController()).build();
+		MockMvc mockMvc = standaloneMvcSetup(new TestController()).build();
 		
 		mockMvc.get("/path")
 			.execute()

@@ -32,7 +32,7 @@ public class MultipartMvcRequest extends MvcRequest {
 
 	private final List<MockMultipartFile> files = new ArrayList<MockMultipartFile>();
 	
-	MultipartMvcRequest(MockWebMvc mvcServer, ServletContext servletContext, URI uri) {
+	MultipartMvcRequest(MockMvc mvcServer, ServletContext servletContext, URI uri) {
 		super(mvcServer, servletContext, uri, HttpMethod.POST);
 		super.contentType(MediaType.MULTIPART_FORM_DATA);
 	}

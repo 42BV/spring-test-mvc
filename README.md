@@ -22,7 +22,7 @@ Examples
 
 Test an `@ResponseBody` method in a controller:
 
-    MockWebMvcBuilders.standaloneMvcSetup(new TestController()).build()
+    MockMvcBuilders.standaloneMvcSetup(new TestController()).build()
         .get("/form").execute()
             .andExpect(status(200))
             .andExpect(contentType("text/plain"))
@@ -30,7 +30,7 @@ Test an `@ResponseBody` method in a controller:
 
 Test binding failure by pointing to Spring MVC XML-based context configuration:
 
-    MockWebMvcBuilders.xmlConfigMvcSetup("classpath:org/examples/servlet-context.xml").build()
+    MockMvcBuilders.xmlConfigMvcSetup("classpath:org/examples/servlet-context.xml").build()
         .get("/form").execute()
             .andExpect(status(200))
             .andExpect(modelAttributesWithErrors("formBean"))
@@ -38,7 +38,7 @@ Test binding failure by pointing to Spring MVC XML-based context configuration:
 
 Test serving a resource by pointing to Spring MVC Java-based application configuration:
 
-    MockWebMvcBuilders.annotationConfigMvcSetup(TestConfiguration.class).build()
+    MockMvcBuilders.annotationConfigMvcSetup(TestConfiguration.class).build()
         .get("/resources/Spring.js").execute()
             .andExpect(contentType("application/octet-stream"))
             .andExpect(responseBodyContains("Spring={};"));
