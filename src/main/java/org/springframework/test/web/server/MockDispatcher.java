@@ -72,6 +72,8 @@ public class MockDispatcher {
 	
 	private ModelAndView mav;
 	
+	private Exception handlerException;
+	
 	/**
 	 * Create a {@link MockDispatcher} with the provided {@link MvcSetup}.
 	 */
@@ -95,7 +97,7 @@ public class MockDispatcher {
 		}
 		catch (Exception exception) {
 			logger.error("Unhandled exception", exception);
-			fail("Failed to dispatch request due to unhandled exception: " + exception);
+			fail("Failed to dispatch Mock MVC request (check logs for stacktrace): " + exception);
 		}
 		finally {
 			RequestContextHolder.resetRequestAttributes();
@@ -185,6 +187,7 @@ public class MockDispatcher {
 	}
 
 	private void processHandlerException(Exception exception) throws Exception {
+		handlerException = exception;
 		for (HandlerExceptionResolver resolver : mvcSetup.getExceptionResolvers()) {
 			mav = resolver.resolveException(request, response, handler, exception);
 			if (mav != null) {
@@ -212,7 +215,7 @@ public class MockDispatcher {
 	private class ResultActionsAdapter implements MvcResultActions {
 
 		public MvcResultActions andExpect(MvcResultMatcher matcher) {
-			matcher.match(request, response, handler, mav);
+			matcher.match(request, response, handler, handlerException, mav);
 			return this;
 		}
 		

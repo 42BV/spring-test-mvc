@@ -107,6 +107,7 @@ public abstract class ModelAndViewMatchers {
 			public void match(MockHttpServletRequest request, 
 							  MockHttpServletResponse response, 
 							  Object handler, 
+							  Exception handlerException,
 							  ModelAndView mav) {
 				assertEquals("View name", viewName, mav.getViewName());
 			}
@@ -118,6 +119,7 @@ public abstract class ModelAndViewMatchers {
 		public final void match(MockHttpServletRequest request, 
 								MockHttpServletResponse response, 
 								Object handler, 
+								Exception handlerException,
 								ModelAndView mav) {
 			assertTrue("No ModelAndView", mav != null);
 			matchModelAndView(mav);

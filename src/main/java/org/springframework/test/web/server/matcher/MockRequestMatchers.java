@@ -126,6 +126,7 @@ public abstract class MockRequestMatchers {
 		public final void match(MockHttpServletRequest request, 
 								MockHttpServletResponse response, 
 								Object handler, 
+								Exception handlerException,
 								ModelAndView mav) {
 			matchMockRequest(request);
 		}

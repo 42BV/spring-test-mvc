@@ -44,9 +44,14 @@ public class MockMvc {
 		this.servletContext = servletContext;
 		this.mockDispatcher = mockDispatcher;
 	}
-	
-	public void enableRequestMappingMode(boolean enable) {
+
+	/**
+	 * Enables a mode in which requests are mapped to a handler without actually invoking it afterwards.
+	 * Allows verifying the handler or handler method a request is mapped to.
+	 */
+	public MockMvc setMapOnly(boolean enable) {
 		this.mapOnly = enable;
+		return this;
 	}
 
 	public MvcRequest get(String uriTemplate, Object...urlVariables) {

@@ -37,7 +37,7 @@ public class StandaloneSetupTests {
 		mockMvc.get("/path")
 			.execute()
 				.andExpect(status(200))
-				.andExpect(contentType("application/octet-stream"))	// TODO : bug in AbstractMessageConverterMethodProcessor
+				.andExpect(contentType("text/plain;charset=ISO-8859-1"))
 				.andExpect(responseBody("Mapped by path!"));
 	}	
 

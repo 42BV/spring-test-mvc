@@ -70,6 +70,7 @@ public abstract class HandlerMatchers {
 		public final void match(MockHttpServletRequest request, 
 								MockHttpServletResponse response, 
 								Object handler, 
+								Exception handlerException,
 								ModelAndView mav) {
 			assertTrue("No matching handler", handler != null);
 			matchHandler(handler);

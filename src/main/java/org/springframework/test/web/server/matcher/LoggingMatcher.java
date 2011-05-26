@@ -37,12 +37,13 @@ public class LoggingMatcher implements MvcResultMatcher {
 	public void match(MockHttpServletRequest request, 
 					  MockHttpServletResponse response, 
 					  Object handler, 
+					  Exception handlerException,
 					  ModelAndView mav) {
 		
 		StringBuilder sb = new StringBuilder();
 		
 		appendRequest(sb, request);
-		appendHandler(sb, handler);
+		appendHandler(sb, handler, handlerException);
 		appendModelAndView(sb, mav);
 		appendResponse(sb, response);
 
@@ -55,13 +56,13 @@ public class LoggingMatcher implements MvcResultMatcher {
 		appendLabelAndValue(sb, "Headers", MockRequestMatchers.getHeaderValueMap(request));
 	}
 
-	private void appendHandler(StringBuilder sb, Object handler) {
+	private void appendHandler(StringBuilder sb, Object handler, Exception handlerException) {
 		if (handler == null) {
-			sb.append("\nHandler: null\n");
+			sb.append("\nSelected Handler: null\n");
 			return;
 		}
 		
-		sb.append("\nHandler:\n");
+		sb.append("\nSelected Handler:\n");
 		if (!HandlerMethod.class.isInstance(handler)) {
 			appendLabelAndValue(sb, "Type", handler.getClass().getName());
 			appendLabelAndValue(sb, "Method", "Not available");
@@ -80,6 +81,13 @@ public class LoggingMatcher implements MvcResultMatcher {
 				sb.append(hm.getMethod().getParameterTypes()[i].getSimpleName());
 			}
 			sb.append(") \n");
+		}
+		
+		if (handlerException == null) {
+			sb.append("\nHandler Exception Raised: none\n");
+		}
+		else {
+			sb.append("\nHandler Exception Raised:\n" + handlerException + "\n");
 		}
 	}
 

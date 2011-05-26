@@ -65,7 +65,7 @@ public abstract class MockResponseMatchers {
 
 	public static MvcResultMatcher contentType(final String contentType) {
 		return new MvcResultMatcher() {
-			public void match(MockHttpServletRequest rq, MockHttpServletResponse response, Object h, ModelAndView mav) {
+			public void match(MockHttpServletRequest rq, MockHttpServletResponse response, Object h, Exception e, ModelAndView mav) {
 				if (StringUtils.hasText(response.getContentType())) {
 					assertEquals("Content type", contentType, response.getContentType());
 				}
@@ -210,6 +210,7 @@ public abstract class MockResponseMatchers {
 		public void match(MockHttpServletRequest request, 
 						  MockHttpServletResponse response, 
 						  Object handler, 
+						  Exception handlerException,
 						  ModelAndView mav) {
 			try {
 				matchMockResponse(response);

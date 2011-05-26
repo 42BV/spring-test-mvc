@@ -41,38 +41,31 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.json.MappingJacksonJsonView;
 import org.springframework.web.servlet.view.xml.MarshallingView;
 
-public class StandaloneSetupViewResolverTests {
+/**
+ * Scenarios for setting up view resolution with a {@link StandaloneMockMvcBuilder}.
+ * 
+ */
+public class ViewResolverStandaloneSetupTests {
 
 	@Test
 	public void internalResourceViewResolver() throws Exception {
 
-		InternalResourceViewResolver resolver = new InternalResourceViewResolver();
-		resolver.setViewClass(InternalResourceView.class);
-		
-		MockMvc mockMvc = standaloneMvcSetup(new TestController())
-			.setViewResolvers(resolver)
-			.build();
-		
-		mockMvc.get("/path")
-			.execute()
-				.andExpect(status(200))
-				.andExpect(forwardedUrl("fruitsAndVegetables"));
+		standaloneMvcSetup(new TestController())
+			.setViewResolvers(new InternalResourceViewResolver()).build()
+				.get("/path").execute()
+					.andExpect(status(200))
+					.andExpect(forwardedUrl("fruitsAndVegetables"));
 	}
 
 	@Test 
 	public void fixedViewResolver() throws Exception {
 		
-		View view = new MappingJacksonJsonView();
-		
-		MockMvc mockMvc = standaloneMvcSetup(new TestController())
-			.configureFixedViewResolver(view)
-			.build();
-		
-		mockMvc.get("/path")
-			.execute()
-				.andExpect(status(200))
-				.andExpect(contentType("application/json"))
-				.andExpect(responseBody("{\"vegetable\":\"cucumber\",\"fruit\":\"kiwi\"}"));
+		standaloneMvcSetup(new TestController())
+			.configureFixedViewResolver(new MappingJacksonJsonView()).build()
+				.get("/path").execute()
+					.andExpect(status(200))
+					.andExpect(contentType("application/json"))
+					.andExpect(responseBody("{\"vegetable\":\"cucumber\",\"fruit\":\"kiwi\"}"));
 	}
 	
 	@Test

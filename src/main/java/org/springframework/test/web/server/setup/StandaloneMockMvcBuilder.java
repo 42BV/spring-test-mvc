@@ -87,6 +87,8 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	protected StandaloneMockMvcBuilder(Object[] controllers) {
 		Assert.isTrue(!ObjectUtils.isEmpty(controllers), "At least one controller is required");
 		this.controllers = controllers;
+		this.applicationContext = new GenericWebApplicationContext(new MockServletContext());
+		this.applicationContext.refresh();
 	}
 
 	public StandaloneMockMvcBuilder setMessageConverters(HttpMessageConverter<?>...messageConverters) {
@@ -96,6 +98,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 
 	public StandaloneMockMvcBuilder setValidator(Validator validator) {
 		this.validator = validator;
+		this.applicationContext.getAutowireCapableBeanFactory().initializeBean(validator, "validator");
 		return this;
 	}
 
@@ -143,7 +146,6 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	
 	@Override
 	protected WebApplicationContext initApplicationContext() {
-		applicationContext = new GenericWebApplicationContext(new MockServletContext());
 		return applicationContext;
 	}
 

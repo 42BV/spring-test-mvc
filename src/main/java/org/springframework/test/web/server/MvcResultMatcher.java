@@ -26,6 +26,10 @@ import org.springframework.web.servlet.ModelAndView;
  */
 public interface MvcResultMatcher {
 
-	void match(MockHttpServletRequest request, MockHttpServletResponse response, Object handler, ModelAndView mav);
+	void match(MockHttpServletRequest request, 
+			   MockHttpServletResponse response, 
+			   Object handler, 
+			   Exception handlerException, 
+			   ModelAndView mav);
 
 }

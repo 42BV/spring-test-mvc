@@ -48,6 +48,7 @@ import org.springframework.web.servlet.view.tiles2.TilesView;
 
 /**
  * Test access to web application resources through the MockServletContext.
+ * The WAR root may be file system based or classpath-relative.
  *
  */
 @RunWith(Parameterized.class)
@@ -63,18 +64,18 @@ public class WebResourceTests {
 		});
 	}
 	
-	MockMvc mvcServer;
+	private MockMvc mockMvc;
 	
 	public WebResourceTests(ConfigType configType, String webResourcePath, boolean isClasspathRelative) {
 		
 		if (ConfigType.XML.equals(configType)) {
 			String location = "classpath:org/springframework/test/web/server/setup/servlet-context.xml";
-			mvcServer = xmlConfigMvcSetup(location)
+			mockMvc = xmlConfigMvcSetup(location)
 				.configureWarRootDir(webResourcePath, isClasspathRelative)
 				.build();
 		}
 		else {
-			mvcServer = annotationConfigMvcSetup(TestConfiguration.class)
+			mockMvc = annotationConfigMvcSetup(TestConfiguration.class)
 				.configureWarRootDir(webResourcePath, isClasspathRelative)
 				.build();
 		}
@@ -82,24 +83,23 @@ public class WebResourceTests {
 	
 	@Test
 	public void testWebResources() {
-		
+
 		// TilesView
-		mvcServer.get("/form").execute()
+		mockMvc.get("/form").execute()
 			.andExpect(status(200))
 			.andExpect(forwardedUrl("/WEB-INF/layouts/main.jsp"));
 
-		mvcServer.get("/resources/Spring.js")
+		mockMvc.get("/resources/Spring.js")
 			.execute()
 				.andExpect(status(200))
 				.andExpect(handlerType(ResourceHttpRequestHandler.class))
 				.andExpect(contentType("application/octet-stream"))
 				.andExpect(responseBodyContains("Spring={};"));
 		
-		mvcServer.get("/unknown/resource.js").execute()
+		mockMvc.get("/unknown/resource.js").execute()
 			.andExpect(status(200))
 			.andExpect(handlerType(DefaultServletHttpRequestHandler.class))
 			.andExpect(forwardedUrl("default"));
-		
 	}
 	
 	@Controller
