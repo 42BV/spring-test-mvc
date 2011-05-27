@@ -19,7 +19,6 @@ package org.springframework.test.web.server;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.servlet.ServletContext;
 
 import org.springframework.http.HttpMethod;
@@ -28,12 +27,12 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockMultipartHttpServletRequest;
 
-public class MultipartMvcRequest extends MvcRequest {
+public class MultipartMockHttpServletRequestBuilder extends DefaultMockHttpServletRequestBuilder {
 
 	private final List<MockMultipartFile> files = new ArrayList<MockMultipartFile>();
 	
-	MultipartMvcRequest(MockMvc mvcServer, ServletContext servletContext, URI uri) {
-		super(mvcServer, servletContext, uri, HttpMethod.POST);
+	MultipartMockHttpServletRequestBuilder(ServletContext servletContext, URI uri) {
+		super(servletContext, uri, HttpMethod.POST);
 		super.contentType(MediaType.MULTIPART_FORM_DATA);
 	}
 
@@ -42,10 +41,12 @@ public class MultipartMvcRequest extends MvcRequest {
 	 * @param name the name of the file
 	 * @param content the content of the file
 	 */
-	public MultipartMvcRequest addFile(String name, byte[] content) {
+	public MultipartMockHttpServletRequestBuilder file(String name, byte[] content) {
 		files.add(new MockMultipartFile(name, content));
 		return this;
 	}
+
+    // TODO: add other file() variants (Resource, specifying content type, etc)
 	
 	@Override
 	protected final MockHttpServletRequest createServletRequest() {
