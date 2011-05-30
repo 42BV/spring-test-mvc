@@ -34,10 +34,11 @@ import org.springframework.util.MultiValueMap;
 
 /**
  * A command class to build and execute a request. Use methods on {@link MockMvc} to obtain a new {@link
- * DefaultMockHttpServletRequestBuilder} instance. Once obtained an {@link DefaultMockHttpServletRequestBuilder} can be
- * executed, modified, and executed again any number of times.
+ * DefaultMockHttpServletRequestBuilder} instance.
  */
-public class DefaultMockHttpServletRequestBuilder {
+public class DefaultMockHttpServletRequestBuilder implements MockHttpServletRequestBuilder {
+
+    private final ServletContext servletContext;
 
     private final URI uri;
 
@@ -63,7 +64,6 @@ public class DefaultMockHttpServletRequestBuilder {
 
     private Principal principal;
 
-    private final ServletContext servletContext;
 
     /** Use methods on {@link MockMvc} to obtain a new instance. */
     DefaultMockHttpServletRequestBuilder(ServletContext servletContext, URI uri, HttpMethod method) {
@@ -142,7 +142,7 @@ public class DefaultMockHttpServletRequestBuilder {
         return this;
     }
 
-    private MockHttpServletRequest buildRequest() {
+    public MockHttpServletRequest buildRequest() {
 
         MockHttpServletRequest request = createServletRequest();
 
