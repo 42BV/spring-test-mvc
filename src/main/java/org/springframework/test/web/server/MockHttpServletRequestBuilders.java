@@ -1,6 +1,9 @@
 package org.springframework.test.web.server;
 
+import java.net.URI;
+
 import org.springframework.http.HttpMethod;
+import org.springframework.web.util.UriTemplate;
 
 /** @author Arjen Poutsma */
 public abstract class MockHttpServletRequestBuilders {
@@ -25,13 +28,19 @@ public abstract class MockHttpServletRequestBuilders {
     }
 
     public static MultipartMockHttpServletRequestBuilder fileUpload(String urlTemplate, Object... urlVariables) {
-        return new MultipartMockHttpServletRequestBuilder();
+        URI url = expandUrl(urlTemplate, urlVariables);
+        return new MultipartMockHttpServletRequestBuilder(url);
     }
 
     public static DefaultMockHttpServletRequestBuilder request(HttpMethod method, String urlTemplate, Object... urlVariables) {
-        return null;
+        URI url = expandUrl(urlTemplate, urlVariables);
+        return new DefaultMockHttpServletRequestBuilder(url, method);
     }
 
+    private static URI expandUrl(String urlTemplate, Object[] urlVariables) {
+        UriTemplate uriTemplate = new UriTemplate(urlTemplate);
+        return uriTemplate.expand(urlVariables);
+    }
 
 
 }

@@ -38,8 +38,6 @@ import org.springframework.util.MultiValueMap;
  */
 public class DefaultMockHttpServletRequestBuilder implements MockHttpServletRequestBuilder {
 
-    private final ServletContext servletContext;
-
     private final URI uri;
 
     private final HttpMethod method;
@@ -64,12 +62,10 @@ public class DefaultMockHttpServletRequestBuilder implements MockHttpServletRequ
 
     private Principal principal;
 
-
     /** Use methods on {@link MockMvc} to obtain a new instance. */
-    DefaultMockHttpServletRequestBuilder(ServletContext servletContext, URI uri, HttpMethod method) {
+    DefaultMockHttpServletRequestBuilder(URI uri, HttpMethod method) {
         this.uri = uri;
         this.method = method;
-        this.servletContext = servletContext;
     }
 
     public DefaultMockHttpServletRequestBuilder param(String name, String value, String... values) {
@@ -142,9 +138,9 @@ public class DefaultMockHttpServletRequestBuilder implements MockHttpServletRequ
         return this;
     }
 
-    public MockHttpServletRequest buildRequest() {
+    public MockHttpServletRequest buildRequest(ServletContext servletContext) {
 
-        MockHttpServletRequest request = createServletRequest();
+        MockHttpServletRequest request = createServletRequest(servletContext);
 
         request.setMethod(method.name());
         request.setRequestURI(uri.toString());
@@ -179,7 +175,14 @@ public class DefaultMockHttpServletRequestBuilder implements MockHttpServletRequ
         return request;
     }
 
-    protected MockHttpServletRequest createServletRequest() {
+    /**
+     * Creates a new {@link MockHttpServletRequest} based on the given {@link ServletContext}. Can be overridden in
+     * subclasses.
+     *
+     * @param servletContext the servlet context to use
+     * @return the created mock request
+     */
+    protected MockHttpServletRequest createServletRequest(ServletContext servletContext) {
         return new MockHttpServletRequest(servletContext);
     }
 
