@@ -16,18 +16,11 @@
 
 package org.springframework.test.web.server.setup;
 
-import static org.springframework.test.web.server.matcher.MvcResultMatchers.contentType;
-import static org.springframework.test.web.server.matcher.MvcResultMatchers.forwardedUrl;
-import static org.springframework.test.web.server.matcher.MvcResultMatchers.responseBody;
-import static org.springframework.test.web.server.matcher.MvcResultMatchers.status;
-import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneMvcSetup;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.oxm.xstream.XStreamMarshaller;
 import org.springframework.stereotype.Controller;
@@ -41,6 +34,12 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.json.MappingJacksonJsonView;
 import org.springframework.web.servlet.view.xml.MarshallingView;
 
+import org.junit.Test;
+
+import static org.springframework.test.web.server.MockHttpServletRequestBuilders.get;
+import static org.springframework.test.web.server.matcher.MvcResultMatchers.*;
+import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneMvcSetup;
+
 /**
  * Scenarios for setting up view resolution with a {@link StandaloneMockMvcBuilder}.
  * 
@@ -52,7 +51,7 @@ public class ViewResolverStandaloneSetupTests {
 
 		standaloneMvcSetup(new TestController())
 			.setViewResolvers(new InternalResourceViewResolver()).build()
-				.get("/path").execute()
+				.perform(get("/path"))
 					.andExpect(status(200))
 					.andExpect(forwardedUrl("fruitsAndVegetables"));
 	}
@@ -62,7 +61,7 @@ public class ViewResolverStandaloneSetupTests {
 		
 		standaloneMvcSetup(new TestController())
 			.configureFixedViewResolver(new MappingJacksonJsonView()).build()
-				.get("/path").execute()
+				.perform(get("/path"))
 					.andExpect(status(200))
 					.andExpect(contentType("application/json"))
 					.andExpect(responseBody("{\"vegetable\":\"cucumber\",\"fruit\":\"kiwi\"}"));
@@ -91,20 +90,17 @@ public class ViewResolverStandaloneSetupTests {
 			.setViewResolvers(viewResolver, internalResourceViewResolver)
 			.build();
 
-		mockMvc.get("/path.json")
-			.execute()
+		mockMvc.perform(get("/path.json"))
 				.andExpect(status(200))
 				.andExpect(contentType("application/json"))
 				.andExpect(responseBody("{\"vegetable\":\"cucumber\",\"fruit\":\"kiwi\"}"));
 
-		mockMvc.get("/path.xml")
-			.execute()
+		mockMvc.perform(get("/path.xml"))
 				.andExpect(status(200))
 				.andExpect(contentType("application/xml"))
 				.andExpect(responseBody("<string>cucumber</string>"));	// First attribute
 		
-		mockMvc.get("/path")
-			.execute()
+		mockMvc.perform(get("/path"))
 				.andExpect(status(200))
 				.andExpect(forwardedUrl("fruitsAndVegetables"));
 	}

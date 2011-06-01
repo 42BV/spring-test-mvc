@@ -16,72 +16,57 @@
 
 package org.springframework.test.web.server;
 
-import java.net.URI;
-
 import javax.servlet.ServletContext;
 
-import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.web.util.UriTemplate;
 
-/**
- * <strong>Main entry point for server-side Spring MVC test support.</strong>
- * 
- */
+/** <strong>Main entry point for server-side Spring MVC test support.</strong> */
 public class MockMvc {
 
-	private final ServletContext servletContext;
-	
-	private final MockDispatcher mockDispatcher;
+    private final ServletContext servletContext;
 
-	private boolean mapOnly;
-	
-	/**
-	 * To create a {@link MockMvc} instance see methods in {@code MockMvcBuilders}.
-	 */
-	MockMvc(ServletContext servletContext, MockDispatcher mockDispatcher) {
-		this.servletContext = servletContext;
-		this.mockDispatcher = mockDispatcher;
-	}
+    private final MockDispatcher mockDispatcher;
 
-	/**
-	 * Enables a mode in which requests are mapped to a handler without actually invoking it afterwards.
-	 * Allows verifying the handler or handler method a request is mapped to.
-	 */
-	public MockMvc setMapOnly(boolean enable) {
-		this.mapOnly = enable;
-		return this;
-	}
+    private boolean mapOnly;
 
-	public MvcRequest get(String uriTemplate, Object...urlVariables) {
-		return request(HttpMethod.GET, uriTemplate, urlVariables);
-	}
+    /** To create a {@link MockMvc} instance see methods in {@code MockMvcBuilders}. */
+    MockMvc(ServletContext servletContext, MockDispatcher mockDispatcher) {
+        this.servletContext = servletContext;
+        this.mockDispatcher = mockDispatcher;
+    }
 
-	public MvcRequest post(String uriTemplate, Object...urlVariables) {
-		return request(HttpMethod.POST, uriTemplate, urlVariables);
-	}
+    /**
+     * Enables a mode in which requests are mapped to a handler without actually invoking it afterwards. Allows verifying
+     * the handler or handler method a request is mapped to.
+     */
+    public MockMvc setMapOnly(boolean enable) {
+        this.mapOnly = enable;
+        return this;
+    }
 
-	public MvcRequest put(String uriTemplate, Object...urlVariables) {
-		return request(HttpMethod.PUT, uriTemplate, urlVariables);
-	}
-	
-	public MvcRequest delete(String uriTemplate, Object...urlVariables) {
-		return request(HttpMethod.DELETE, uriTemplate, urlVariables);
-	}
+    /*
+    public static MockMvc createFromApplicationContext(ApplicationContext applicationContext) {
+        // TODO
+        return null;
+    }
 
-	public MvcRequest request(HttpMethod method, String uriTemplate, Object...urlVariables) {
-		URI uri= new UriTemplate(uriTemplate).expand(urlVariables);
-		return new MvcRequest(this, servletContext, uri, method);
-	}
+    public static MockMvc createFromWebXml(String webXmlFileName) {
+        // TODO
+        return null;
+    }
+    */
 
-	public MultipartMvcRequest multipartRequest(String uriTemplate, Object...urlVariables) {
-		URI uri= new UriTemplate(uriTemplate).expand(urlVariables);
-		return new MultipartMvcRequest(this, servletContext, uri);
-	}
+    // Perform
 
-	protected MvcResultActions execute(MockHttpServletRequest request, MockHttpServletResponse response) {
-		return mockDispatcher.dispatch(request, response, mapOnly);
-	}
-	
+    public MvcResultActions perform(MockHttpServletRequestBuilder requestBuilder) {
+        MockHttpServletRequest request = requestBuilder.buildRequest(servletContext);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        return execute(request, response);
+    }
+
+    protected MvcResultActions execute(MockHttpServletRequest request, MockHttpServletResponse response) {
+        return mockDispatcher.dispatch(request, response, mapOnly);
+    }
+
 }

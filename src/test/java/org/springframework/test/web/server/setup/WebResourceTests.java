@@ -16,21 +16,9 @@
 
 package org.springframework.test.web.server.setup;
 
-import static org.springframework.test.web.server.matcher.HandlerMatchers.handlerType;
-import static org.springframework.test.web.server.matcher.MvcResultMatchers.contentType;
-import static org.springframework.test.web.server.matcher.MvcResultMatchers.forwardedUrl;
-import static org.springframework.test.web.server.matcher.MvcResultMatchers.responseBodyContains;
-import static org.springframework.test.web.server.matcher.MvcResultMatchers.status;
-import static org.springframework.test.web.server.setup.MockMvcBuilders.annotationConfigMvcSetup;
-import static org.springframework.test.web.server.setup.MockMvcBuilders.xmlConfigMvcSetup;
-
 import java.util.Arrays;
 import java.util.Collection;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Controller;
@@ -45,6 +33,17 @@ import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
 import org.springframework.web.servlet.view.UrlBasedViewResolver;
 import org.springframework.web.servlet.view.tiles2.TilesConfigurer;
 import org.springframework.web.servlet.view.tiles2.TilesView;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+
+import static org.springframework.test.web.server.MockHttpServletRequestBuilders.get;
+import static org.springframework.test.web.server.matcher.HandlerMatchers.handlerType;
+import static org.springframework.test.web.server.matcher.MvcResultMatchers.*;
+import static org.springframework.test.web.server.setup.MockMvcBuilders.annotationConfigMvcSetup;
+import static org.springframework.test.web.server.setup.MockMvcBuilders.xmlConfigMvcSetup;
 
 /**
  * Test access to web application resources through the MockServletContext.
@@ -85,18 +84,16 @@ public class WebResourceTests {
 	public void testWebResources() {
 
 		// TilesView
-		mockMvc.get("/form").execute()
-			.andExpect(status(200))
-			.andExpect(forwardedUrl("/WEB-INF/layouts/main.jsp"));
+		mockMvc.perform(get("/form"))
+                .andExpect(status(200)).andExpect(forwardedUrl("/WEB-INF/layouts/main.jsp"));
 
-		mockMvc.get("/resources/Spring.js")
-			.execute()
+		mockMvc.perform(get("/resources/Spring.js"))
 				.andExpect(status(200))
 				.andExpect(handlerType(ResourceHttpRequestHandler.class))
 				.andExpect(contentType("application/octet-stream"))
 				.andExpect(responseBodyContains("Spring={};"));
 		
-		mockMvc.get("/unknown/resource.js").execute()
+		mockMvc.perform(get("/unknown/resource.js"))
 			.andExpect(status(200))
 			.andExpect(handlerType(DefaultServletHttpRequestHandler.class))
 			.andExpect(forwardedUrl("default"));
