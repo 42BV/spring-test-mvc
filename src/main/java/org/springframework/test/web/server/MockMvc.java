@@ -18,31 +18,34 @@ package org.springframework.test.web.server;
 
 import javax.servlet.ServletContext;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.util.Assert;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 
-/**
- * <strong>Main entry point for server-side Spring MVC test support.</strong>
- * 
- */
+/** <strong>Main entry point for server-side Spring MVC test support.</strong> */
 public class MockMvc {
 
-	private final ServletContext servletContext;
-	
-	private final MockDispatcher mockDispatcher;
+    private final ServletContext servletContext;
 
-	private boolean mapOnly;
-	
-	/**
-	 * To create a {@link MockMvc} instance see methods in {@code MockMvcBuilders}.
-	 */
-	private MockMvc(ServletContext servletContext, MockDispatcher mockDispatcher) {
-		this.servletContext = servletContext;
-		this.mockDispatcher = mockDispatcher;
-	}
+    private final MockDispatcher mockDispatcher;
 
-    // Factory methods
+    private boolean mapOnly;
 
+    /** To create a {@link MockMvc} instance see methods in {@code MockMvcBuilders}. */
+    MockMvc(ServletContext servletContext, MockDispatcher mockDispatcher) {
+        this.servletContext = servletContext;
+        this.mockDispatcher = mockDispatcher;
+    }
+
+    /**
+     * Enables a mode in which requests are mapped to a handler without actually invoking it afterwards. Allows verifying
+     * the handler or handler method a request is mapped to.
+     */
+    public MockMvc setMapOnly(boolean enable) {
+        this.mapOnly = enable;
+        return this;
+    }
+
+    /*
     public static MockMvc createFromApplicationContext(ApplicationContext applicationContext) {
         // TODO
         return null;
@@ -52,13 +55,18 @@ public class MockMvc {
         // TODO
         return null;
     }
+    */
 
     // Perform
 
     public MvcResultActions perform(MockHttpServletRequestBuilder requestBuilder) {
-        Assert.notNull(requestBuilder, "'requestBuilder' must not be null");
-        // TODO
-        return null;
+        MockHttpServletRequest request = requestBuilder.buildRequest(servletContext);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        return execute(request, response);
+    }
+
+    protected MvcResultActions execute(MockHttpServletRequest request, MockHttpServletResponse response) {
+        return mockDispatcher.dispatch(request, response, mapOnly);
     }
 
 }
