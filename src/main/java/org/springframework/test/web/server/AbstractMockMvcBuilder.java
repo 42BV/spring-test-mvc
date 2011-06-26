@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.servlet.ServletContext;
 
+import org.springframework.util.Assert;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.HandlerAdapter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
@@ -30,7 +31,7 @@ import org.springframework.web.servlet.RequestToViewNameTranslator;
 import org.springframework.web.servlet.ViewResolver;
 
 /**
- * A base class that supports assembling an {@link MvcSetup} to build a {@link MockMvc} instance.
+ * A base class that supports assembling an {@link MockMvcSetup} to build a {@link MockMvc} instance.
  *
  */
 public abstract class AbstractMockMvcBuilder {
@@ -53,7 +54,9 @@ public abstract class AbstractMockMvcBuilder {
 
 		applicationContext = initApplicationContext();
 		ServletContext servletContext = applicationContext.getServletContext();
-
+		
+		Assert.notNull(servletContext, "The WebApplicationContext must be initialized with a ServletContext.");
+		
 		String name = WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE;
 		servletContext.setAttribute(name, applicationContext);
 
@@ -64,12 +67,16 @@ public abstract class AbstractMockMvcBuilder {
 		viewNameTranslator = initViewNameTranslator();
 		localeResolver = initLocaleResolver();
 		
-		MvcSetup mvcSetup = createMvcSetup();
-		MockDispatcher mockDispatcher = new MockDispatcher(mvcSetup);
-		
-		return new MockMvc(servletContext, mockDispatcher);
+		return new MockMvc(servletContext, createMvcSetup());
 	}
 
+	/**
+	 * Returns the WebApplicationContext to use when executing requests. Whether the context contains the
+	 * all the application configuration or is just an empty placeholder is up to individual sub-classes.
+	 * 
+	 * <p>The returned WebApplicationContext must be initialized with a {@link ServletContext} instance.
+	 * 
+	 */
 	protected abstract WebApplicationContext initApplicationContext();
 
 	protected abstract List<? extends HandlerMapping> initHandlerMappings();
@@ -84,9 +91,9 @@ public abstract class AbstractMockMvcBuilder {
 
 	protected abstract LocaleResolver initLocaleResolver();
 
-	private MvcSetup createMvcSetup() {
+	private MockMvcSetup createMvcSetup() {
 		
-		return new MvcSetup() {
+		return new MockMvcSetup() {
 
 			public List<HandlerMapping> getHandlerMappings() {
 				return handlerMappings;

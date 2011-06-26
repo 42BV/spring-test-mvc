@@ -16,20 +16,15 @@
 
 package org.springframework.test.web.server;
 
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.web.servlet.ModelAndView;
 
 /**
- * Defines a match operation on the results of a processed request.
+ * Print action.
+ * 
+ * @author Rossen Stoyanchev
  * 
  */
-public interface MvcResultMatcher {
+public interface MockMvcResultPrinter {
 
-	void match(MockHttpServletRequest request, 
-			   MockHttpServletResponse response, 
-			   Object handler, 
-			   Exception handlerException, 
-			   ModelAndView mav);
+	void print(MockMvcResult result);
 
 }

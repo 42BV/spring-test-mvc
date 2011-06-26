@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.test.web.server;
+package org.springframework.test.web.server.request;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -26,6 +26,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockMultipartHttpServletRequest;
+import org.springframework.test.web.server.MockHttpServletRequestBuilder;
 
 /**
  * Implementation of the {@link MockHttpServletRequestBuilder} interface that provides access to multipart requests.

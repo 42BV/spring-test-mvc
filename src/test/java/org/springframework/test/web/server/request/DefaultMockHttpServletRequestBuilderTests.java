@@ -1,4 +1,4 @@
-package org.springframework.test.web.server;
+package org.springframework.test.web.server.request;
 
 import java.net.URI;
 import java.security.Principal;
@@ -13,6 +13,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockServletContext;
+import org.springframework.test.web.server.request.DefaultMockHttpServletRequestBuilder;
 import org.springframework.util.FileCopyUtils;
 
 import org.junit.Before;

@@ -16,12 +16,8 @@
 
 package org.springframework.test.web.server.setup;
 
-import static org.springframework.test.web.server.MockHttpServletRequestBuilders.get;
-import static org.springframework.test.web.server.matcher.HandlerMatchers.handlerType;
-import static org.springframework.test.web.server.matcher.MvcResultMatchers.contentType;
-import static org.springframework.test.web.server.matcher.MvcResultMatchers.forwardedUrl;
-import static org.springframework.test.web.server.matcher.MvcResultMatchers.responseBodyContains;
-import static org.springframework.test.web.server.matcher.MvcResultMatchers.status;
+import static org.springframework.test.web.server.request.MockHttpServletRequestBuilders.get;
+import static org.springframework.test.web.server.result.MockMvcResultActions.*;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.annotationConfigMvcSetup;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.xmlConfigMvcSetup;
 
@@ -87,22 +83,23 @@ public class WebApplicationResourceAccessTests {
 
 		// TilesView
 		mockMvc.perform(get("/form"))
-                .andExpect(status(200)).andExpect(forwardedUrl("/WEB-INF/layouts/main.jsp"));
+                .andExpect(response().status(200))
+                .andExpect(response().forwardedUrl("/WEB-INF/layouts/main.jsp"));
 
 		mockMvc.perform(get("/resources/Spring.js"))
-				.andExpect(status(200))
-				.andExpect(handlerType(ResourceHttpRequestHandler.class))
-				.andExpect(contentType("application/octet-stream"))
-				.andExpect(responseBodyContains("Spring={};"));
+				.andExpect(response().status(200))
+				.andExpect(controller().controllerType(ResourceHttpRequestHandler.class))
+				.andExpect(response().contentType("application/octet-stream"))
+				.andExpect(response().responseBodyContains("Spring={};"));
 		
 		mockMvc.perform(get("/unknown/resource.js"))
-			.andExpect(status(200))
-			.andExpect(handlerType(DefaultServletHttpRequestHandler.class))
-			.andExpect(forwardedUrl("default"));
+			.andExpect(response().status(200))
+			.andExpect(controller().controllerType(DefaultServletHttpRequestHandler.class))
+			.andExpect(response().forwardedUrl("default"));
 	}
 	
 	@Controller
-	static class TestController {
+	public static class TestController {
 
 		@RequestMapping("/form")
 		public void show() {

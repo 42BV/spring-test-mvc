@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.test.web.server;
+package org.springframework.test.web.server.request;
 
 import java.net.URI;
 import java.security.Principal;
@@ -28,6 +28,8 @@ import javax.servlet.http.Cookie;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.test.web.server.MockHttpServletRequestBuilder;
+import org.springframework.test.web.server.MockMvc;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;

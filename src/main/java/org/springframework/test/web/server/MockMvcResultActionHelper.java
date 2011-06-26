@@ -16,17 +16,21 @@
 
 package org.springframework.test.web.server;
 
-
-
 /**
- * Allows setting up actions against the results of a processed request via method chaining. 
+ * Helps to define actions on the result of an executed MockMvc request.
+ * 
+ * @author Rossen Stoyanchev
  */
-public interface MvcResultActions {
+public interface MockMvcResultActionHelper {
 
 	/**
-	 * Define an expectation about the results from a processed request.
-	 * See methods in {@code MvcResultMatchers} for most commonly used {@link MvcResultMatcher}s.
+	 * TODO
 	 */
-	MvcResultActions andExpect(MvcResultMatcher matcher);
+	MockMvcResultActionHelper andExpect(MockMvcResultMatcher matcher);
+
+	/**
+	 * TODO
+	 */
+	void andPrintDebugInfo(MockMvcResultPrinter printer);
 
 }

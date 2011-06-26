@@ -26,6 +26,6 @@
 	</beans:bean>
 
 	<beans:bean id="testController"
-		class="org.springframework.test.web.server.setup.WebResourceTests.TestController"/>
+		class="org.springframework.test.web.server.setup.WebApplicationResourceAccessTests.TestController"/>
 
 </beans:beans>

@@ -26,10 +26,10 @@ import org.springframework.web.servlet.RequestToViewNameTranslator;
 import org.springframework.web.servlet.ViewResolver;
 
 /**
- * Provides access to Spring MVC infrastructure components.  
+ * Exposes Spring MVC components required to execute a MockMvc request.  
  * 
  */
-public interface MvcSetup {
+public interface MockMvcSetup {
 
 	List<HandlerMapping> getHandlerMappings();
 

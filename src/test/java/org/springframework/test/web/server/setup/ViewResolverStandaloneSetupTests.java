@@ -36,8 +36,8 @@ import org.springframework.web.servlet.view.xml.MarshallingView;
 
 import org.junit.Test;
 
-import static org.springframework.test.web.server.MockHttpServletRequestBuilders.get;
-import static org.springframework.test.web.server.matcher.MvcResultMatchers.*;
+import static org.springframework.test.web.server.request.MockHttpServletRequestBuilders.get;
+import static org.springframework.test.web.server.result.MockMvcResultActions.*;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneMvcSetup;
 
 /**
@@ -52,8 +52,8 @@ public class ViewResolverStandaloneSetupTests {
 		standaloneMvcSetup(new TestController())
 			.setViewResolvers(new InternalResourceViewResolver()).build()
 				.perform(get("/path"))
-					.andExpect(status(200))
-					.andExpect(forwardedUrl("fruitsAndVegetables"));
+					.andExpect(response().status(200))
+					.andExpect(response().forwardedUrl("fruitsAndVegetables"));
 	}
 
 	@Test 
@@ -62,9 +62,9 @@ public class ViewResolverStandaloneSetupTests {
 		standaloneMvcSetup(new TestController())
 			.configureFixedViewResolver(new MappingJacksonJsonView()).build()
 				.perform(get("/path"))
-					.andExpect(status(200))
-					.andExpect(contentType("application/json"))
-					.andExpect(responseBody("{\"vegetable\":\"cucumber\",\"fruit\":\"kiwi\"}"));
+					.andExpect(response().status(200))
+					.andExpect(response().contentType("application/json"))
+					.andExpect(response().body("{\"vegetable\":\"cucumber\",\"fruit\":\"kiwi\"}"));
 	}
 	
 	@Test
@@ -91,22 +91,22 @@ public class ViewResolverStandaloneSetupTests {
 			.build();
 
 		mockMvc.perform(get("/path.json"))
-				.andExpect(status(200))
-				.andExpect(contentType("application/json"))
-				.andExpect(responseBody("{\"vegetable\":\"cucumber\",\"fruit\":\"kiwi\"}"));
+				.andExpect(response().status(200))
+				.andExpect(response().contentType("application/json"))
+				.andExpect(response().body("{\"vegetable\":\"cucumber\",\"fruit\":\"kiwi\"}"));
 
 		mockMvc.perform(get("/path.xml"))
-				.andExpect(status(200))
-				.andExpect(contentType("application/xml"))
-				.andExpect(responseBody("<string>cucumber</string>"));	// First attribute
+				.andExpect(response().status(200))
+				.andExpect(response().contentType("application/xml"))
+				.andExpect(response().body("<string>cucumber</string>"));	// First attribute
 		
 		mockMvc.perform(get("/path"))
-				.andExpect(status(200))
-				.andExpect(forwardedUrl("fruitsAndVegetables"));
+				.andExpect(response().status(200))
+				.andExpect(response().forwardedUrl("fruitsAndVegetables"));
 	}
 
 	@Controller
-	public class TestController {
+	class TestController {
 
 		@RequestMapping("/path")
 		public String handle(Model model) {

@@ -20,19 +20,19 @@ public class MockMvcBuilders {
 	}
 
 	/**
-	 * Create  a {@link ConfigurableContextMockMvcBuilder} from Spring Java-based configuration. 
+	 * Create  a {@link ContextMockMvcBuilder} from Spring Java-based configuration. 
 	 * 
-	 * @param configurationClasses @{@link Configuration} classes to use to create a WebApplicationContext
+	 * @param configClasses @{@link Configuration} classes to use to create a WebApplicationContext
 	 */
-	public static ConfigurableContextMockMvcBuilder annotationConfigMvcSetup(Class<?>...configurationClasses) {
-		Assert.notEmpty(configurationClasses, "At least one @Configuration class is required");
+	public static ContextMockMvcBuilder annotationConfigMvcSetup(Class<?>...configClasses) {
+		Assert.notEmpty(configClasses, "At least one @Configuration class is required");
 		AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
-		context.register(configurationClasses);
-		return new ConfigurableContextMockMvcBuilder(context);
+		context.register(configClasses);
+		return new ContextMockMvcBuilder(context);
 	}
 	
 	/**
-	 * Create a {@link ConfigurableContextMockMvcBuilder} from Spring XML configuration. 
+	 * Create a {@link ContextMockMvcBuilder} from Spring XML configuration. 
 	 * 
 	 * @param configLocations XML configuration file locations<br>For example:
 	 * <ul>
@@ -40,21 +40,19 @@ public class MockMvcBuilders {
 	 * 	<li>{@code file:src/main/webapp/WEB-INF/config/*-context.xml}
 	 * </ul>
 	 */
-	public static ConfigurableContextMockMvcBuilder xmlConfigMvcSetup(String...configLocations) {
+	public static ContextMockMvcBuilder xmlConfigMvcSetup(String...configLocations) {
 		Assert.notEmpty(configLocations, "At least one XML config location is required");
 		XmlWebApplicationContext context = new XmlWebApplicationContext();
 		context.setConfigLocations(configLocations);
-		return new ConfigurableContextMockMvcBuilder(context);
+		return new ContextMockMvcBuilder(context);
 	}
 
 	/**
-	 * Bulid a {@link MockMvc} from a fully initialized {@link WebApplicationContext}. 
+	 * Build a {@link MockMvc} from a fully initialized {@link WebApplicationContext}. 
 	 * This may be useful if you already have a context initialized through the Spring TestContext framework.
 	 */
-	public static ContextMockMvcBuilder applicationContextMvcSetup(WebApplicationContext applicationContext) {
-		Assert.notNull(applicationContext, "WebApplicationContext is required");
-		Assert.notNull(applicationContext.getServletContext(), "WebApplicationContext must have a ServletContext");
-		return new ContextMockMvcBuilder(applicationContext);
+	public static AbstractContextMockMvcBuilder applicationContextMvcSetup(WebApplicationContext context) {
+		return new InitializedContextMockMvcBuilder(context);
 	}
 
 }

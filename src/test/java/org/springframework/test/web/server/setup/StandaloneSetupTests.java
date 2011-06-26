@@ -16,16 +16,15 @@
 
 package org.springframework.test.web.server.setup;
 
+import static org.springframework.test.web.server.request.MockHttpServletRequestBuilders.get;
+import static org.springframework.test.web.server.result.MockMvcResultActions.response;
+import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneMvcSetup;
+
+import org.junit.Test;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.web.server.MockMvc;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import org.junit.Test;
-
-import static org.springframework.test.web.server.MockHttpServletRequestBuilders.get;
-import static org.springframework.test.web.server.matcher.MvcResultMatchers.*;
-import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneMvcSetup;
 
 public class StandaloneSetupTests {
 
@@ -35,9 +34,9 @@ public class StandaloneSetupTests {
 		MockMvc mockMvc = standaloneMvcSetup(new TestController()).build();
 		
 		mockMvc.perform(get("/path"))
-				.andExpect(status(200))
-				.andExpect(contentType("text/plain;charset=ISO-8859-1"))
-				.andExpect(responseBody("Mapped by path!"));
+				.andExpect(response().status(200))
+				.andExpect(response().contentType("text/plain;charset=ISO-8859-1"))
+				.andExpect(response().body("Mapped by path!"));
 	}	
 
 	@Controller

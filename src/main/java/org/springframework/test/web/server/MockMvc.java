@@ -26,14 +26,14 @@ public class MockMvc {
 
     private final ServletContext servletContext;
 
-    private final MockDispatcher mockDispatcher;
+    private final MockMvcSetup mvcSetup;
 
     private boolean mapOnly;
 
     /** To create a {@link MockMvc} instance see methods in {@code MockMvcBuilders}. */
-    MockMvc(ServletContext servletContext, MockDispatcher mockDispatcher) {
+    MockMvc(ServletContext servletContext, MockMvcSetup mvcSetup) {
         this.servletContext = servletContext;
-        this.mockDispatcher = mockDispatcher;
+        this.mvcSetup = mvcSetup;
     }
 
     /**
@@ -59,14 +59,25 @@ public class MockMvc {
 
     // Perform
 
-    public MvcResultActions perform(MockHttpServletRequestBuilder requestBuilder) {
-        MockHttpServletRequest request = requestBuilder.buildRequest(servletContext);
+    public MockMvcResultActionHelper perform(MockHttpServletRequestBuilder requestBuilder) {
+        
+    	MockHttpServletRequest request = requestBuilder.buildRequest(servletContext);
         MockHttpServletResponse response = new MockHttpServletResponse();
-        return execute(request, response);
-    }
+        
+        final MockMvcResult result = MockMvcDispatcher.dispatch(request, response, mvcSetup, mapOnly);
+		
+        return new MockMvcResultActionHelper() {
+			
+			public MockMvcResultActionHelper andExpect(MockMvcResultMatcher matcher) {
+				matcher.match(result);
+				return this;
+			}
 
-    protected MvcResultActions execute(MockHttpServletRequest request, MockHttpServletResponse response) {
-        return mockDispatcher.dispatch(request, response, mapOnly);
+			public void andPrintDebugInfo(MockMvcResultPrinter printer) {
+				printer.print(result);
+			}
+			
+		};
     }
 
 }

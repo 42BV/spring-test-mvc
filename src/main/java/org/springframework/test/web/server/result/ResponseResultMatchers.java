@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.test.web.server.matcher;
+package org.springframework.test.web.server.result;
 
 import static org.springframework.test.web.AssertionErrors.assertEquals;
 import static org.springframework.test.web.AssertionErrors.assertTrue;
-import static org.springframework.test.web.AssertionErrors.fail;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -27,27 +26,23 @@ import java.util.Map;
 
 import javax.servlet.http.Cookie;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.AssertionErrors;
-import org.springframework.test.web.server.MvcResultMatcher;
+import org.springframework.test.web.server.MockMvcResultMatcher;
+import org.springframework.test.web.server.MockMvcResult;
 import org.springframework.util.StringUtils;
-import org.springframework.web.servlet.ModelAndView;
 
 /**
- * Matchers for assertions on a {@link MockHttpServletResponse}.
+ * Response-related matchers
  *
+ * @author Rossen Stoyanchev
  */
-public abstract class MockResponseMatchers {
+public class ResponseResultMatchers {
 	
-	private static final Log logger = LogFactory.getLog(MockResponseMatchers.class);
-
-	private MockResponseMatchers() {
+	ResponseResultMatchers() {
 	}
 
-	public static MvcResultMatcher status(final int status) {
+	public MockMvcResultMatcher status(final int status) {
 		return new MockResponseResultMatcher() {
 			protected void matchMockResponse(MockHttpServletResponse response) {
 				assertEquals("Status", status, response.getStatus());
@@ -55,7 +50,7 @@ public abstract class MockResponseMatchers {
 		};
 	}
 
-	public static MvcResultMatcher errorMessage(final String errorMessage) {
+	public MockMvcResultMatcher errorMessage(final String errorMessage) {
 		return new MockResponseResultMatcher() {
 			protected void matchMockResponse(MockHttpServletResponse response) {
 				assertEquals("Error message", errorMessage, response.getErrorMessage());
@@ -63,9 +58,10 @@ public abstract class MockResponseMatchers {
 		};
 	}
 
-	public static MvcResultMatcher contentType(final String contentType) {
-		return new MvcResultMatcher() {
-			public void match(MockHttpServletRequest rq, MockHttpServletResponse response, Object h, Exception e, ModelAndView mav) {
+	public MockMvcResultMatcher contentType(final String contentType) {
+		return new MockMvcResultMatcher() {
+			public void match(MockMvcResult result) {
+				MockHttpServletResponse response = result.getResponse();
 				if (StringUtils.hasText(response.getContentType())) {
 					assertEquals("Content type", contentType, response.getContentType());
 				}
@@ -77,7 +73,7 @@ public abstract class MockResponseMatchers {
 		};
 	}
 
-	public static MvcResultMatcher responseBody(final String content) {
+	public MockMvcResultMatcher body(final String content) {
 		return new MockResponseResultMatcher() {
 			protected void matchMockResponse(MockHttpServletResponse response) throws UnsupportedEncodingException {
 				assertEquals("Response body", content, response.getContentAsString());
@@ -85,7 +81,7 @@ public abstract class MockResponseMatchers {
 		};
 	}
 
-	public static MvcResultMatcher responseBodyContains(final String text) {
+	public MockMvcResultMatcher responseBodyContains(final String text) {
 		return new MockResponseResultMatcher() {
 			protected void matchMockResponse(MockHttpServletResponse response) throws UnsupportedEncodingException {
 				String body = response.getContentAsString();
@@ -94,7 +90,7 @@ public abstract class MockResponseMatchers {
 		};
 	}
 
-	public static MvcResultMatcher responseBodyAsByteArray(final byte[] content) {
+	public MockMvcResultMatcher responseBodyAsByteArray(final byte[] content) {
 		return new MockResponseResultMatcher() {
 			protected void matchMockResponse(MockHttpServletResponse response) {
 				assertEquals("Response body", content, response.getContentAsByteArray());
@@ -102,7 +98,7 @@ public abstract class MockResponseMatchers {
 		};
 	}
 
-	public static MvcResultMatcher forwardedUrl(final String forwardUrl) {
+	public MockMvcResultMatcher forwardedUrl(final String forwardUrl) {
 		return new MockResponseResultMatcher() {
 			protected void matchMockResponse(MockHttpServletResponse response) {
 				assertEquals("Forwarded URL", forwardUrl, response.getForwardedUrl());
@@ -110,7 +106,7 @@ public abstract class MockResponseMatchers {
 		};
 	}
 
-	public static MvcResultMatcher redirectedUrl(final String redirectUrl) {
+	public MockMvcResultMatcher redirectedUrl(final String redirectUrl) {
 		return new MockResponseResultMatcher() {
 			protected void matchMockResponse(MockHttpServletResponse response) {
 				assertEquals("Redirected URL", redirectUrl, response.getRedirectedUrl());
@@ -118,7 +114,7 @@ public abstract class MockResponseMatchers {
 		};
 	}
 	
-	public static MvcResultMatcher headersPresent(final String...headerNames) {
+	public MockMvcResultMatcher headersPresent(final String...headerNames) {
 		return new MockResponseResultMatcher() {
 			protected void matchMockResponse(MockHttpServletResponse response) {
 				AssertionErrors.assertNameValuesPresent("Response header", getHeaderValueMap(response), headerNames);
@@ -126,7 +122,7 @@ public abstract class MockResponseMatchers {
 		};
 	}
 	
-	public static MvcResultMatcher headersNotPresent(final String...headerNames) {
+	public MockMvcResultMatcher headersNotPresent(final String...headerNames) {
 		return new MockResponseResultMatcher() {
 			protected void matchMockResponse(MockHttpServletResponse response) {
 				AssertionErrors.assertNameValuesNotPresent("Response header", getHeaderValueMap(response), headerNames);
@@ -134,7 +130,7 @@ public abstract class MockResponseMatchers {
 		};
 	}
 
-	public static MvcResultMatcher headerValue(final String headerName, final Object headerValue) {
+	public MockMvcResultMatcher headerValue(final String headerName, final Object headerValue) {
 		return new MockResponseResultMatcher() {
 			protected void matchMockResponse(MockHttpServletResponse response) {
 				assertEquals("Response header", headerValue, response.getHeader(headerName));
@@ -142,7 +138,7 @@ public abstract class MockResponseMatchers {
 		};
 	}
 
-	public static MvcResultMatcher headerValueContains(final String headerName, final String text) {
+	public MockMvcResultMatcher headerValueContains(final String headerName, final String text) {
 		return new MockResponseResultMatcher() {
 			protected void matchMockResponse(MockHttpServletResponse response) {
 				AssertionErrors.assertNameValuesPresent("Response header", getHeaderValueMap(response), headerName);
@@ -154,7 +150,7 @@ public abstract class MockResponseMatchers {
 		};
 	}
 
-	public static MvcResultMatcher cookiesPresent(final String...names) {
+	public MockMvcResultMatcher cookiesPresent(final String...names) {
 		return new MockResponseResultMatcher() {
 			protected void matchMockResponse(MockHttpServletResponse response) {
 				AssertionErrors.assertNameValuesPresent("Response cookie", getCookieValueMap(response), names);
@@ -162,7 +158,7 @@ public abstract class MockResponseMatchers {
 		};
 	}
 	
-	public static MvcResultMatcher cookiesNotPresent(final String...names) {
+	public MockMvcResultMatcher cookiesNotPresent(final String...names) {
 		return new MockResponseResultMatcher() {
 			protected void matchMockResponse(MockHttpServletResponse response) {
 				AssertionErrors.assertNameValuesNotPresent("Response cookie", getCookieValueMap(response), names);
@@ -170,7 +166,7 @@ public abstract class MockResponseMatchers {
 		};
 	}
 
-	public static MvcResultMatcher cookieValue(final String name, final String value) {
+	public MockMvcResultMatcher cookieValue(final String name, final String value) {
 		return new MockResponseResultMatcher() {
 			protected void matchMockResponse(MockHttpServletResponse response) {
 				assertEquals("Response cookie", value, response.getCookie(name).getValue());
@@ -178,7 +174,7 @@ public abstract class MockResponseMatchers {
 		};
 	}
 
-	public static MvcResultMatcher cookieValueContains(final String cookieName, final String text) {
+	public MockMvcResultMatcher cookieValueContains(final String cookieName, final String text) {
 		return new MockResponseResultMatcher() {
 			protected void matchMockResponse(MockHttpServletResponse response) {
 				AssertionErrors.assertNameValuesPresent("Response cookie", getCookieValueMap(response), cookieName);
@@ -205,18 +201,14 @@ public abstract class MockResponseMatchers {
 		return cookies;
 	}
 
-	private static abstract class MockResponseResultMatcher implements MvcResultMatcher {
+	private static abstract class MockResponseResultMatcher implements MockMvcResultMatcher {
 		
-		public void match(MockHttpServletRequest request, 
-						  MockHttpServletResponse response, 
-						  Object handler, 
-						  Exception handlerException,
-						  ModelAndView mav) {
+		public void match(MockMvcResult result) {
 			try {
-				matchMockResponse(response);
+				matchMockResponse(result.getResponse());
 			} catch (IOException e) {
-				logger.error(e.getMessage(), e);
-				fail("Failed mock response expectation: " + e.getMessage());
+				e.printStackTrace();
+				AssertionErrors.fail("Failed mock response expectation: " + e.getMessage());
 			}
 		}
 		

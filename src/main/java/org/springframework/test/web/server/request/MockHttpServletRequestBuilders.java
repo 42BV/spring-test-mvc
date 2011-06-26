@@ -1,4 +1,4 @@
-package org.springframework.test.web.server;
+package org.springframework.test.web.server.request;
 
 import java.net.URI;
 
