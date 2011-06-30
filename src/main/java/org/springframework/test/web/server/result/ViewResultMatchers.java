@@ -33,7 +33,7 @@ public class ViewResultMatchers {
 	ViewResultMatchers() {
 	}
 
-	public MockMvcResultMatcher viewName(final String viewName) {
+	public MockMvcResultMatcher name(final String viewName) {
 		return new MockMvcResultMatcher() {
 			public void match(MockMvcResult result) {
 				ModelAndView mav = result.getModelAndView();
