@@ -16,21 +16,20 @@
 
 package org.springframework.test.web.server;
 
-import static org.springframework.test.web.AssertionErrors.assertTrue;
-import static org.springframework.test.web.server.request.MockHttpServletRequestBuilders.get;
-import static org.springframework.test.web.server.result.MockMvcResultActions.controller;
+import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.server.result.MockMvcResultActions.console;
 import static org.springframework.test.web.server.result.MockMvcResultActions.response;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneMvcSetup;
 
 import org.junit.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- * TODO
- *
+ * Test fixture for {@link MockDispatcher} tests.
  */
 public class MockDispatcherTests {
 	
@@ -39,34 +38,14 @@ public class MockDispatcherTests {
 		MockMvc mockMvc = standaloneMvcSetup(new TestController()).build();
 		
 		mockMvc.perform(get("/exception").param("succeed", "true"))
-                .andExpect(response().status(200))
-                .andExpect(response().body("Ok"));
+                .andExpect(response().status(HttpStatus.OK))
+                .andExpect(response().body("Ok")).andPrintTo(console());
 		
 		mockMvc.perform(get("/exception").param("succeed", "false"))
-			.andExpect(response().status(200))
+			.andExpect(response().status(HttpStatus.OK))
 			.andExpect(response().body("Exception handled"));
 	}
 
-	@Test
-	public void mapOnly() {
-		MockMvc mockMvc = standaloneMvcSetup(new TestController()).build();
-		
-		mockMvc.setMapOnly(true)
-			.perform(get("/exception").param("succeed", "true"))
-				.andExpect(response().status(200))
-				.andExpect(controller().method(TestController.class, "exception", boolean.class))
-				.andExpect(new MockMvcResultMatcher() {
-                    public void match(MockMvcResult mvcResult) {
-                        assertTrue("ModelAndView should be null", mvcResult.getModelAndView() == null);
-                    }
-                });
-
-		mockMvc.setMapOnly(false)
-			.perform(get("/exception").param("succeed", "true"))
-				.andExpect(response().status(200))
-				.andExpect(response().body("Ok"));
-	}
-	
 	@SuppressWarnings("unused")
 	@Controller
 	private static class TestController {

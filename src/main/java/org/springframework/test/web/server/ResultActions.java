@@ -17,20 +17,26 @@
 package org.springframework.test.web.server;
 
 /**
- * Helps to define actions on the result of an executed MockMvc request.
+ * Expose the result of an executed Spring MVC request to allow setting up match 
+ * expectations with {@link ResultMatcher}s or to print with {@link ResultPrinter}s.
+ * 
+ * <p>Access all available result matchers and printers through:
+ * {@code org.springframework.test.web.server.result.MockMvcResultActions}.
  * 
  * @author Rossen Stoyanchev
  */
-public interface MockMvcResultActionHelper {
+public interface ResultActions {
 
 	/**
-	 * TODO
+	 * Invoke a {@link ResultMatcher} to assert the result of an executed Spring MVC request.
+	 * @param matcher the matcher to invoke
 	 */
-	MockMvcResultActionHelper andExpect(MockMvcResultMatcher matcher);
+	ResultActions andExpect(ResultMatcher matcher);
 
 	/**
-	 * TODO
+	 * Invoke a {@link ResultPrinter} to print the result of an executed Spring MVC request.
+	 * @param printer the printer to invoke
 	 */
-	void andPrintDebugInfo(MockMvcResultPrinter printer);
+	void andPrintTo(ResultPrinter printer);
 
 }

@@ -20,63 +20,84 @@ import javax.servlet.ServletContext;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
 
-/** <strong>Main entry point for server-side Spring MVC test support.</strong> */
+/**
+ * <strong>Main entry point for server-side Spring MVC test support.</strong> 
+ *  
+ * <p>Example:
+ * <pre>
+ *  // Static imports: 
+ *  // MockMvcBuilders.*, MockMvcRequestBuilders.*, and MockMvcResultActions.*
+ * 
+ *  MockMvc mockMvc = 
+ *      annotationConfigMvcSetup(TestConfiguration.class)
+ *          .configureWarRootDir("src/main/webapp", false).build()
+ *  
+ *  mockMvc.perform(get("/form"))
+ *      .andExpect(response().status(HttpStatus.OK))
+ *      .andExpect(response().forwardedUrl("/WEB-INF/layouts/main.jsp"));
+ *      
+ *  mockMvc.perform(post("/form")).andPrintTo(console());
+ *      
+ * </pre> 
+ * 
+ *  
+ * @author Rossen Stoyanchev
+ *  
+ * @see org.springframework.test.web.server.setup.MockMvcBuilders
+ * @see org.springframework.test.web.server.request.MockMvcRequestBuilders
+ * @see org.springframework.test.web.server.result.MockMvcResultActions
+ */
 public class MockMvc {
 
     private final ServletContext servletContext;
 
-    private final MockMvcSetup mvcSetup;
+    private final MvcSetup mvcSetup;
 
-    private boolean mapOnly;
-
-    /** To create a {@link MockMvc} instance see methods in {@code MockMvcBuilders}. */
-    MockMvc(ServletContext servletContext, MockMvcSetup mvcSetup) {
+    /** 
+     * Protected constructor. See all available {@link MockMvc} builders in:
+     * {@code org.springframework.test.web.server.setup.MockMvcBuilders}
+     */
+    protected MockMvc(ServletContext servletContext, MvcSetup mvcSetup) {
         this.servletContext = servletContext;
         this.mvcSetup = mvcSetup;
     }
 
     /**
-     * Enables a mode in which requests are mapped to a handler without actually invoking it afterwards. Allows verifying
-     * the handler or handler method a request is mapped to.
+     * Perform a request after building it with the provided {@link RequestBuilder} and 
+     * then allow for expectations and other actions to be set up against the results.
+     * 
+	 * <p>See all available request builders in:
+	 * {@code org.springframework.test.web.server.request.MockMvcRequestBuilders}.
+	 * 
+	 * <p>See all available result actions in:
+	 * {@code org.springframework.test.web.server.result.MockMvcResultActions}.
      */
-    public MockMvc setMapOnly(boolean enable) {
-        this.mapOnly = enable;
-        return this;
-    }
-
-    /*
-    public static MockMvc createFromApplicationContext(ApplicationContext applicationContext) {
-        // TODO
-        return null;
-    }
-
-    public static MockMvc createFromWebXml(String webXmlFileName) {
-        // TODO
-        return null;
-    }
-    */
-
-    // Perform
-
-    public MockMvcResultActionHelper perform(MockHttpServletRequestBuilder requestBuilder) {
+    public ResultActions perform(RequestBuilder requestBuilder) {
         
-    	MockHttpServletRequest request = requestBuilder.buildRequest(servletContext);
-        MockHttpServletResponse response = new MockHttpServletResponse();
+    	final MockHttpServletRequest request = requestBuilder.buildRequest(this.servletContext);
+        final MockHttpServletResponse response = new MockHttpServletResponse();
         
-        final MockMvcResult result = MockMvcDispatcher.dispatch(request, response, mvcSetup, mapOnly);
-		
-        return new MockMvcResultActionHelper() {
-			
-			public MockMvcResultActionHelper andExpect(MockMvcResultMatcher matcher) {
-				matcher.match(result);
+        MockDispatcher dispatcher = new MockDispatcher(this.mvcSetup);
+        dispatcher.execute(request, response);
+
+		final Object handler = dispatcher.getHandler();
+		final HandlerInterceptor[] interceptors = dispatcher.getInterceptors();
+		final ModelAndView mav = dispatcher.getMav();
+		final Exception resolvedException = dispatcher.getResolvedException();
+
+        return new ResultActions() {
+        	
+			public ResultActions andExpect(ResultMatcher matcher) {
+				matcher.match(request, response, handler, interceptors, mav, resolvedException);
 				return this;
 			}
-
-			public void andPrintDebugInfo(MockMvcResultPrinter printer) {
-				printer.print(result);
-			}
 			
+			public void andPrintTo(ResultPrinter printer) {
+				printer.print(request, response, handler, interceptors, mav, resolvedException);
+			}
 		};
     }
 

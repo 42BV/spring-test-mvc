@@ -22,51 +22,52 @@ import static org.springframework.test.web.AssertionErrors.fail;
 
 import java.util.Map;
 
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.AssertionErrors;
-import org.springframework.test.web.server.MockMvcResultMatcher;
-import org.springframework.test.web.server.MockMvcResult;
+import org.springframework.test.web.server.ResultMatcher;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * Model-related matchers.
+ * Matchers with expectations on the resulting model.
  * 
  * @author Rossen Stoyanchev
  */
-public class ModelResultMatchers {
+public class ModelMatchers {
 
-	ModelResultMatchers() {
+	ModelMatchers() {
 	}
 
-	public MockMvcResultMatcher modelAttribute(final String name, final Object value) {
-		return new MockMvcResultMatcher() {
-			public void match(MockMvcResult result) {
-				assertEquals("Model attribute", value, getModel(result).get(name));
+	public ResultMatcher modelAttribute(final String name, final Object value) {
+		return new ModelResultMatcher() {
+			public void matchModel(Map<String, Object> model) {
+				assertEquals("Model attribute", value, model.get(name));
 			}
 
 		};
 	}
 
-	public MockMvcResultMatcher modelAttributesPresent(final String...names) {
-		return new MockMvcResultMatcher() {
-			public void match(MockMvcResult result) {
-				AssertionErrors.assertNameValuesPresent("Model attribute", getModel(result), names);
+	public ResultMatcher modelAttributesPresent(final String...names) {
+		return new ModelResultMatcher() {
+			public void matchModel(Map<String, Object> model) {
+				AssertionErrors.assertNameValuesPresent("Model attribute", model, names);
 			}
 		};
 	}
 
-	public MockMvcResultMatcher modelAttributesNotPresent(final String...names) {
-		return new MockMvcResultMatcher() {
-			public void match(MockMvcResult result) {
-				AssertionErrors.assertNameValuesNotPresent("Model attribute", getModel(result), names);
+	public ResultMatcher modelAttributesNotPresent(final String...names) {
+		return new ModelResultMatcher() {
+			public void matchModel(Map<String, Object> model) {
+				AssertionErrors.assertNameValuesNotPresent("Model attribute", model, names);
 			}
 		};
 	}
 
-	public MockMvcResultMatcher noBindingErrors() {
-		return new MockMvcResultMatcher() {
-			public void match(MockMvcResult result) {
-				Map<String, Object> model = getModel(result);
+	public ResultMatcher noBindingErrors() {
+		return new ModelResultMatcher() {
+			public void matchModel(Map<String, Object> model) {
 				for (String name : model.keySet()) {
 					if (!name.startsWith(BindingResult.MODEL_KEY_PREFIX)) {
 						continue;
@@ -80,39 +81,47 @@ public class ModelResultMatchers {
 		};
 	}
 
-	public MockMvcResultMatcher modelAttributesWithNoErrors(final String...names) {
-		return new MockMvcResultMatcher() {
-			public void match(MockMvcResult result) {
-				Map<String, Object> model = getModel(result);
+	public ResultMatcher modelAttributesWithNoErrors(final String...names) {
+		return new ModelResultMatcher() {
+			public void matchModel(Map<String, Object> model) {
 				AssertionErrors.assertNameValuesPresent("Model attribute", model, names);
 				for (String name : names) {
 					BindingResult bindingResult = (BindingResult) model.get(BindingResult.MODEL_KEY_PREFIX + name);
 					if (bindingResult.hasErrors()) {
-						fail("Expected no bind errors for model attribute <" + name + "> but got " + result);
+						fail("Expected no bind errors for model attribute <" + name + "> but got " + bindingResult);
 					}
 				}
 			}
 		};
 	}
 	
-	public MockMvcResultMatcher modelAttributesWithErrors(final String...names) {
-		return new MockMvcResultMatcher() {
-			public void match(MockMvcResult result) {
-				Map<String, Object> model = getModel(result);
+	public ResultMatcher modelAttributesWithErrors(final String...names) {
+		return new ModelResultMatcher() {
+			public void matchModel(Map<String, Object> model) {
 				AssertionErrors.assertNameValuesPresent("Model attribute", model, names);
 				for (String name : names) {
 					BindingResult bindingResult = (BindingResult) model.get(BindingResult.MODEL_KEY_PREFIX + name);
 					assertTrue("Expected bind errors for model attribute <" + name + ">", bindingResult.hasErrors());
 				}
+				
 			}
 		};
 	}
 
-	private Map<String, Object> getModel(MockMvcResult result) {
-		ModelAndView mav = result.getModelAndView();
-		assertTrue("No ModelAndView", mav != null);
-		Map<String, Object> model = mav.getModel();
-		return model;
+	public static abstract class ModelResultMatcher implements ResultMatcher {
+
+		public final void match(MockHttpServletRequest request, 
+								MockHttpServletResponse response, 
+								Object handler,	
+								HandlerInterceptor[] interceptors, 
+								ModelAndView mav, 
+								Exception resolvedException) {
+			
+			assertTrue("No ModelAndView", mav != null);
+			matchModel(mav.getModel());
+		}
+
+		protected abstract void matchModel(Map<String, Object> model);
 	}
 
 }

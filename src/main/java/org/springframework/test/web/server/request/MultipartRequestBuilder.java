@@ -19,6 +19,7 @@ package org.springframework.test.web.server.request;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.servlet.ServletContext;
 
 import org.springframework.http.HttpMethod;
@@ -26,17 +27,18 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockMultipartHttpServletRequest;
-import org.springframework.test.web.server.MockHttpServletRequestBuilder;
 
 /**
- * Implementation of the {@link MockHttpServletRequestBuilder} interface that provides access to multipart requests.
+ * A request builder for {@link MockMultipartHttpServletRequest}.
  *
+ * @author Rossen Stoyanchev
+ * @author Arjen Poutsma
  */
-public class MultipartMockHttpServletRequestBuilder extends DefaultMockHttpServletRequestBuilder {
+public class MultipartRequestBuilder extends DefaultRequestBuilder {
 
     private final List<MockMultipartFile> files = new ArrayList<MockMultipartFile>();
 
-    MultipartMockHttpServletRequestBuilder(URI uri) {
+    MultipartRequestBuilder(URI uri) {
         super(uri, HttpMethod.POST);
         super.contentType(MediaType.MULTIPART_FORM_DATA);
     }
@@ -47,7 +49,7 @@ public class MultipartMockHttpServletRequestBuilder extends DefaultMockHttpServl
      * @param name    the name of the file
      * @param content the content of the file
      */
-    public MultipartMockHttpServletRequestBuilder file(String name, byte[] content) {
+    public MultipartRequestBuilder file(String name, byte[] content) {
         files.add(new MockMultipartFile(name, content));
         return this;
     }
@@ -57,7 +59,7 @@ public class MultipartMockHttpServletRequestBuilder extends DefaultMockHttpServl
      *
      * @param file the multipart file
      */
-    public MultipartMockHttpServletRequestBuilder file(MockMultipartFile file) {
+    public MultipartRequestBuilder file(MockMultipartFile file) {
         files.add(file);
         return this;
     }

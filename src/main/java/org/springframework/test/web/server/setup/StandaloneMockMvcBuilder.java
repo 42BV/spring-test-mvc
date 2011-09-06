@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -31,7 +32,6 @@ import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.mock.web.MockServletContext;
-import org.springframework.test.web.server.AbstractMockMvcBuilder;
 import org.springframework.test.web.server.MockMvc;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -59,14 +59,18 @@ import org.springframework.web.servlet.view.BeanNameViewResolver;
 import org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator;
 
 /**
- * Builds a {@link MockMvc} by instantiating the required Spring MVC components directly rather than detecting
- * them in a Spring ApplicationContext. This makes it possible to build more "lightweight" and very focused tests
- * involving one or just a few controllers.
+ * Build a {@link MockMvc} by directly instantiating required Spring MVC components rather 
+ * than scanning a Spring ApplicationContext. This may be preferable when you want to build 
+ * very focused tests involving just one or a few controllers.
  * 
- * <p>The resulting setup is geared at supporting controllers with @{@link RequestMapping} methods. View resolution 
- * can be configured by providing a list of {@link ViewResolver}s. When view resolution is left not configured, a
- * fixed, no-op {@link View} is used effectively ignoring rendering.
+ * <p>The resulting setup aims to support @{@link RequestMapping} methods using default 
+ * configuration, similar to the MVC namespace, with various customizations possible. 
  * 
+ * <p>View resolution can be configured via {@link #setViewResolvers} or 
+ * {@link #setFixedView(View)}. Or if view resolution is not configured, 
+ * a fixed {@link View} that doesn't render anything is used.
+ * 
+ * @author Rossen Stoyanchev
  */ 
 public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	
@@ -80,11 +84,12 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	
 	private final List<MappedInterceptor> mappedInterceptors = new ArrayList<MappedInterceptor>();
 
-	private List<? extends ViewResolver> viewResolvers;
+	private List<ViewResolver> viewResolvers;
 
-	private GenericWebApplicationContext applicationContext;
-
-	protected StandaloneMockMvcBuilder(Object[] controllers) {
+	/**
+	 * Create an instance registering @{@link RequestMapping} methods from the given controllers.
+	 */
+	public StandaloneMockMvcBuilder(Object[] controllers) {
 		Assert.isTrue(!ObjectUtils.isEmpty(controllers), "At least one controller is required");
 		this.controllers = controllers;
 	}
@@ -111,76 +116,78 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 
 	public StandaloneMockMvcBuilder mapInterceptors(String[] pathPatterns, HandlerInterceptor... interceptors) {
 		for (HandlerInterceptor interceptor : interceptors) {
-			mappedInterceptors.add(new MappedInterceptor(pathPatterns, interceptor));
+			this.mappedInterceptors.add(new MappedInterceptor(pathPatterns, interceptor));
 		}
 		return this;
 	}
 	
 	/**
-	 * Configures a single ViewResolver that always renders using the provided View implementation.
-	 * Provides a simple way to render generated content (e.g. JSON, XML, Atom, etc.) For URL-based view types, 
-	 * i.e. sub-classes of AbstractUrlBasedView, use {@link #setViewResolvers(ViewResolver...)} instead.
+	 * Sets up a single {@link ViewResolver} that always returns the provided view -
+	 * a convenient shortcut to rendering generated content (e.g. JSON, XML, Atom, etc.) 
+	 * For URL-based views, use {@link #setViewResolvers(ViewResolver...)} instead.
 	 * 
 	 * @param view the default View to return for any view name
 	 */
-	public StandaloneMockMvcBuilder configureFixedViewResolver(View view) {
-		viewResolvers = Collections.singletonList(new FixedViewResolver(view));
+	public StandaloneMockMvcBuilder setFixedView(View view) {
+		this.viewResolvers = Collections.<ViewResolver>singletonList(new FixedViewResolver(view));
 		return this;
 	}
 
 	/**
-	 * Configures view resolution with the given {@link ViewResolver}s.
-	 * By default, if no ViewResolvers have been configured, a View that doesn't do anything is used.
+	 * Set up view resolution with the given {@link ViewResolver}s. If this property is
+	 * not used, a fixed, noop View is used instead.
 	 * 
-	 * <p>Most ViewResolver types should work as expected. This excludes {@link BeanNameViewResolver}
-	 * since there is no ApplicationContext.
-	 * 
+	 * <p>If you need to use a {@link BeanNameViewResolver}, use {@link AbstractContextMockMvcBuilder} instead.
 	 */
 	public StandaloneMockMvcBuilder setViewResolvers(ViewResolver...resolvers) {
-		viewResolvers = Arrays.asList(resolvers);
+		this.viewResolvers = Arrays.asList(resolvers);
 		return this;
 	}
 	
 	@Override
-	protected WebApplicationContext initApplicationContext() {
-		MockServletContext servletContext = new MockServletContext();
-		applicationContext = new GenericWebApplicationContext(servletContext);
-		applicationContext.refresh();
-		applicationContext.getAutowireCapableBeanFactory().initializeBean(validator, "validator");
-		return applicationContext;
+	protected ServletContext initServletContext() {
+		return new MockServletContext();
+	}	
+	
+	@Override
+	protected WebApplicationContext initWebApplicationContext(ServletContext servletContext) {
+		GenericWebApplicationContext wac = new GenericWebApplicationContext(servletContext);
+		wac.refresh();
+		wac.getAutowireCapableBeanFactory().initializeBean(this.validator, "validator");
+		return wac;
 	}
 
 	@Override
-	protected List<? extends HandlerMapping> initHandlerMappings() {
+	protected List<HandlerMapping> initHandlerMappings(WebApplicationContext wac) {
 		StaticRequestMappingHandlerMapping mapping = new StaticRequestMappingHandlerMapping();
-		mapping.registerHandlers(controllers);
-		mapping.setInterceptors(mappedInterceptors.toArray());
-		return Collections.singletonList(mapping);
+		mapping.registerHandlers(this.controllers);
+		mapping.setInterceptors(this.mappedInterceptors.toArray());
+		return Collections.<HandlerMapping>singletonList(mapping);
 	}
 
 	@Override
-	protected List<? extends HandlerAdapter> initHandlerAdapters() {
+	protected List<HandlerAdapter> initHandlerAdapters(WebApplicationContext wac) {
 		RequestMappingHandlerAdapter adapter = new RequestMappingHandlerAdapter();
-		if (messageConverters != null) {
-			adapter.setMessageConverters(messageConverters);
+		if (this.messageConverters != null) {
+			adapter.setMessageConverters(this.messageConverters);
 		}
 		
 		ConfigurableWebBindingInitializer initializer = new ConfigurableWebBindingInitializer();
-		initializer.setConversionService(conversionService);
-		initializer.setValidator(validator);
+		initializer.setConversionService(this.conversionService);
+		initializer.setValidator(this.validator);
 		adapter.setWebBindingInitializer(initializer);
 		
-		adapter.setApplicationContext(applicationContext);	// for SpEL expressions in annotations
+		adapter.setApplicationContext(wac);	// for SpEL expressions in annotations
 		adapter.afterPropertiesSet();
 		
-		return Collections.singletonList(adapter);
+		return Collections.<HandlerAdapter>singletonList(adapter);
 	}
 
 	@Override
-	protected List<? extends HandlerExceptionResolver> initHandlerExceptionResolvers() {
+	protected List<HandlerExceptionResolver> initHandlerExceptionResolvers(WebApplicationContext wac) {
 		ExceptionHandlerExceptionResolver exceptionResolver = new ExceptionHandlerExceptionResolver();
-		if (messageConverters != null) {
-			exceptionResolver.setMessageConverters( messageConverters);
+		if (this.messageConverters != null) {
+			exceptionResolver.setMessageConverters(this.messageConverters);
 		}
 		exceptionResolver.afterPropertiesSet();
 		
@@ -193,31 +200,32 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	}
 
 	@Override
-	protected List<? extends ViewResolver> initViewResolvers() {
-		viewResolvers = (viewResolvers == null) ? 
-				Arrays.asList(new FixedViewResolver(NOOP_VIEW)) : viewResolvers;
+	protected List<ViewResolver> initViewResolvers(WebApplicationContext wac) {
+		this.viewResolvers = (this.viewResolvers == null) ? 
+				Arrays.<ViewResolver>asList(new FixedViewResolver(NOOP_VIEW)) : viewResolvers;
 				
-		for (Object vr : viewResolvers) {
-			if (vr instanceof ApplicationContextAware) {
-				((ApplicationContextAware) vr).setApplicationContext(applicationContext);
+		for (Object viewResolver : this.viewResolvers) {
+			if (viewResolver instanceof ApplicationContextAware) {
+				((ApplicationContextAware) viewResolver).setApplicationContext(wac);
 			}
 		}
 
-		return viewResolvers;
+		return this.viewResolvers;
 	}
 
 	@Override
-	protected RequestToViewNameTranslator initViewNameTranslator() {
+	protected RequestToViewNameTranslator initViewNameTranslator(WebApplicationContext wac) {
 		return new DefaultRequestToViewNameTranslator();
 	}
 
 	@Override
-	protected LocaleResolver initLocaleResolver() {
+	protected LocaleResolver initLocaleResolver(WebApplicationContext wac) {
 		return new AcceptHeaderLocaleResolver();
 	}
 
 	/**
-	 * Allows registering controller instances.
+	 * A {@link RequestMappingHandlerMapping} allowing direct registration of controller 
+	 * instances rather than scanning a WebApplicationContext.
 	 */
 	private static class StaticRequestMappingHandlerMapping extends RequestMappingHandlerMapping {
 		
@@ -229,7 +237,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	}
 
 	/**
-	 * Resolves all view names to the same fixed View.
+	 * A {@link ViewResolver} that always returns same View.
 	 */
 	private static class FixedViewResolver implements ViewResolver {
 		
@@ -240,12 +248,12 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 		}
 
 		public View resolveViewName(String viewName, Locale locale) throws Exception {
-			return view;
+			return this.view;
 		}
 	}
 	
 	/**
-	 * A View implementation that doesn't do anything.
+	 * A {@link View} that does not render.
 	 */
 	private static final View NOOP_VIEW = new View() {
 

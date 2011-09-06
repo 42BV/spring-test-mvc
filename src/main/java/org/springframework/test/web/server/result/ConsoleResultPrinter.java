@@ -17,87 +17,82 @@
 package org.springframework.test.web.server.result;
 
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.web.server.MockMvcResult;
-import org.springframework.test.web.server.MockMvcResultPrinter;
+import org.springframework.test.web.server.ResultPrinter;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * TODO
+ * A simple {@link ResultPrinter} that prints to {@code System.out}.
  * 
  * @author Rossen Stoyanchev
  */
-public class ConsoleResultPrinter implements MockMvcResultPrinter {
+public class ConsoleResultPrinter implements ResultPrinter {
 
-	private static final int LABEL_WIDTH = 17;
+	private static final int LABEL_WIDTH = 20;
 
-	ConsoleResultPrinter() {
+	public ConsoleResultPrinter() {
 	}
 
-	public void print(MockMvcResult result) {
+	public void print(MockHttpServletRequest request, 
+					  MockHttpServletResponse response, 
+					  Object handler,
+					  HandlerInterceptor[] interceptors, 
+					  ModelAndView mav, 
+					  Exception exception) {
 		
 		System.out.println("-----------------------------------------");
 		
-		printRequest(result.getRequest());
-		printController(result.getController());
-		
-		if (result.mapOnly()) {
-			return;
-		}
-
-		printResolvedException(result.getResolvedException());
-		printModelAndView(result.getModelAndView());
-		printResponse(result.getResponse());
+		printRequest(request);
+		printHandler(handler);
+		printResolvedException(exception);
+		printModelAndView(mav);
+		printResponse(response);
 
 		System.out.println();
 	}
 
-	private void printRequest(MockHttpServletRequest request) {
-		System.out.println("Performed " + request.getMethod() + " " + request.getRequestURI());
-		printValue("Params", getParams(request));
-		printValue("Headers", RequestResultMatchers.getHeaderValueMap(request));
-	}
-	
-	private Map<String, Object> getParams(MockHttpServletRequest request) {
-		Map<String, Object> result = new LinkedHashMap<String, Object>();
-		Enumeration<String> names = request.getParameterNames();
-		while (names.hasMoreElements()) {
-			String name = names.nextElement(); 
-			String[] values = request.getParameterValues(name);
-			result.put(name, (values != null) ? Arrays.asList(values) : null);
-		}
-		return result;
+	protected void printRequest(MockHttpServletRequest request) {
+		printHeading("HttpServletRequest");
+		printValue("HTTP Method", request.getMethod());
+		printValue("Request URI", request.getRequestURI());
+		printValue("Params", ServletRequestMatchers.getParameterMap(request));
+		printValue("Headers", ServletRequestMatchers.getHeaderValueMap(request));
 	}
 
-	private void printValue(String label, Object value) {
-		String line = getPaddedLabel(label).append(" = ").append(value).toString();
-		System.out.println(line);
+	private void printHeading(String text) {
+		System.out.println();
+		System.out.println(formatLabel(text, LABEL_WIDTH).append(":"));
 	}
 
-	private StringBuilder getPaddedLabel(String label) {
+	protected void printValue(String label, Object value) {
+		System.out.println(formatLabel(label, LABEL_WIDTH).append(" = ").append(value).toString());
+	}
+
+	private StringBuilder formatLabel(String label, int width) {
 		StringBuilder sb = new StringBuilder(label);
-		while (sb.length() < LABEL_WIDTH) {
+		while (sb.length() < width) {
 			sb.insert(0, " ");
 		}
 		return sb;
 	}
 
-	private void printController(Object handler) {
+	/**
+	 * Print the selected handler (likely an annotated controller method).
+	 */
+	protected void printHandler(Object handler) {
+		printHeading("Handler");
 		if (handler == null) {
-			System.out.println("No matching controller was found.");
+			printValue("Type", "null (no matching handler found)");
+			printValue("Method", null);
 		}
 		else {
-			System.out.println("This controller was selected: ");
 			if (handler instanceof HandlerMethod) {
 				HandlerMethod handlerMethod = (HandlerMethod) handler;
 				printValue("Type", handlerMethod.getBeanType().getName());
@@ -110,25 +105,32 @@ public class ConsoleResultPrinter implements MockMvcResultPrinter {
 		}
 	}
 	
-	private void printResolvedException(Exception resolvedException) {
+	/**
+	 * Print an exception raised in a controller and handled with a HandlerExceptionResolver, if any.
+	 */
+	protected void printResolvedException(Exception resolvedException) {
+		printHeading("Resolved Exception");
 		if (resolvedException == null) {
-			System.out.println("No exception was raised.");
+			printValue("Type", "null (not raised)");
 		}
 		else {
-			System.out.println("The controller raised this exception, which was then successfully handled:");
-			System.out.println(resolvedException);
+			printValue("Type", resolvedException.getClass().getName());
 		}
 	}
 
-	private void printModelAndView(ModelAndView mav) {
+	/**
+	 * Print the Model and view selection, or a brief message if view resolution was not required.
+	 */
+	protected void printModelAndView(ModelAndView mav) {
+		printHeading("ModelAndView");
 		if (mav == null) {
-			System.out.println("View resolution was not required.");
+			printValue("View", "null (view resolution was not required)");
+			printValue("Attributes", "null (view resolution was not required)");
 		}
 		else {
-			System.out.println("The controller made this view selection: ");
 			printValue("View", mav.isReference() ? mav.getViewName() : mav.getView());
 			if (mav.getModel().size() == 0) {
-				printValue("Attributes", "none");
+				printValue("Attributes", null);
 			}
 			for (String name : mav.getModel().keySet()) {
 				if (name.startsWith(BindingResult.MODEL_KEY_PREFIX)) {
@@ -145,17 +147,20 @@ public class ConsoleResultPrinter implements MockMvcResultPrinter {
 		}
 	}
 
-	private void printResponse(MockHttpServletResponse response) {
-		System.out.println("These are details of the ServletResponse: ");
+	/**
+	 * Print the HttpServletResponse.
+	 */
+	protected void printResponse(MockHttpServletResponse response) {
+		printHeading("HttpServletResponse");
 		printValue("status", response.getStatus());
 		printValue("error message", response.getErrorMessage());
-		printValue("headers", ResponseResultMatchers.getHeaderValueMap(response));
+		printValue("headers", ServletResponseMatchers.getHeaderValueMap(response));
 		printValue("content type", response.getContentType());
 		printValue("body", getBody(response));
 		printValue("forwarded URL", response.getForwardedUrl());
 		printValue("redirected URL", response.getRedirectedUrl());
 		printValue("included URLs", response.getIncludedUrls());
-		printValue("cookies", ResponseResultMatchers.getCookieValueMap(response));
+		printValue("cookies", ServletResponseMatchers.getCookieValueMap(response));
 	}
 
 	private String getBody(MockHttpServletResponse response) {

@@ -28,17 +28,19 @@ import javax.servlet.http.Cookie;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.test.web.server.MockHttpServletRequestBuilder;
+import org.springframework.test.web.server.RequestBuilder;
 import org.springframework.test.web.server.MockMvc;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 /**
- * A command class to build and execute a request. Use methods on {@link MockMvc} to obtain a new {@link
- * DefaultMockHttpServletRequestBuilder} instance.
+ * The default builder for {@link MockHttpServletRequest}.
+ * 
+ * @author Rossen Stoyanchev
+ * @author Arjen Poutsma
  */
-public class DefaultMockHttpServletRequestBuilder implements MockHttpServletRequestBuilder {
+public class DefaultRequestBuilder implements RequestBuilder {
 
     private final URI uri;
 
@@ -65,39 +67,39 @@ public class DefaultMockHttpServletRequestBuilder implements MockHttpServletRequ
     private Principal principal;
 
     /** Use methods on {@link MockMvc} to obtain a new instance. */
-    DefaultMockHttpServletRequestBuilder(URI uri, HttpMethod method) {
+    DefaultRequestBuilder(URI uri, HttpMethod method) {
         this.uri = uri;
         this.method = method;
     }
 
-    public DefaultMockHttpServletRequestBuilder param(String name, String value, String... values) {
+    public DefaultRequestBuilder param(String name, String value, String... values) {
         addToMultiValueMap(parameters, name, value, values);
         return this;
     }
 
-    public DefaultMockHttpServletRequestBuilder accept(MediaType mediaType, MediaType... mediaTypes) {
+    public DefaultRequestBuilder accept(MediaType mediaType, MediaType... mediaTypes) {
         addToMultiValueMap(headers, "Accept", mediaType, mediaTypes);
         return this;
     }
 
-    public DefaultMockHttpServletRequestBuilder contentType(MediaType mediaType) {
+    public DefaultRequestBuilder contentType(MediaType mediaType) {
         Assert.notNull(mediaType, "'mediaType' must not be null");
         this.contentType = mediaType.toString();
         headers.set("Content-Type", mediaType);
         return this;
     }
 
-    public DefaultMockHttpServletRequestBuilder body(byte[] requestBody) {
+    public DefaultRequestBuilder body(byte[] requestBody) {
         this.requestBody = requestBody;
         return this;
     }
 
-    public DefaultMockHttpServletRequestBuilder header(String name, Object value, Object... values) {
+    public DefaultRequestBuilder header(String name, Object value, Object... values) {
         addToMultiValueMap(headers, name, value, values);
         return this;
     }
 
-    public DefaultMockHttpServletRequestBuilder cookie(Cookie cookie, Cookie... cookies) {
+    public DefaultRequestBuilder cookie(Cookie cookie, Cookie... cookies) {
         Assert.notNull(cookie, "'cookie' must not be null");
         if (cookies == null) {
             this.cookies = new Cookie[]{cookie};
@@ -110,31 +112,31 @@ public class DefaultMockHttpServletRequestBuilder implements MockHttpServletRequ
         return this;
     }
 
-    public DefaultMockHttpServletRequestBuilder locale(Locale locale) {
+    public DefaultRequestBuilder locale(Locale locale) {
         this.locale = locale;
         return this;
     }
 
-    public DefaultMockHttpServletRequestBuilder characterEncoding(String characterEncoding) {
+    public DefaultRequestBuilder characterEncoding(String characterEncoding) {
         this.characterEncoding = characterEncoding;
         return this;
     }
 
-    public DefaultMockHttpServletRequestBuilder requestAttr(String name, Object value) {
+    public DefaultRequestBuilder requestAttr(String name, Object value) {
         Assert.hasLength(name, "'name' must not be empty");
         Assert.notNull(value, "'value' must not be null");
         attributes.put(name, value);
         return this;
     }
 
-    public DefaultMockHttpServletRequestBuilder sessionAttr(String name, Object value) {
+    public DefaultRequestBuilder sessionAttr(String name, Object value) {
         Assert.hasLength(name, "'name' must not be empty");
         Assert.notNull(value, "'value' must not be null");
         sessionAttributes.put(name, value);
         return this;
     }
 
-    public DefaultMockHttpServletRequestBuilder principal(Principal principal) {
+    public DefaultRequestBuilder principal(Principal principal) {
         Assert.notNull(principal, "'principal' must not be null");
         this.principal = principal;
         return this;

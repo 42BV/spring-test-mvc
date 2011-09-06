@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2005-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.test.web.server;
-
-
 /**
- * Print action.
+ * Contains built-in {@link org.springframework.test.web.server.ResultMatcher} and 
+ * {@link org.springframework.test.web.server.ResultPrinter} classes that allow 
+ * applying expectations and actions on the results of an executed Spring MVC request.
  * 
- * @author Rossen Stoyanchev
- * 
+ * <p>{@link org.springframework.test.web.server.result.MockMvcResultActions} is 
+ * the main class to import to get access to all such implementations.
  */
-public interface MockMvcResultPrinter {
-
-	void print(MockMvcResult result);
-
-}
+package org.springframework.test.web.server.result;

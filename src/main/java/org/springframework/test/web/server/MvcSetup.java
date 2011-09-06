@@ -26,21 +26,40 @@ import org.springframework.web.servlet.RequestToViewNameTranslator;
 import org.springframework.web.servlet.ViewResolver;
 
 /**
- * Exposes Spring MVC components required to execute a MockMvc request.  
+ * Provides {@link MockMvc} with access to Spring MVC infrastructure components.
  * 
+ * @author Rossen Stoyanchev
  */
-public interface MockMvcSetup {
+public interface MvcSetup {
 
+	/**
+	 * Return the {@link HandlerMapping}s to use to map requests, never "null".
+	 */
 	List<HandlerMapping> getHandlerMappings();
 
+	/**
+	 * Return the {@link HandlerAdapter}s to use to invoke handlers, never "null".
+	 */
 	List<HandlerAdapter> getHandlerAdapters();
 
+	/**
+	 * Return the {@link HandlerExceptionResolver}s to use to resolve controller exceptions, never "null".
+	 */
 	List<HandlerExceptionResolver> getExceptionResolvers();
-	
+
+	/**
+	 * Return the {@link ViewResolver}s to use to resolve view names, never "null".
+	 */
 	List<ViewResolver> getViewResolvers();
 
+	/**
+	 * Return the {@link RequestToViewNameTranslator} to use to derive a view name, never "null".
+	 */
 	RequestToViewNameTranslator getViewNameTranslator();
 
+	/**
+	 * Return the {@link LocaleResolver} to use for locale resolution, never "null".
+	 */
 	LocaleResolver getLocaleResolver();
 
 }

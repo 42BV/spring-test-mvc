@@ -19,24 +19,27 @@ package org.springframework.test.web.server.result;
 import static org.springframework.test.web.AssertionErrors.assertEquals;
 import static org.springframework.test.web.AssertionErrors.assertTrue;
 
-import org.springframework.test.web.server.MockMvcResultMatcher;
-import org.springframework.test.web.server.MockMvcResult;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.server.ResultMatcher;
+import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * View-related matchers.
+ * Matchers with expectations on the selected view.
  *
  * @author Rossen Stoyanchev
  */
-public class ViewResultMatchers {
+public class ViewMatchers {
 
-	ViewResultMatchers() {
+	ViewMatchers() {
 	}
 
-	public MockMvcResultMatcher name(final String viewName) {
-		return new MockMvcResultMatcher() {
-			public void match(MockMvcResult result) {
-				ModelAndView mav = result.getModelAndView();
+	public ResultMatcher name(final String viewName) {
+		return new ResultMatcher() {
+			public final void match(
+					MockHttpServletRequest request, MockHttpServletResponse response, 
+					Object handler, HandlerInterceptor[] interceptors, ModelAndView mav, Exception resolvedException) {
 				assertTrue("No ModelAndView", mav != null);
 				assertEquals("View name", viewName, mav.getViewName());
 			}

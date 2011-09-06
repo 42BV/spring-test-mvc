@@ -24,7 +24,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.core.OrderComparator;
-import org.springframework.test.web.server.AbstractMockMvcBuilder;
+import org.springframework.test.web.server.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerAdapter;
@@ -46,18 +46,16 @@ import org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 /**
- * Discovers Spring MVC infrastructure components in a Spring {@link WebApplicationContext}.
+ * An abstract class for {@link MockMvc} builders that find Spring MVC components by looking 
+ * them up in a Spring {@link WebApplicationContext}.
+ * 
+ * @author Rossen Stoyanchev
  */
 public abstract class AbstractContextMockMvcBuilder extends AbstractMockMvcBuilder {
 
-	/**
-	 * TODO
-	 */
-	protected abstract WebApplicationContext getApplicationContext();
-	
 	@Override
-	protected List<HandlerMapping> initHandlerMappings() {
-		List<HandlerMapping> result = getOrderedBeans(HandlerMapping.class);
+	protected List<HandlerMapping> initHandlerMappings(WebApplicationContext wac) {
+		List<HandlerMapping> result = getOrderedBeans(wac, HandlerMapping.class);
 		if (result.isEmpty()) {
 			result.add(new BeanNameUrlHandlerMapping());
 			result.add(new DefaultAnnotationHandlerMapping());
@@ -66,8 +64,8 @@ public abstract class AbstractContextMockMvcBuilder extends AbstractMockMvcBuild
 	}
 	
 	@Override
-	protected List<HandlerAdapter> initHandlerAdapters() {
-		List<HandlerAdapter> result = getOrderedBeans(HandlerAdapter.class);
+	protected List<HandlerAdapter> initHandlerAdapters(WebApplicationContext wac) {
+		List<HandlerAdapter> result = getOrderedBeans(wac, HandlerAdapter.class);
 		if (result.isEmpty()) {
 			result.add(new HttpRequestHandlerAdapter());
 			result.add(new SimpleControllerHandlerAdapter());
@@ -77,8 +75,8 @@ public abstract class AbstractContextMockMvcBuilder extends AbstractMockMvcBuild
 	}
 	
 	@Override
-	protected List<HandlerExceptionResolver> initHandlerExceptionResolvers() {
-		List<HandlerExceptionResolver> result = getOrderedBeans(HandlerExceptionResolver.class);
+	protected List<HandlerExceptionResolver> initHandlerExceptionResolvers(WebApplicationContext wac) {
+		List<HandlerExceptionResolver> result = getOrderedBeans(wac, HandlerExceptionResolver.class);
 		if (result.isEmpty()) {
 			result.add(new AnnotationMethodHandlerExceptionResolver());
 			result.add(new ResponseStatusExceptionResolver());
@@ -88,18 +86,18 @@ public abstract class AbstractContextMockMvcBuilder extends AbstractMockMvcBuild
 	}
 
 	@Override
-	protected List<ViewResolver> initViewResolvers() {
-		List<ViewResolver> result = getOrderedBeans(ViewResolver.class);
+	protected List<ViewResolver> initViewResolvers(WebApplicationContext wac) {
+		List<ViewResolver> result = getOrderedBeans(wac, ViewResolver.class);
 		if (result.isEmpty()) {
 			result.add(new InternalResourceViewResolver());
 		}
 		return result;
 	}
 
-	private <T> List<T> getOrderedBeans(Class<T> beanType) {
+	private <T> List<T> getOrderedBeans(WebApplicationContext wac, Class<T> beanType) {
 		List<T> components = new ArrayList<T>();
 		Map<String, T> beans =
-			BeanFactoryUtils.beansOfTypeIncludingAncestors(getApplicationContext(), beanType, true, false);
+			BeanFactoryUtils.beansOfTypeIncludingAncestors(wac, beanType, true, false);
 		if (!beans.isEmpty()) {
 			components.addAll(beans.values());
 			OrderComparator.sort(components);
@@ -108,20 +106,20 @@ public abstract class AbstractContextMockMvcBuilder extends AbstractMockMvcBuild
 	}
 
 	@Override
-	protected RequestToViewNameTranslator initViewNameTranslator() {
+	protected RequestToViewNameTranslator initViewNameTranslator(WebApplicationContext wac) {
 		String name = DispatcherServlet.REQUEST_TO_VIEW_NAME_TRANSLATOR_BEAN_NAME;
-		return getBeanByName(name, RequestToViewNameTranslator.class, DefaultRequestToViewNameTranslator.class);
+		return getBeanByName(wac, name, RequestToViewNameTranslator.class, DefaultRequestToViewNameTranslator.class);
 	}
 
 	@Override
-	protected LocaleResolver initLocaleResolver() {
+	protected LocaleResolver initLocaleResolver(WebApplicationContext wac) {
 		String name = DispatcherServlet.LOCALE_RESOLVER_BEAN_NAME;
-		return getBeanByName(name, LocaleResolver.class, AcceptHeaderLocaleResolver.class);
+		return getBeanByName(wac, name, LocaleResolver.class, AcceptHeaderLocaleResolver.class);
 	}
 
-	private <T> T getBeanByName(String name, Class<T> requiredType, Class<? extends T> defaultType) {
+	private <T> T getBeanByName(WebApplicationContext wac, String name, Class<T> requiredType, Class<? extends T> defaultType) {
 		try {
-			return getApplicationContext().getBean(name, requiredType);
+			return wac.getBean(name, requiredType);
 		}
 		catch (NoSuchBeanDefinitionException ex) {
 			return (defaultType != null) ? BeanUtils.instantiate(defaultType) : null;

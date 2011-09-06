@@ -16,30 +16,35 @@
 
 package org.springframework.test.web.server.setup;
 
+import javax.servlet.ServletContext;
+
+import org.springframework.test.web.server.MockMvc;
 import org.springframework.util.Assert;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Expects a fully initialized {@link WebApplicationContext}.
+ * A {@link MockMvc} builder that expects a fully initialized {@link WebApplicationContext}
+ * and looks up Spring MVC components in it.
  * 
+ * @author Rossen Stoyanchev
  */
 public class InitializedContextMockMvcBuilder extends AbstractContextMockMvcBuilder {
 
 	private final WebApplicationContext applicationContext;
 	
-	public InitializedContextMockMvcBuilder(WebApplicationContext context) {
-		Assert.notNull(context, "WebApplicationContext is required");
-		Assert.notNull(context.getServletContext(), "WebApplicationContext must have a ServletContext");
-		this.applicationContext = context;
+	public InitializedContextMockMvcBuilder(WebApplicationContext wac) {
+		Assert.notNull(wac, "WebApplicationContext is required");
+		Assert.notNull(wac.getServletContext(), "WebApplicationContext must have a ServletContext");
+		this.applicationContext = wac;
 	}
 
 	@Override
-	protected WebApplicationContext initApplicationContext() {
-		return this.applicationContext;
-	}
+	protected ServletContext initServletContext() {
+		return this.applicationContext.getServletContext();
+	}	
 
 	@Override
-	protected WebApplicationContext getApplicationContext() {
+	protected WebApplicationContext initWebApplicationContext(ServletContext context) {
 		return this.applicationContext;
 	}
 

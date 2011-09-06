@@ -13,7 +13,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockServletContext;
-import org.springframework.test.web.server.request.DefaultMockHttpServletRequestBuilder;
+import org.springframework.test.web.server.request.DefaultRequestBuilder;
 import org.springframework.util.FileCopyUtils;
 
 import org.junit.Before;
@@ -24,13 +24,13 @@ import static org.junit.Assert.assertEquals;
 
 public class DefaultMockHttpServletRequestBuilderTests {
 
-    private DefaultMockHttpServletRequestBuilder builder;
+    private DefaultRequestBuilder builder;
 
     private ServletContext servletContext;
 
     @Before
     public void setUp() throws Exception {
-        builder = new DefaultMockHttpServletRequestBuilder(new URI("/foo"), HttpMethod.GET);
+        builder = new DefaultRequestBuilder(new URI("/foo"), HttpMethod.GET);
         servletContext = new MockServletContext();
     }
 

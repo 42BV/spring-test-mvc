@@ -16,8 +16,9 @@
 
 package org.springframework.test.web.server.setup;
 
-import static org.springframework.test.web.server.request.MockHttpServletRequestBuilders.get;
-import static org.springframework.test.web.server.result.MockMvcResultActions.*;
+import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.server.result.MockMvcResultActions.handler;
+import static org.springframework.test.web.server.result.MockMvcResultActions.response;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.annotationConfigMvcSetup;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.xmlConfigMvcSetup;
 
@@ -30,6 +31,8 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.web.server.MockMvc;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -64,15 +67,15 @@ public class WebApplicationResourceAccessTests {
 	private MockMvc mockMvc;
 	
 	public WebApplicationResourceAccessTests(String webResourcePath, boolean isXmlConfig, boolean isClasspathRelative) {
-		
+
 		if (!isXmlConfig) {
-			mockMvc = annotationConfigMvcSetup(TestConfiguration.class)
+			this.mockMvc = annotationConfigMvcSetup(TestConfiguration.class)
 						.configureWarRootDir(webResourcePath, isClasspathRelative)
 						.build();
 		}
 		else {
 			String location = "classpath:org/springframework/test/web/server/setup/servlet-context.xml";
-			mockMvc = xmlConfigMvcSetup(location)
+			this.mockMvc = xmlConfigMvcSetup(location)
 						.configureWarRootDir(webResourcePath, isClasspathRelative)
 						.build();
 		}
@@ -82,19 +85,19 @@ public class WebApplicationResourceAccessTests {
 	public void testWebResources() {
 
 		// TilesView
-		mockMvc.perform(get("/form"))
-                .andExpect(response().status(200))
+		this.mockMvc.perform(get("/form"))
+                .andExpect(response().status(HttpStatus.OK))
                 .andExpect(response().forwardedUrl("/WEB-INF/layouts/main.jsp"));
 
-		mockMvc.perform(get("/resources/Spring.js"))
-				.andExpect(response().status(200))
-				.andExpect(controller().controllerType(ResourceHttpRequestHandler.class))
-				.andExpect(response().contentType("application/octet-stream"))
-				.andExpect(response().responseBodyContains("Spring={};"));
+		this.mockMvc.perform(get("/resources/Spring.js"))
+				.andExpect(response().status(HttpStatus.OK))
+				.andExpect(handler().type(ResourceHttpRequestHandler.class))
+				.andExpect(response().contentType(MediaType.APPLICATION_OCTET_STREAM))
+				.andExpect(response().bodyContains("Spring={};"));
 		
-		mockMvc.perform(get("/unknown/resource.js"))
-			.andExpect(response().status(200))
-			.andExpect(controller().controllerType(DefaultServletHttpRequestHandler.class))
+		this.mockMvc.perform(get("/unknown/resource.js"))
+			.andExpect(response().status(HttpStatus.OK))
+			.andExpect(handler().type(DefaultServletHttpRequestHandler.class))
 			.andExpect(response().forwardedUrl("default"));
 	}
 	

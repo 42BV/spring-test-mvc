@@ -16,36 +16,56 @@
 
 package org.springframework.test.web.server.result;
 
+import org.springframework.test.web.server.ResultMatcher;
+import org.springframework.test.web.server.ResultPrinter;
 
 /**
- * TODO
+ * A central class for access to all built-in {@link ResultMatcher}s and {@link ResultPrinter}s. 
  * 
  * @author Arjen Poutsma
  * @author Rossen Stoyanchev
- * 
  */
 public abstract class MockMvcResultActions {
 
-	public static RequestResultMatchers request() {
-		return new RequestResultMatchers();
+	/**
+	 * HttpServletRequest-related matchers.
+	 */
+	public static ServletRequestMatchers request() {
+		return new ServletRequestMatchers();
 	}
 
-	public static ResponseResultMatchers response() {
-		return new ResponseResultMatchers();
-	}
-	public static ControllerResultMatchers controller() {
-		return new ControllerResultMatchers();
-	}
-
-	public static ModelResultMatchers model() {
-		return new ModelResultMatchers();
+	/**
+	 * HttpServletResponse-related matchers.
+	 */
+	public static ServletResponseMatchers response() {
+		return new ServletResponseMatchers();
 	}
 
-	public static ViewResultMatchers view() {
-		return new ViewResultMatchers();
+	/**
+	 * Handler and handler method-related matchers.
+	 */
+	public static HandlerMatchers handler() {
+		return new HandlerMatchers();
 	}
-	
-	public static ConsoleResultPrinter toConsole() {
+
+	/**
+	 * Model-related matchers.
+	 */
+	public static ModelMatchers model() {
+		return new ModelMatchers();
+	}
+
+	/**
+	 * View-related matchers.
+	 */
+	public static ViewMatchers view() {
+		return new ViewMatchers();
+	}
+
+	/**
+	 * Console-based printer.
+	 */
+	public static ConsoleResultPrinter console() {
 		return new ConsoleResultPrinter();
 	}
 	

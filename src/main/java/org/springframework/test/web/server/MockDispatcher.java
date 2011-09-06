@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
@@ -45,15 +44,19 @@ import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.ViewResolver;
 
 /**
- * A "lightweight" alternative to the {@link DispatcherServlet} that executes requests without a Servlet container.
+ * Executes requests by driving Spring MVC infrastructure components, much like the
+ * DispatcherServlet does but outside a ServletContainer. 
+ * 
+ * <p>After the request is executed exposes information about the mapped handler, 
+ * the resulting model and view, resolved exceptions, etc.
  * 
  * @author Rossen Stoyanchev
  */
-class MockMvcDispatcher {
+class MockDispatcher {
+
+	private static Log logger = LogFactory.getLog(MockDispatcher.class);
 	
-	private static Log logger = LogFactory.getLog(MockMvcDispatcher.class);
-	
-	private final MockMvcSetup mvcSetup;
+	private final MvcSetup mvcSetup;
 
 	private Object handler;
 	
@@ -64,65 +67,36 @@ class MockMvcDispatcher {
 	private Exception resolvedException;
 	
 	/**
-	 * TODO
-	 * 
+	 * Package private constructor for use by {@link MockMvc}.
 	 */
-	private MockMvcDispatcher(MockMvcSetup setup) {
+	MockDispatcher(MvcSetup setup) {
 		this.mvcSetup = setup;
 	}
 	
-	/**
-	 * TODO
-	 * 
-	 */
-	static MockMvcResult dispatch(final MockHttpServletRequest request, 
-								  final MockHttpServletResponse response,
-								  final MockMvcSetup setup, 
-								  final boolean mapOnly) {
-		
-		final MockMvcDispatcher dispatcher = new MockMvcDispatcher(setup);
-		dispatcher.execute(request, response, mapOnly);
-		
-		return new MockMvcResult() {
-			
-			public MockHttpServletRequest getRequest() {
-				return request;
-			}
+	public Object getHandler() {
+		return this.handler;
+	}
 
-			public MockHttpServletResponse getResponse() {
-				return response;
-			}
+	public HandlerInterceptor[] getInterceptors() {
+		return this.interceptors;
+	}
 
-			public Object getController() {
-				return dispatcher.handler;
-			}
+	public ModelAndView getMav() {
+		return this.mav;
+	}
 
-			public HandlerInterceptor[] getInterceptors() {
-				return dispatcher.interceptors;
-			}
-
-			public ModelAndView getModelAndView() {
-				return dispatcher.mav;
-			}
-
-			public Exception getResolvedException() {
-				return dispatcher.resolvedException;
-			}
-
-			public boolean mapOnly() {
-				return mapOnly;
-			}
-		};
+	public Exception getResolvedException() {
+		return this.resolvedException;
 	}
 
 	/**
 	 * Execute the request invoking the same Spring MVC components the {@link DispatcherServlet} does.
 	 * 
 	 */
-	public void execute(HttpServletRequest request, HttpServletResponse response, boolean mapOnly) {
+	public void execute(MockHttpServletRequest request, MockHttpServletResponse response) {
 		try {
 			RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
-			doExecute(request, response, mapOnly);
+			doExecute(request, response);
 		}
 		catch (Exception exception) {
 			logger.error("Unhandled exception", exception);
@@ -133,35 +107,31 @@ class MockMvcDispatcher {
 		}
 	}
 
-	private void doExecute(HttpServletRequest request, HttpServletResponse response, boolean mapOnly) throws Exception {
+	private void doExecute(MockHttpServletRequest request, MockHttpServletResponse response) throws Exception {
 		try {
 			initHandlerExecutionChain(request);
 
-			if (handler == null) {
+			if (this.handler == null) {
 				response.sendError(HttpServletResponse.SC_NOT_FOUND);
 				return;
 			}
 
-			if (mapOnly) {
-				return;
-			}
-			
-			List<HandlerInterceptor> interceptorList = (interceptors != null) ? 
-					Arrays.asList(interceptors) : new ArrayList<HandlerInterceptor>();
+			List<HandlerInterceptor> interceptorList = (this.interceptors != null) ? 
+					Arrays.asList(this.interceptors) : new ArrayList<HandlerInterceptor>();
 
 			for (HandlerInterceptor interceptor : interceptorList) {
-				if (!interceptor.preHandle(request, response, handler)) {
+				if (!interceptor.preHandle(request, response, this.handler)) {
 					return;
 				}
 			}
 
 			HandlerAdapter adapter = getHandlerAdapter();
-			mav = adapter.handle(request, response, handler);
+			this.mav = adapter.handle(request, response, this.handler);
 			updateDefaultViewName(request);
 
 			Collections.reverse(interceptorList);
 			for (HandlerInterceptor interceptor : interceptorList) {
-				interceptor.postHandle(request, response, handler, mav);
+				interceptor.postHandle(request, response, this.handler, this.mav);
 			}
 		}
 		catch (Exception exception) {
@@ -169,31 +139,31 @@ class MockMvcDispatcher {
 			updateDefaultViewName(request);
 		}
 
-		if (mav == null) {
+		if (this.mav == null) {
 			return;
 		}
 
-		Locale locale = mvcSetup.getLocaleResolver().resolveLocale(request);
+		Locale locale = this.mvcSetup.getLocaleResolver().resolveLocale(request);
 		response.setLocale(locale);
 
 		View view = resolveView(locale);
-		view.render(mav.getModel(), request, response);
+		view.render(this.mav.getModel(), request, response);
 	}
 
-	private void initHandlerExecutionChain(HttpServletRequest request) throws Exception {
-		for (HandlerMapping mapping : mvcSetup.getHandlerMappings()) {
+	private void initHandlerExecutionChain(MockHttpServletRequest request) throws Exception {
+		for (HandlerMapping mapping : this.mvcSetup.getHandlerMappings()) {
 			HandlerExecutionChain chain = mapping.getHandler(request);
 			if (chain != null) {
-				handler = chain.getHandler();
-				interceptors = chain.getInterceptors();
+				this.handler = chain.getHandler();
+				this.interceptors = chain.getInterceptors();
 				return;
 			}
 		}
 	}
 
 	private HandlerAdapter getHandlerAdapter() {
-		for (HandlerAdapter adapter : mvcSetup.getHandlerAdapters()) {
-			if (adapter.supports(handler)) {
+		for (HandlerAdapter adapter : this.mvcSetup.getHandlerAdapters()) {
+			if (adapter.supports(this.handler)) {
 				return adapter;
 			}
 		}
@@ -201,19 +171,21 @@ class MockMvcDispatcher {
 				+ "]. Available adapters: [" + mvcSetup.getHandlerAdapters() + "]");
 	}
 
-	private void updateDefaultViewName(HttpServletRequest request) throws Exception {
-		if (mav != null && !mav.hasView()) {
-			String viewName = mvcSetup.getViewNameTranslator().getViewName(request);
-			mav.setViewName(viewName);
+	private void updateDefaultViewName(MockHttpServletRequest request) throws Exception {
+		if (this.mav != null && !this.mav.hasView()) {
+			String viewName = this.mvcSetup.getViewNameTranslator().getViewName(request);
+			this.mav.setViewName(viewName);
 		}
 	}
 
-	private void processHandlerException(HttpServletRequest request, HttpServletResponse response, Exception exception) throws Exception {
-		for (HandlerExceptionResolver resolver : mvcSetup.getExceptionResolvers()) {
-			mav = resolver.resolveException(request, response, handler, exception);
-			if (mav != null) {
-				resolvedException = exception;
-				mav = mav.isEmpty() ? null : mav;
+	private void processHandlerException(MockHttpServletRequest request, 
+										 MockHttpServletResponse response, 
+										 Exception exception) throws Exception {
+		for (HandlerExceptionResolver resolver : this.mvcSetup.getExceptionResolvers()) {
+			this.mav = resolver.resolveException(request, response, this.handler, exception);
+			if (this.mav != null) {
+				this.resolvedException = exception;
+				this.mav = this.mav.isEmpty() ? null : this.mav;
 				return;
 			}
 		}
@@ -221,16 +193,16 @@ class MockMvcDispatcher {
 	}
 	
 	private View resolveView(Locale locale) throws Exception {
-		if (mav.isReference()) {
-			for (ViewResolver viewResolver : mvcSetup.getViewResolvers()) {
-				View view = viewResolver.resolveViewName(mav.getViewName(), locale);
+		if (this.mav.isReference()) {
+			for (ViewResolver viewResolver : this.mvcSetup.getViewResolvers()) {
+				View view = viewResolver.resolveViewName(this.mav.getViewName(), locale);
 				if (view != null) {
 					return view;
 				}
 			}
 		}
-		View view = mav.getView();
-		Assert.isTrue(view != null, "Could not resolve view from ModelAndView: <" + mav + ">");
+		View view = this.mav.getView();
+		Assert.isTrue(view != null, "Could not resolve view from ModelAndView: <" + this.mav + ">");
 		return view;
 	}
 
