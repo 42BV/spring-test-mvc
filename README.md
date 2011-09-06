@@ -1,4 +1,3 @@
-
 Spring MVC Test Support
 =======================
 
@@ -49,6 +48,17 @@ Limitations
 -----------
 
 Most rendering technologies should work as expected. For _Tiles_ and _JSP_, while you can test with your existing configuration as is, no actual JSP-based rendering will take place. Instead you should verify the path the request was forwarded to (i.e. the path to the JSP page) or you can also verify the selected view name.
+
+Maven
+=====
+You can get it from the Spring Maven Snapshot repository:
+http://maven.springframework.org/snapshot
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test-mvc</artifactId>
+      <version>1.0.0.BUILD-SNAPSHOT</version>
+    </dependency
 
 Contributions
 =============
