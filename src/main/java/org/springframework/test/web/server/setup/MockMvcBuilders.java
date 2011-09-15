@@ -1,13 +1,22 @@
 package org.springframework.test.web.server.setup;
 
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.web.server.MockMvc;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.context.support.GenericWebApplicationContext;
 import org.springframework.web.context.support.XmlWebApplicationContext;
+
+import javax.xml.transform.Source;
 
 /**
  * A central class for access to all built-in {@link MockMvc} builders. 
@@ -61,4 +70,15 @@ public class MockMvcBuilders {
 		return new StandaloneMockMvcBuilder(controllers);
 	}
 
+    public static ContextMockMvcBuilder applicationContextMvcSetup(ApplicationContext context) {
+        GenericApplicationContext applicationContext = (GenericApplicationContext) context;
+        DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) applicationContext.getBeanFactory();
+
+        GenericWebApplicationContext wac = new GenericWebApplicationContext();
+        for(String name : beanFactory.getBeanDefinitionNames()) {
+            wac.registerBeanDefinition(name, beanFactory.getBeanDefinition(name));
+        }
+
+        return new ContextMockMvcBuilder(wac);
+    }
 }
