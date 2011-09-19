@@ -59,17 +59,11 @@ public class MockMvcBuilders {
 	public static AbstractContextMockMvcBuilder applicationContextMvcSetup(WebApplicationContext context) {
 		return new InitializedContextMockMvcBuilder(context);
 	}
-	
-	/**
-	 * Build a {@link MockMvc} by providing @{@link Controller} instances and configuring 
-	 * directly the required Spring MVC components rather than having them looked up in 
-	 * a Spring ApplicationContext.
-	 * @param controllers one or more controllers with @{@link RequestMapping} methods
-	 */
-	public static StandaloneMockMvcBuilder standaloneMvcSetup(Object... controllers) {
-		return new StandaloneMockMvcBuilder(controllers);
-	}
 
+    /**
+	 * Build a {@link MockMvc} from a fully initialized {@link ApplicationContext} --
+	 * e.g. through the Spring TestContext framework.
+	 */
     public static ContextMockMvcBuilder applicationContextMvcSetup(ApplicationContext context) {
         GenericApplicationContext applicationContext = (GenericApplicationContext) context;
         DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) applicationContext.getBeanFactory();
@@ -81,4 +75,15 @@ public class MockMvcBuilders {
 
         return new ContextMockMvcBuilder(wac);
     }
+	
+	/**
+	 * Build a {@link MockMvc} by providing @{@link Controller} instances and configuring 
+	 * directly the required Spring MVC components rather than having them looked up in 
+	 * a Spring ApplicationContext.
+	 * @param controllers one or more controllers with @{@link RequestMapping} methods
+	 */
+	public static StandaloneMockMvcBuilder standaloneMvcSetup(Object... controllers) {
+		return new StandaloneMockMvcBuilder(controllers);
+	}
+
 }
