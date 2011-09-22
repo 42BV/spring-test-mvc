@@ -23,7 +23,7 @@ Test an `@ResponseBody` method in a controller:
 
     MockMvcBuilders.standaloneMvcSetup(new TestController()).build()
         .perform(get("/form"))
-            .andExpect(response().status(HttpStatus.OK))
+            .andExpect(response().status().is(HttpStatus.OK))
             .andExpect(response().contentType("text/plain"))
 	        .andExpect(response().responseBody("content"));
 
@@ -31,7 +31,7 @@ Test binding failure by pointing to Spring MVC XML-based context configuration:
 
     MockMvcBuilders.xmlConfigMvcSetup("classpath:org/examples/servlet-context.xml").build()
         .perform(get("/form"))
-            .andExpect(response().status(HttpStatus.OK))
+            .andExpect(response().status().isOk())
             .andExpect(model().modelAttributesWithErrors("formBean"))
             .andExpect(view().viewName("form"));
 
