@@ -86,17 +86,17 @@ public class WebApplicationResourceAccessTests {
 
 		// TilesView
 		this.mockMvc.perform(get("/form"))
-                .andExpect(response().status(HttpStatus.OK))
+                .andExpect(response().status().is(HttpStatus.OK))
                 .andExpect(response().forwardedUrl("/WEB-INF/layouts/main.jsp"));
 
 		this.mockMvc.perform(get("/resources/Spring.js"))
-				.andExpect(response().status(HttpStatus.OK))
+				.andExpect(response().status().is(HttpStatus.OK))
 				.andExpect(handler().type(ResourceHttpRequestHandler.class))
 				.andExpect(response().contentType(MediaType.APPLICATION_OCTET_STREAM))
 				.andExpect(response().bodyContains("Spring={};"));
 		
 		this.mockMvc.perform(get("/unknown/resource.js"))
-			.andExpect(response().status(HttpStatus.OK))
+			.andExpect(response().status().is(HttpStatus.OK))
 			.andExpect(handler().type(DefaultServletHttpRequestHandler.class))
 			.andExpect(response().forwardedUrl("default"));
 	}

@@ -31,11 +31,11 @@ public class ApplicationContextSetupTests {
                 .configureWarRootDir("src/test/webapp", false).build();
 
         mockMvc.perform(get("/form"))
-            .andExpect(response().isOk())
+            .andExpect(response().status().isOk())
             .andExpect(response().bodyContains("hello"));
 
         mockMvc.perform(get("/wrong"))
-            .andExpect(response().isNotFound());
+            .andExpect(response().status().isNotFound());
     }
 
     @Controller

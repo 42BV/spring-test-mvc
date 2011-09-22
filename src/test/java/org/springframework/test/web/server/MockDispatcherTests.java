@@ -38,11 +38,11 @@ public class MockDispatcherTests {
 		MockMvc mockMvc = standaloneMvcSetup(new TestController()).build();
 		
 		mockMvc.perform(get("/exception").param("succeed", "true"))
-                .andExpect(response().status(HttpStatus.OK))
+                .andExpect(response().status().is(HttpStatus.OK))
                 .andExpect(response().body("Ok")).andPrintTo(console());
 		
 		mockMvc.perform(get("/exception").param("succeed", "false"))
-			.andExpect(response().status(HttpStatus.OK))
+			.andExpect(response().status().is(HttpStatus.OK))
 			.andExpect(response().body("Exception handled"));
 	}
 

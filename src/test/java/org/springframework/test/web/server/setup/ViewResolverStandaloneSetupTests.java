@@ -52,7 +52,7 @@ public class ViewResolverStandaloneSetupTests {
 		standaloneMvcSetup(new TestController())
 			.setViewResolvers(new InternalResourceViewResolver()).build()
 				.perform(get("/path"))
-					.andExpect(response().status(HttpStatus.OK))
+					.andExpect(response().status().is(HttpStatus.OK))
 					.andExpect(response().forwardedUrl("fruitsAndVegetables"));
 	}
 
@@ -62,7 +62,7 @@ public class ViewResolverStandaloneSetupTests {
 		standaloneMvcSetup(new TestController())
 			.setFixedView(new MappingJacksonJsonView()).build()
 				.perform(get("/path"))
-					.andExpect(response().status(HttpStatus.OK))
+					.andExpect(response().status().is(HttpStatus.OK))
 					.andExpect(response().contentType(MediaType.APPLICATION_JSON));
 // TODO: JSON assertions
 //					.andExpect(response().body("{\"vegetable\":\"cucumber\",\"fruit\":\"kiwi\"}"));
@@ -92,19 +92,19 @@ public class ViewResolverStandaloneSetupTests {
 			.build();
 
 		mockMvc.perform(get("/path.json"))
-				.andExpect(response().status(HttpStatus.OK))
+				.andExpect(response().status().is(HttpStatus.OK))
 				.andExpect(response().contentType(MediaType.APPLICATION_JSON));
 // TODO: JSON assertions
 //				.andExpect(response().body("{\"vegetable\":\"cucumber\",\"fruit\":\"kiwi\"}"));
 
 		mockMvc.perform(get("/path.xml"))
-				.andExpect(response().status(HttpStatus.OK))
+				.andExpect(response().status().is(HttpStatus.OK))
 				.andExpect(response().contentType(MediaType.APPLICATION_XML));
 // TODO: XML assertions
 //				.andExpect(response().body("<string>cucumber</string>"));	// First attribute
 		
 		mockMvc.perform(get("/path"))
-				.andExpect(response().status(HttpStatus.OK))
+				.andExpect(response().status().is(HttpStatus.OK))
 				.andExpect(response().forwardedUrl("fruitsAndVegetables"));
 	}
 

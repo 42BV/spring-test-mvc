@@ -33,7 +33,7 @@ public class StandaloneSetupTests {
 		
 		standaloneMvcSetup(new TestController()).build()
 			.perform(get("/path"))
-				.andExpect(response().status(HttpStatus.OK))
+				.andExpect(response().status().is(HttpStatus.OK))
 				.andExpect(response().contentType("text/plain;charset=ISO-8859-1"))
 				.andExpect(response().body("Mapped by path!"));
 	}	

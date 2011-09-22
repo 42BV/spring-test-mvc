@@ -36,7 +36,7 @@ import org.springframework.web.servlet.ModelAndView;
  *          .configureWarRootDir("src/main/webapp", false).build()
  *  
  *  mockMvc.perform(get("/form"))
- *      .andExpect(response().status(HttpStatus.OK))
+ *      .andExpect(response().status().is(HttpStatus.OK))
  *      .andExpect(response().forwardedUrl("/WEB-INF/layouts/main.jsp"));
  *      
  *  mockMvc.perform(post("/form")).andPrintTo(console());
