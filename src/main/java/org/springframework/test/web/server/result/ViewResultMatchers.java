@@ -26,20 +26,24 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * Matchers with expectations on the selected view.
+ * Provides methods to define expectations on the selected view name or View instance.
  *
  * @author Rossen Stoyanchev
  */
-public class ViewMatchers {
+public class ViewResultMatchers {
 
-	ViewMatchers() {
+	/**
+	 * Protected constructor. 
+	 * @see MockMvcResultActions#view()
+	 */
+	protected ViewResultMatchers() {
 	}
 
 	public ResultMatcher name(final String viewName) {
 		return new ResultMatcher() {
 			public final void match(
 					MockHttpServletRequest request, MockHttpServletResponse response, 
-					Object handler, HandlerInterceptor[] interceptors, ModelAndView mav, Exception resolvedException) {
+					Object handler, HandlerInterceptor[] interceptors, ModelAndView mav, Exception ex) {
 				assertTrue("No ModelAndView", mav != null);
 				assertEquals("View name", viewName, mav.getViewName());
 			}

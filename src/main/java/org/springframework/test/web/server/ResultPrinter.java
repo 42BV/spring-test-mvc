@@ -41,12 +41,14 @@ public interface ResultPrinter {
 	 * @param interceptors the selected handler interceptors, or "null" if none selected
 	 * @param mav the result of the handler invocation, or "null" if view resolution was not required  
 	 * @param resolvedException a successfully resolved controller exception, or "null"
+	 *
+	 * @throws Exception if a failure occurs while printing
 	 */
 	void print(MockHttpServletRequest request, 
 			   MockHttpServletResponse response, 
 			   Object handler,
 			   HandlerInterceptor[] interceptors, 
 			   ModelAndView mav, 
-			   Exception exception);
+			   Exception exception) throws Exception;
 
 }

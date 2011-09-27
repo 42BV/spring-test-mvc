@@ -14,56 +14,52 @@
  * limitations under the License.
  */
 
-package org.springframework.test.web.server;
+package org.springframework.test.web.server.samples.standalone;
 
 import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.server.result.MockMvcResultActions.console;
 import static org.springframework.test.web.server.result.MockMvcResultActions.response;
-import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneMvcSetup;
+import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
 
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
- * Test fixture for {@link MockDispatcher} tests.
+ * Tests with exception handling.
+ *
+ * @author Rossen Stoyanchev
  */
-public class MockDispatcherTests {
-	
+public class ExceptionHandlerTests {
+
 	@Test
-	public void exceptionHandler() {
-		MockMvc mockMvc = standaloneMvcSetup(new TestController()).build();
-		
-		mockMvc.perform(get("/exception").param("succeed", "true"))
+	public void handleException() throws Exception {
+		standaloneSetup(new PersonController()).build()
+			.perform(get("/person/Clyde"))
                 .andExpect(response().status(HttpStatus.OK))
-                .andExpect(response().body("Ok")).andPrintTo(console());
-		
-		mockMvc.perform(get("/exception").param("succeed", "false"))
-			.andExpect(response().status(HttpStatus.OK))
-			.andExpect(response().body("Exception handled"));
-	}
+                .andExpect(response().forwardedUrl("errorView"));
+	}	
 
-	@SuppressWarnings("unused")
+	
 	@Controller
-	private static class TestController {
-
-		@RequestMapping("/exception")
-		public @ResponseBody String exception(boolean succeed) {
-			if (succeed) {
-				return "Ok";
+	@SuppressWarnings("unused")
+	private static class PersonController {
+		
+		@RequestMapping(value="/person/{name}", method=RequestMethod.GET)
+		public String show(@PathVariable String name) {
+			if (name.equals("Clyde")) {
+				throw new IllegalArgumentException("Black listed");
 			}
-			else {
-				throw new IllegalStateException("Sorry");
-			}
+			return "person/show";
 		}
-
+		
 		@ExceptionHandler
-		public @ResponseBody String handle(IllegalStateException e) {
-			return "Exception handled";
+		public String handleException(IllegalArgumentException exception) {
+			return "errorView";
 		}
 	}
-
+	
 }

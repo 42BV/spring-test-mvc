@@ -46,12 +46,16 @@ import org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 /**
- * An abstract class for {@link MockMvc} builders that find Spring MVC components by looking 
- * them up in a Spring {@link WebApplicationContext}.
+ * An abstract class for {@link MockMvc} builders that find Spring MVC 
+ * components by looking them up in a Spring {@link WebApplicationContext}.
  * 
  * @author Rossen Stoyanchev
  */
-public abstract class AbstractContextMockMvcBuilder extends AbstractMockMvcBuilder {
+public abstract class ContextMockMvcBuilderSupport extends AbstractMockMvcBuilder {
+
+	
+	protected ContextMockMvcBuilderSupport() {
+	}
 
 	@Override
 	protected List<HandlerMapping> initHandlerMappings(WebApplicationContext wac) {

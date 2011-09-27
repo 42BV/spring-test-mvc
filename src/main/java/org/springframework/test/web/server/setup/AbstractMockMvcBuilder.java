@@ -87,47 +87,48 @@ public abstract class AbstractMockMvcBuilder {
 	}
 
 	/**
-	 * Return ServletContext to use, never "null".
+	 * Return ServletContext to use, never {@code null}.
 	 */
 	protected abstract ServletContext initServletContext();
 
 	/**
-	 * Return the WebApplicationContext to use, may be "null".
+	 * Return the WebApplicationContext to use, possibly {@code null}.
+	 * @param servletContext the ServletContext returned from {@link #initServletContext()}
 	 */
 	protected abstract WebApplicationContext initWebApplicationContext(ServletContext servletContext);
 
 	/**
-	 * Return the {@link HandlerMapping}s to use to map requests, never "null".
+	 * Return the {@link HandlerMapping}s to use to map requests, never {@code null}.
 	 * @param wac the fully initialized Spring application context
 	 */
 	protected abstract List<HandlerMapping> initHandlerMappings(WebApplicationContext wac);
 
 	/**
-	 * Return the {@link HandlerAdapter}s to use to invoke handlers, never "null".
+	 * Return the {@link HandlerAdapter}s to use to invoke handlers, never {@code null}.
 	 * @param wac the fully initialized Spring application context
 	 */
 	protected abstract List<HandlerAdapter> initHandlerAdapters(WebApplicationContext wac);
 
 	/**
-	 * Return the {@link HandlerExceptionResolver}s to use to resolve controller exceptions, never "null".
+	 * Return the {@link HandlerExceptionResolver}s to use to resolve controller exceptions, never {@code null}.
 	 * @param wac the fully initialized Spring application context
 	 */
 	protected abstract List<HandlerExceptionResolver> initHandlerExceptionResolvers(WebApplicationContext wac);
 
 	/**
-	 * Return the {@link ViewResolver}s to use to resolve view names, never "null".
+	 * Return the {@link ViewResolver}s to use to resolve view names, never {@code null}.
 	 * @param wac the fully initialized Spring application context
 	 */
 	protected abstract List<ViewResolver> initViewResolvers(WebApplicationContext wac);
 
 	/**
-	 * Return the {@link RequestToViewNameTranslator} to use to derive a view name, never "null".
+	 * Return the {@link RequestToViewNameTranslator} to use to derive a view name, never {@code null}.
 	 * @param wac the fully initialized Spring application context
 	 */
 	protected abstract RequestToViewNameTranslator initViewNameTranslator(WebApplicationContext wac);
 
 	/**
-	 * Return the {@link LocaleResolver} to use for locale resolution, never "null".
+	 * Return the {@link LocaleResolver} to use for locale resolution, never {@code null}.
 	 * @param wac the fully initialized Spring application context
 	 */
 	protected abstract LocaleResolver initLocaleResolver(WebApplicationContext wac);

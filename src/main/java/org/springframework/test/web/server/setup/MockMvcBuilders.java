@@ -20,7 +20,7 @@ public class MockMvcBuilders {
 	 * Build a {@link MockMvc} from Java-based Spring configuration. 
 	 * @param configClasses one or more @{@link Configuration} classes
 	 */
-	public static ContextMockMvcBuilder annotationConfigMvcSetup(Class<?>... configClasses) {
+	public static ContextMockMvcBuilder annotationConfigSetup(Class<?>... configClasses) {
 		Assert.notEmpty(configClasses, "At least one @Configuration class is required");
 		AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
 		context.register(configClasses);
@@ -36,7 +36,7 @@ public class MockMvcBuilders {
 	 * 		<li>etc.
 	 * </ul>
 	 */
-	public static ContextMockMvcBuilder xmlConfigMvcSetup(String... configLocations) {
+	public static ContextMockMvcBuilder xmlConfigSetup(String... configLocations) {
 		Assert.notEmpty(configLocations, "At least one XML config location is required");
 		XmlWebApplicationContext context = new XmlWebApplicationContext();
 		context.setConfigLocations(configLocations);
@@ -47,7 +47,7 @@ public class MockMvcBuilders {
 	 * Build a {@link MockMvc} from a fully initialized {@link WebApplicationContext} --
 	 * e.g. through the Spring TestContext framework.
 	 */
-	public static AbstractContextMockMvcBuilder applicationContextMvcSetup(WebApplicationContext context) {
+	public static ContextMockMvcBuilderSupport applicationContextSetup(WebApplicationContext context) {
 		return new InitializedContextMockMvcBuilder(context);
 	}
 	
@@ -57,7 +57,7 @@ public class MockMvcBuilders {
 	 * a Spring ApplicationContext.
 	 * @param controllers one or more controllers with @{@link RequestMapping} methods
 	 */
-	public static StandaloneMockMvcBuilder standaloneMvcSetup(Object... controllers) {
+	public static StandaloneMockMvcBuilder standaloneSetup(Object... controllers) {
 		return new StandaloneMockMvcBuilder(controllers);
 	}
 

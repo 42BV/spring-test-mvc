@@ -28,11 +28,15 @@ import org.springframework.web.context.WebApplicationContext;
  * 
  * @author Rossen Stoyanchev
  */
-public class InitializedContextMockMvcBuilder extends AbstractContextMockMvcBuilder {
+public class InitializedContextMockMvcBuilder extends ContextMockMvcBuilderSupport {
 
 	private final WebApplicationContext applicationContext;
 	
-	public InitializedContextMockMvcBuilder(WebApplicationContext wac) {
+	/**
+     * Protected constructor. Not intended for direct instantiation.
+     * @see MockMvcBuilders#applicationContextSetup(WebApplicationContext)
+	 */
+	protected InitializedContextMockMvcBuilder(WebApplicationContext wac) {
 		Assert.notNull(wac, "WebApplicationContext is required");
 		Assert.notNull(wac.getServletContext(), "WebApplicationContext must have a ServletContext");
 		this.applicationContext = wac;

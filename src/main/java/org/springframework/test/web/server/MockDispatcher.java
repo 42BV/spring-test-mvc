@@ -16,8 +16,6 @@
 
 package org.springframework.test.web.server;
 
-import static org.springframework.test.web.AssertionErrors.fail;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,8 +24,6 @@ import java.util.Locale;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.util.Assert;
@@ -54,8 +50,6 @@ import org.springframework.web.servlet.ViewResolver;
  */
 class MockDispatcher {
 
-	private static Log logger = LogFactory.getLog(MockDispatcher.class);
-	
 	private final MvcSetup mvcSetup;
 
 	private Object handler;
@@ -67,7 +61,7 @@ class MockDispatcher {
 	private Exception resolvedException;
 	
 	/**
-	 * Package private constructor for use by {@link MockMvc}.
+	 * Package-private constructor used by {@link MockMvc}.
 	 */
 	MockDispatcher(MvcSetup setup) {
 		this.mvcSetup = setup;
@@ -92,15 +86,12 @@ class MockDispatcher {
 	/**
 	 * Execute the request invoking the same Spring MVC components the {@link DispatcherServlet} does.
 	 * 
+	 * @throws Exception if an exception occurs not handled by a HandlerExceptionResolver.
 	 */
-	public void execute(MockHttpServletRequest request, MockHttpServletResponse response) {
+	public void execute(MockHttpServletRequest request, MockHttpServletResponse response) throws Exception {
 		try {
 			RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
 			doExecute(request, response);
-		}
-		catch (Exception exception) {
-			logger.error("Unhandled exception", exception);
-			fail("Failed to dispatch Mock MVC request (check logs for stacktrace): " + exception);
 		}
 		finally {
 			RequestContextHolder.resetRequestAttributes();

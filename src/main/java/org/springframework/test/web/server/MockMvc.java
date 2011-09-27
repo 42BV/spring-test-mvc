@@ -28,7 +28,7 @@ import org.springframework.web.servlet.ModelAndView;
  *  
  * <p>Example:
  * <pre>
- *  // Static imports: 
+ *  // Assumes static import of: 
  *  // MockMvcBuilders.*, MockMvcRequestBuilders.*, and MockMvcResultActions.*
  * 
  *  MockMvc mockMvc = 
@@ -40,7 +40,6 @@ import org.springframework.web.servlet.ModelAndView;
  *      .andExpect(response().forwardedUrl("/WEB-INF/layouts/main.jsp"));
  *      
  *  mockMvc.perform(post("/form")).andPrintTo(console());
- *      
  * </pre> 
  * 
  *  
@@ -57,8 +56,8 @@ public class MockMvc {
     private final MvcSetup mvcSetup;
 
     /** 
-     * Protected constructor. See all available {@link MockMvc} builders in:
-     * {@code org.springframework.test.web.server.setup.MockMvcBuilders}
+     * Protected constructor. Not for direct instantiation. 
+     * @see org.springframework.test.web.server.setup.MockMvcBuilders
      */
     protected MockMvc(ServletContext servletContext, MvcSetup mvcSetup) {
         this.servletContext = servletContext;
@@ -66,16 +65,16 @@ public class MockMvc {
     }
 
     /**
-     * Perform a request after building it with the provided {@link RequestBuilder} and 
-     * then allow for expectations and other actions to be set up against the results.
+     * Build a request using the provided {@link RequestBuilder}, execute it,
+     * and return a {@link ResultActions} instance that wraps the result.
      * 
-	 * <p>See all available request builders in:
-	 * {@code org.springframework.test.web.server.request.MockMvcRequestBuilders}.
+	 * @return a ResultActions instance, never {@code null}
+	 * @throws Exception if an exception occurs not handled by a HandlerExceptionResolver
 	 * 
-	 * <p>See all available result actions in:
-	 * {@code org.springframework.test.web.server.result.MockMvcResultActions}.
+	 * @see org.springframework.test.web.server.request.MockMvcRequestBuilders
+	 * @see org.springframework.test.web.server.result.MockMvcResultActions
      */
-    public ResultActions perform(RequestBuilder requestBuilder) {
+    public ResultActions perform(RequestBuilder requestBuilder) throws Exception {
         
     	final MockHttpServletRequest request = requestBuilder.buildRequest(this.servletContext);
         final MockHttpServletResponse response = new MockHttpServletResponse();
@@ -90,13 +89,14 @@ public class MockMvc {
 
         return new ResultActions() {
         	
-			public ResultActions andExpect(ResultMatcher matcher) {
+			public ResultActions andExpect(ResultMatcher matcher) throws Exception {
 				matcher.match(request, response, handler, interceptors, mav, resolvedException);
 				return this;
 			}
 			
-			public void andPrintTo(ResultPrinter printer) {
+			public ResultActions andPrint(ResultPrinter printer) throws Exception {
 				printer.print(request, response, handler, interceptors, mav, resolvedException);
+				return this;
 			}
 		};
     }

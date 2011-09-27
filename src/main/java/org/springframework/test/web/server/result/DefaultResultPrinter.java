@@ -16,12 +16,13 @@
 
 package org.springframework.test.web.server.result;
 
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.server.ResultPrinter;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.web.method.HandlerMethod;
@@ -29,15 +30,22 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * A simple {@link ResultPrinter} that prints to {@code System.out}.
+ * Prints the results of an executed Spring MVC request to an {@link OutputStream}.
  * 
  * @author Rossen Stoyanchev
  */
-public class ConsoleResultPrinter implements ResultPrinter {
+public class DefaultResultPrinter implements ResultPrinter {
 
 	private static final int LABEL_WIDTH = 20;
+	
+	private final PrintWriter writer;
 
-	public ConsoleResultPrinter() {
+	/**
+	 * Protected constructor.
+	 * @see MockMvcResultActions
+	 */
+	protected DefaultResultPrinter(OutputStream outputStream) {
+		this.writer = new PrintWriter(outputStream);
 	}
 
 	public void print(MockHttpServletRequest request, 
@@ -45,9 +53,9 @@ public class ConsoleResultPrinter implements ResultPrinter {
 					  Object handler,
 					  HandlerInterceptor[] interceptors, 
 					  ModelAndView mav, 
-					  Exception exception) {
+					  Exception exception) throws Exception {
 		
-		System.out.println("-----------------------------------------");
+		this.writer.println("-----------------------------------------");
 		
 		printRequest(request);
 		printHandler(handler);
@@ -55,26 +63,27 @@ public class ConsoleResultPrinter implements ResultPrinter {
 		printModelAndView(mav);
 		printResponse(response);
 
-		System.out.println();
+		this.writer.println();
+		this.writer.flush();
 	}
 
 	protected void printRequest(MockHttpServletRequest request) {
 		printHeading("HttpServletRequest");
 		printValue("HTTP Method", request.getMethod());
 		printValue("Request URI", request.getRequestURI());
-		printValue("Params", ServletRequestMatchers.getParameterMap(request));
-		printValue("Headers", ServletRequestMatchers.getHeaderValueMap(request));
+		printValue("Params", ResultMatcherUtils.requestParamsAsMap(request));
+		printValue("Headers", ResultMatcherUtils.requestHeadersAsMap(request));
 	}
 
-	private void printHeading(String text) {
-		System.out.println();
-		System.out.println(formatLabel(text, LABEL_WIDTH).append(":"));
+	protected void printHeading(String text) {
+		this.writer.println();
+		this.writer.println(formatLabel(text, LABEL_WIDTH).append(":"));
 	}
 
 	protected void printValue(String label, Object value) {
-		System.out.println(formatLabel(label, LABEL_WIDTH).append(" = ").append(value).toString());
+		this.writer.println(formatLabel(label, LABEL_WIDTH).append(" = ").append(value).toString());
 	}
-
+	
 	private StringBuilder formatLabel(String label, int width) {
 		StringBuilder sb = new StringBuilder(label);
 		while (sb.length() < width) {
@@ -150,30 +159,17 @@ public class ConsoleResultPrinter implements ResultPrinter {
 	/**
 	 * Print the HttpServletResponse.
 	 */
-	protected void printResponse(MockHttpServletResponse response) {
+	protected void printResponse(MockHttpServletResponse response) throws UnsupportedEncodingException {
 		printHeading("HttpServletResponse");
 		printValue("status", response.getStatus());
 		printValue("error message", response.getErrorMessage());
-		printValue("headers", ServletResponseMatchers.getHeaderValueMap(response));
+		printValue("headers", ResultMatcherUtils.headersAsMap(response));
 		printValue("content type", response.getContentType());
-		printValue("body", getBody(response));
+		printValue("body", response.getContentAsString());
 		printValue("forwarded URL", response.getForwardedUrl());
 		printValue("redirected URL", response.getRedirectedUrl());
 		printValue("included URLs", response.getIncludedUrls());
-		printValue("cookies", ServletResponseMatchers.getCookieValueMap(response));
-	}
-
-	private String getBody(MockHttpServletResponse response) {
-		try {
-			String content = response.getContentAsString();
-			if (StringUtils.hasLength(content) && (content.length() > 50)) {
-				content = content.substring(0, 50) + " <trunkated> (50 of " + " " + content.length() + " chars)";
-			}
-			return content;
-			
-		} catch (UnsupportedEncodingException e) {
-			return "Failed to get the response content: " + e.toString();
-		}
+		printValue("cookies", ResultMatcherUtils.cookiesAsMap(response));
 	}
 
 }
