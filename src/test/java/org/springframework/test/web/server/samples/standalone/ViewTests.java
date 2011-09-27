@@ -43,7 +43,7 @@ import org.springframework.web.servlet.view.json.MappingJacksonJsonView;
 import org.springframework.web.servlet.view.xml.MarshallingView;
 
 /**
- * Tests with different View types.
+ * Tests with different View technologies.
  * 
  * @author Rossen Stoyanchev
  */

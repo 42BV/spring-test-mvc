@@ -21,12 +21,14 @@ import java.util.Map;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 
+import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.XMLAssert;
 import org.custommonkey.xmlunit.XMLUnit;
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.AssertionErrors;
 import org.springframework.test.web.server.ResultMatcher;
 import org.springframework.test.web.server.result.ServletResponseResultMatchers.ServletResponseResultMatcher;
 import org.w3c.dom.Document;
@@ -126,7 +128,10 @@ public class ContentResultMatchers {
 			public void matchResponse(MockHttpServletResponse response) throws Exception {
 				Document control = XMLUnit.buildControlDocument(expectedXmlContent);
 				Document test = XMLUnit.buildTestDocument(response.getContentAsString());
-				XMLAssert.assertXMLEqual("Response content", control, test);
+				Diff diff = new Diff(control, test);
+				if (!diff.similar()) {
+					AssertionErrors.fail("Response content, " + diff.toString());
+		        }				
 			}
 		};
 	}

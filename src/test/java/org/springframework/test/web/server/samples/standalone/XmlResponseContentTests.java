@@ -16,11 +16,10 @@
 
 package org.springframework.test.web.server.samples.standalone;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.server.result.MockMvcResultActions.response;
-import static org.springframework.test.web.server.result.MockMvcResultActions.toConsole;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
-import static org.hamcrest.Matchers.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,7 +40,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- * TODO
+ * Tests with XML response content.
  *
  * @author Rossen Stoyanchev
  */
@@ -60,7 +59,6 @@ public class XmlResponseContentTests {
 	public void isEqualToXml() throws Exception {
 		standaloneSetup(new MusicController()).build()
 			.perform(get("/music/people").accept(MediaType.APPLICATION_XML))
-				.andPrint(toConsole())
 				.andExpect(response().status(HttpStatus.OK))
 				.andExpect(response().contentType(MediaType.APPLICATION_XML))
 				.andExpect(response().content().isEqualToXml(PEOPLE_XML));

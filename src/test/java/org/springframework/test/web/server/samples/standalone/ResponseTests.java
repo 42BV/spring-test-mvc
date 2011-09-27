@@ -18,7 +18,6 @@ package org.springframework.test.web.server.samples.standalone;
 
 import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.server.result.MockMvcResultActions.response;
-import static org.springframework.test.web.server.result.MockMvcResultActions.toConsole;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
 
 import org.junit.Test;
@@ -41,7 +40,6 @@ public class ResponseTests {
 		
 		standaloneSetup(new PersonController()).build()
 			.perform(get("/person/Lee").accept(MediaType.APPLICATION_JSON))
-				.andPrint(toConsole())
 				.andExpect(response().status(HttpStatus.OK))
 				.andExpect(response().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(response().content().jsonPath("$.name").evaluatesTo("Lee"));
