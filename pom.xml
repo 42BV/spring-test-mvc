@@ -12,14 +12,13 @@
     </properties>
 
     <build>
-    <!-- 
         <extensions>
             <extension>
                 <groupId>org.springframework.build.aws</groupId>
                 <artifactId>org.springframework.build.aws.maven</artifactId>
                 <version>3.1.0.RELEASE</version>
             </extension>
-        </extensions>  -->
+        </extensions>
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
