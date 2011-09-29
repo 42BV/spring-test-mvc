@@ -42,13 +42,13 @@ public interface ResultMatcher {
 	 * @param mav the result of the handler invocation, or "null" if view resolution was not required  
 	 * @param resolvedException a successfully resolved controller exception, or "null"
 	 * 
-	 * @throws AssertionError if the expectation fails
+	 * @throws Exception if a failure occurs while executing the expectation
 	 */
 	void match(MockHttpServletRequest request, 
 			   MockHttpServletResponse response, 
 			   Object handler,
 			   HandlerInterceptor[] interceptors, 
 			   ModelAndView mav, 
-			   Exception resolvedException);
+			   Exception resolvedException) throws Exception;
 
 }

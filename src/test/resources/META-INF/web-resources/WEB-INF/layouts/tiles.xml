@@ -3,6 +3,6 @@
 
 <tiles-definitions>
 
-	<definition name="mainLayout" templateExpression="/WEB-INF/layouts/main.jsp"/>
+	<definition name="standardLayout" templateExpression="/WEB-INF/layouts/standardLayout.jsp"/>
 
 </tiles-definitions>

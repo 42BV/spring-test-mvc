@@ -3,6 +3,8 @@
 
 <tiles-definitions>
 
-	<definition name="form" extends="mainLayout"/>
+    <definition name="home" extends="standardLayout">
+        <put-attribute name="main" value="/WEB-INF/views/home.jsp" />
+    </definition>
 
 </tiles-definitions>

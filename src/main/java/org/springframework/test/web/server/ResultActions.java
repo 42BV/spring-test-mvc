@@ -17,26 +17,37 @@
 package org.springframework.test.web.server;
 
 /**
- * Expose the result of an executed Spring MVC request to allow setting up match 
- * expectations with {@link ResultMatcher}s or to print with {@link ResultPrinter}s.
+ * A contract for defining actions such as expectations on the result of an 
+ * executed Spring MVC request using chained methods.
  * 
- * <p>Access all available result matchers and printers through:
+ * <p>Note that instead of creating {@link ResultMatcher} instances directly, 
+ * tests will rather create expectations (and other actions) via chained 
+ * static methods the main entry point for which is in 
  * {@code org.springframework.test.web.server.result.MockMvcResultActions}.
+ * 
+ * <p>Below is a short example:
+ * <pre>
+ *   // Assumes static import of MockMvcResultActions.*
+ * 
+ *   mockMvc.perform(get("/form"))
+ *     .andExpect(response().status(HttpStatus.OK))
+ *     .andPrintTo(console());
+ * </pre> 
  * 
  * @author Rossen Stoyanchev
  */
 public interface ResultActions {
 
 	/**
-	 * Invoke a {@link ResultMatcher} to assert the result of an executed Spring MVC request.
-	 * @param matcher the matcher to invoke
+	 * Define an expectation.
+	 * {@code org.springframework.test.web.server.result.MockMvcResultActions}
 	 */
-	ResultActions andExpect(ResultMatcher matcher);
+	ResultActions andExpect(ResultMatcher matcher) throws Exception;
 
 	/**
-	 * Invoke a {@link ResultPrinter} to print the result of an executed Spring MVC request.
-	 * @param printer the printer to invoke
+	 * Define a print action.
+	 * @see org.springframework.test.web.server.result.MockMvcResultActions#toConsole()
 	 */
-	void andPrintTo(ResultPrinter printer);
-
+	ResultActions andPrint(ResultPrinter printer) throws Exception;
+	
 }

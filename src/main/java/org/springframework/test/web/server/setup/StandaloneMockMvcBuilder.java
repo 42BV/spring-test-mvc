@@ -21,19 +21,27 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.xml.transform.Source;
 
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.format.support.FormattingConversionService;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.ResourceHttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.feed.AtomFeedHttpMessageConverter;
+import org.springframework.http.converter.feed.RssChannelHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJacksonHttpMessageConverter;
+import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
+import org.springframework.http.converter.xml.SourceHttpMessageConverter;
+import org.springframework.http.converter.xml.XmlAwareFormHttpMessageConverter;
 import org.springframework.mock.web.MockServletContext;
 import org.springframework.test.web.server.MockMvc;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,6 +65,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver;
 import org.springframework.web.servlet.view.BeanNameViewResolver;
 import org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator;
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 /**
  * Build a {@link MockMvc} by directly instantiating required Spring MVC components rather 
@@ -67,13 +76,13 @@ import org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator;
  * configuration, similar to the MVC namespace, with various customizations possible. 
  * 
  * <p>View resolution can be configured via {@link #setViewResolvers} or 
- * {@link #setFixedView(View)}. Or if view resolution is not configured, 
+ * {@link #setSingleView(View)}. Or if view resolution is not configured, 
  * a fixed {@link View} that doesn't render anything is used.
  * 
  * @author Rossen Stoyanchev
  */ 
 public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
-	
+
 	private final Object[] controllers;
 	
 	private List<HttpMessageConverter<?>> messageConverters;
@@ -87,9 +96,10 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	private List<ViewResolver> viewResolvers;
 
 	/**
-	 * Create an instance registering @{@link RequestMapping} methods from the given controllers.
+     * Protected constructor. Not intended for direct instantiation.
+     * @see MockMvcBuilders#standaloneSetup(Object...)
 	 */
-	public StandaloneMockMvcBuilder(Object[] controllers) {
+	protected StandaloneMockMvcBuilder(Object[] controllers) {
 		Assert.isTrue(!ObjectUtils.isEmpty(controllers), "At least one controller is required");
 		this.controllers = controllers;
 	}
@@ -122,14 +132,13 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	}
 	
 	/**
-	 * Sets up a single {@link ViewResolver} that always returns the provided view -
-	 * a convenient shortcut to rendering generated content (e.g. JSON, XML, Atom, etc.) 
-	 * For URL-based views, use {@link #setViewResolvers(ViewResolver...)} instead.
-	 * 
-	 * @param view the default View to return for any view name
+	 * Sets up a single {@link ViewResolver} that always returns the provided 
+	 * view instance. This is a convenient shortcut if you need to use one 
+	 * View instance only -- e.g. rendering generated content (JSON, XML, Atom).
+	 * @param view the View instance to return every time
 	 */
-	public StandaloneMockMvcBuilder setFixedView(View view) {
-		this.viewResolvers = Collections.<ViewResolver>singletonList(new FixedViewResolver(view));
+	public StandaloneMockMvcBuilder setSingleView(View view) {
+		this.viewResolvers = Collections.<ViewResolver>singletonList(new StubViewResolver(view));
 		return this;
 	}
 
@@ -137,7 +146,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	 * Set up view resolution with the given {@link ViewResolver}s. If this property is
 	 * not used, a fixed, noop View is used instead.
 	 * 
-	 * <p>If you need to use a {@link BeanNameViewResolver}, use {@link AbstractContextMockMvcBuilder} instead.
+	 * <p>If you need to use a {@link BeanNameViewResolver}, use {@link ContextMockMvcBuilderSupport} instead.
 	 */
 	public StandaloneMockMvcBuilder setViewResolvers(ViewResolver...resolvers) {
 		this.viewResolvers = Arrays.asList(resolvers);
@@ -159,30 +168,62 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 
 	@Override
 	protected List<HandlerMapping> initHandlerMappings(WebApplicationContext wac) {
-		StaticRequestMappingHandlerMapping mapping = new StaticRequestMappingHandlerMapping();
-		mapping.registerHandlers(this.controllers);
-		mapping.setInterceptors(this.mappedInterceptors.toArray());
-		return Collections.<HandlerMapping>singletonList(mapping);
+		StaticRequestMappingHandlerMapping handlerMapping = new StaticRequestMappingHandlerMapping();
+		handlerMapping.registerHandlers(this.controllers);
+		handlerMapping.setInterceptors(this.mappedInterceptors.toArray());
+		handlerMapping.setOrder(0);
+		return Collections.<HandlerMapping>singletonList(handlerMapping);
 	}
 
 	@Override
 	protected List<HandlerAdapter> initHandlerAdapters(WebApplicationContext wac) {
-		RequestMappingHandlerAdapter adapter = new RequestMappingHandlerAdapter();
-		if (this.messageConverters != null) {
-			adapter.setMessageConverters(this.messageConverters);
+		if (this.messageConverters == null) {
+			this.messageConverters = getDefaultHttpMessageConverters();
 		}
-		
 		ConfigurableWebBindingInitializer initializer = new ConfigurableWebBindingInitializer();
 		initializer.setConversionService(this.conversionService);
 		initializer.setValidator(this.validator);
-		adapter.setWebBindingInitializer(initializer);
+
+		RequestMappingHandlerAdapter handlerAdapter = new RequestMappingHandlerAdapter();
+		handlerAdapter.setWebBindingInitializer(initializer);
+		handlerAdapter.setMessageConverters(this.messageConverters);
+		handlerAdapter.setApplicationContext(wac);	// for SpEL expressions in annotations
+		handlerAdapter.afterPropertiesSet();
 		
-		adapter.setApplicationContext(wac);	// for SpEL expressions in annotations
-		adapter.afterPropertiesSet();
-		
-		return Collections.<HandlerAdapter>singletonList(adapter);
+		return Collections.<HandlerAdapter>singletonList(handlerAdapter);
 	}
 
+	/**
+	 * Override this method to add default {@link HttpMessageConverter}s. 
+	 * @param messageConverters the list to add the default message converters to
+	 */
+	private List<HttpMessageConverter<?>> getDefaultHttpMessageConverters() {
+		List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
+		
+		StringHttpMessageConverter stringConverter = new StringHttpMessageConverter();
+		stringConverter.setWriteAcceptCharset(false);
+
+		messageConverters.add(new ByteArrayHttpMessageConverter());
+		messageConverters.add(stringConverter);
+		messageConverters.add(new ResourceHttpMessageConverter());
+		messageConverters.add(new SourceHttpMessageConverter<Source>());
+		messageConverters.add(new XmlAwareFormHttpMessageConverter());
+
+		ClassLoader classLoader = getClass().getClassLoader();
+		if (ClassUtils.isPresent("javax.xml.bind.Binder", classLoader)) {
+			messageConverters.add(new Jaxb2RootElementHttpMessageConverter());
+		}
+		if (ClassUtils.isPresent("org.codehaus.jackson.map.ObjectMapper", classLoader)) {
+			messageConverters.add(new MappingJacksonHttpMessageConverter());
+		}
+		if (ClassUtils.isPresent("com.sun.syndication.feed.WireFeed", classLoader)) {
+			messageConverters.add(new AtomFeedHttpMessageConverter());
+			messageConverters.add(new RssChannelHttpMessageConverter());
+		}
+		
+		return messageConverters;
+	}
+	
 	@Override
 	protected List<HandlerExceptionResolver> initHandlerExceptionResolvers(WebApplicationContext wac) {
 		ExceptionHandlerExceptionResolver exceptionResolver = new ExceptionHandlerExceptionResolver();
@@ -202,7 +243,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	@Override
 	protected List<ViewResolver> initViewResolvers(WebApplicationContext wac) {
 		this.viewResolvers = (this.viewResolvers == null) ? 
-				Arrays.<ViewResolver>asList(new FixedViewResolver(NOOP_VIEW)) : viewResolvers;
+				Arrays.<ViewResolver>asList(new InternalResourceViewResolver()) : viewResolvers;
 				
 		for (Object viewResolver : this.viewResolvers) {
 			if (viewResolver instanceof ApplicationContextAware) {
@@ -239,11 +280,11 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	/**
 	 * A {@link ViewResolver} that always returns same View.
 	 */
-	private static class FixedViewResolver implements ViewResolver {
+	private static class StubViewResolver implements ViewResolver {
 		
 		private final View view;
 		
-		public FixedViewResolver(View view) {
+		public StubViewResolver(View view) {
 			this.view = view;
 		}
 
@@ -251,19 +292,5 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 			return this.view;
 		}
 	}
-	
-	/**
-	 * A {@link View} that does not render.
-	 */
-	private static final View NOOP_VIEW = new View() {
-
-		public String getContentType() {
-			return null;
-		}
-
-		public void render(Map<String, ?> model, HttpServletRequest request, HttpServletResponse response)
-				throws Exception {
-		}
-	};
 
 }

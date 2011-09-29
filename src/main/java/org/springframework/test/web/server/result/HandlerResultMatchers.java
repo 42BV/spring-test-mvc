@@ -30,13 +30,17 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * Matchers with expectations on the selected controller.
+ * Provides methods to define expectations on the selected handler.
  * 
  * @author Rossen Stoyanchev
  */
-public class HandlerMatchers {
+public class HandlerResultMatchers {
 
-	HandlerMatchers() {
+	/**
+	 * Protected constructor. 
+	 * @see MockMvcResultActions#handler()  
+	 */
+	HandlerResultMatchers() {
 	}
 
 	public ResultMatcher methodName(final String methodName) {
@@ -61,12 +65,15 @@ public class HandlerMatchers {
 
 	public ResultMatcher type(final Class<?> handlerType) {
 		return new HandlerResultMatcher() {
-			protected void matchInternal(Object handler) {
+			protected void matchHandler(Object handler) {
 				assertEquals("Handler type", handlerType, handler.getClass());
 			}
 		};
 	}
 
+	/**
+	 * Base class for Matchers that assert the matched handler.
+	 */
 	public abstract static class HandlerResultMatcher implements ResultMatcher {
 
 		public final void match(MockHttpServletRequest request, 
@@ -74,25 +81,28 @@ public class HandlerMatchers {
 				Object handler,	
 				HandlerInterceptor[] interceptors, 
 				ModelAndView mav, 
-				Exception resolvedException) {
+				Exception resolvedException) throws Exception {
 			
 			assertTrue("No matching handler", handler != null);
-			matchInternal(handler);
+			matchHandler(handler);
 		}
 
-		protected abstract void matchInternal(Object handler);
+		protected abstract void matchHandler(Object handler) throws Exception;
 	}
 
+	/**
+	 * Base class for Matchers that assert a matched handler of type {@link HandlerMethod}.
+	 */
 	private abstract static class HandlerMethodResultMatcher extends HandlerResultMatcher {
 
 		@Override
-		protected void matchInternal(Object controller) {
+		protected void matchHandler(Object controller) throws Exception {
 			Class<?> type = controller.getClass();
 			assertTrue("Not a HandlerMethod. Actual type " + type, HandlerMethod.class.isAssignableFrom(type));
 			matchHandlerMethod((HandlerMethod) controller);
 		}
 
-		protected abstract void matchHandlerMethod(HandlerMethod handlerMethod);
+		protected abstract void matchHandlerMethod(HandlerMethod handlerMethod) throws Exception;
 	}
 	
 }

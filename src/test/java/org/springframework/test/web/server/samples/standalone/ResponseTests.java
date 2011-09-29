@@ -14,36 +14,45 @@
  * limitations under the License.
  */
 
-package org.springframework.test.web.server.setup;
+package org.springframework.test.web.server.samples.standalone;
 
 import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.server.result.MockMvcResultActions.response;
-import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneMvcSetup;
+import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
 
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-public class StandaloneSetupTests {
+/**
+ * Tests that write directly to the response.
+ *
+ * @author Rossen Stoyanchev
+ */
+public class ResponseTests {
 
 	@Test
-	public void singleController() throws Exception {
+	public void json() throws Exception {
 		
-		standaloneMvcSetup(new TestController()).build()
-			.perform(get("/path"))
-				.andExpect(response().status().is(HttpStatus.OK))
-				.andExpect(response().contentType("text/plain;charset=ISO-8859-1"))
-				.andExpect(response().body("Mapped by path!"));
+		standaloneSetup(new PersonController()).build()
+			.perform(get("/person/Lee").accept(MediaType.APPLICATION_JSON))
+				.andExpect(response().status(HttpStatus.OK))
+				.andExpect(response().contentType(MediaType.APPLICATION_JSON))
+				.andExpect(response().content().jsonPath("$.name").evaluatesTo("Lee"));
 	}	
 
 	@Controller
-	class TestController {
+	@SuppressWarnings("unused")
+	private class PersonController {
 
-		@RequestMapping("/path")
-		public @ResponseBody String handle() {
-			return "Mapped by path!";
+		@RequestMapping(value="/person/{name}")
+		public @ResponseBody Person get(@PathVariable String name) {
+			Person person = new Person(name);
+			return person;
 		}
 	}
 

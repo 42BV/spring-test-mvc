@@ -39,7 +39,7 @@ import org.springframework.web.context.WebApplicationContext;
  * 
  * @author Rossen Stoyanchev
  */
-public class ContextMockMvcBuilder extends AbstractContextMockMvcBuilder {
+public class ContextMockMvcBuilder extends ContextMockMvcBuilderSupport {
 
 	private final ConfigurableWebApplicationContext applicationContext;
 	
@@ -48,8 +48,9 @@ public class ContextMockMvcBuilder extends AbstractContextMockMvcBuilder {
 	private ResourceLoader webResourceLoader = new FileSystemResourceLoader();
 	
 	/**
-	 * Create an instance with the given {@link ConfigurableWebApplicationContext}.
-	 * The context will be refreshed when {@link #initWebApplicationContext} is called.
+     * Protected constructor. Not intended for direct instantiation.
+     * @see MockMvcBuilders#annotationConfigSetup(Class...)
+     * @see MockMvcBuilders#xmlConfigSetup(String...)
 	 */
 	public ContextMockMvcBuilder(ConfigurableWebApplicationContext applicationContext) {
 		this.applicationContext = applicationContext;
@@ -82,7 +83,7 @@ public class ContextMockMvcBuilder extends AbstractContextMockMvcBuilder {
 	 *  
 	 * @param warRootDir the Web application root directory (should not end with a slash)
 	 */
-	public ContextMockMvcBuilder configureWarRootDir(String warRootDir, boolean isClasspathRelative) {
+	public ContextMockMvcBuilder configureWebAppRootDir(String warRootDir, boolean isClasspathRelative) {
 		this.webResourceBasePath = warRootDir;
 		this.webResourceLoader = isClasspathRelative ? new DefaultResourceLoader() : new FileSystemResourceLoader();
 		return this;
