@@ -9,6 +9,6 @@
 	<annotation-driven />
 
 	<beans:bean id="testController"
-		class="org.springframework.test.web.server.setup.ApplicationContextSetupTests$TestController"/>
+		class="org.springframework.test.web.server.samples.context.TestContextTests$TestController"/>
 
 </beans:beans>

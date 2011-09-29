@@ -41,6 +41,8 @@ import org.springframework.web.servlet.ModelAndView;
 public class ServletResponseResultMatchers {
 	
 	private ContentResultMatchers contentMatchers = new ContentResultMatchers();
+
+    private StatusResultMatchers statusMatchers = new StatusResultMatchers();
 	
 	/**
 	 * Protected constructor. 
@@ -57,7 +59,20 @@ public class ServletResponseResultMatchers {
 		this.contentMatchers = contentMatchers;
 	}
 
-	/**
+    /**
+     * Set the {@link StatusResultMatchers} instance to return
+     * form {@link #status()}
+     * @param statusMatchers
+     */
+    public void setStatusMatchers(StatusResultMatchers statusMatchers) {
+        this.statusMatchers = statusMatchers;
+    }
+
+    public StatusResultMatchers status(){
+        return this.statusMatchers;
+    }
+
+    /**
 	 * Match the expected response status to that of the HttpServletResponse
 	 */
 	public ResultMatcher status(final HttpStatus expectedStatus) {

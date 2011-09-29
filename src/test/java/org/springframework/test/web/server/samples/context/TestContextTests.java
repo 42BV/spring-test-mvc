@@ -1,4 +1,4 @@
-package org.springframework.test.web.server.setup;
+package org.springframework.test.web.server.samples.context;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.server.MockMvc;
+import org.springframework.test.web.server.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -21,18 +22,18 @@ import static org.springframework.test.web.server.result.MockMvcResultActions.re
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class ApplicationContextSetupTests {
+public class TestContextTests {
 
-    @Autowired ApplicationContext context;
+    @Autowired
+    ApplicationContext context;
 
     @Test
-    public void responseBodyHandler(){
+    public void responseBodyHandler() throws Exception {
         MockMvc mockMvc = MockMvcBuilders.applicationContextMvcSetup(context)
-                .configureWarRootDir("src/test/webapp", false).build();
+                .configureWebAppRootDir("src/test/webapp", false).build();
 
-        mockMvc.perform(get("/form"))
-            .andExpect(response().status().isOk())
-            .andExpect(response().bodyContains("hello"));
+		mockMvc.perform(get("/form"))
+			.andExpect(response().status().isOk());
 
         mockMvc.perform(get("/wrong"))
             .andExpect(response().status().isNotFound());
@@ -48,5 +49,4 @@ public class ApplicationContextSetupTests {
         }
 
     }
-
 }

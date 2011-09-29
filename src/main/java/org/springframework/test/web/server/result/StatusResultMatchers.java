@@ -6,7 +6,7 @@ import org.springframework.test.web.server.ResultMatcher;
 
 import static org.springframework.test.web.AssertionErrors.assertEquals;
 
-public class ServletResponseStatusMatchers {
+public class StatusResultMatchers {
 
     public ResultMatcher is(final HttpStatus status) {
 		return new MockHttpServletResponseResultMatcher() {
