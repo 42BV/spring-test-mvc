@@ -1,22 +1,17 @@
 package org.springframework.test.web.server.setup;
 
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.ApplicationContext;
+import javax.servlet.ServletContext;
+
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.web.server.MockMvc;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 import org.springframework.web.context.support.XmlWebApplicationContext;
-
-import javax.xml.transform.Source;
 
 /**
  * A central class for access to all built-in {@link MockMvc} builders. 
@@ -52,30 +47,28 @@ public class MockMvcBuilders {
 		return new ContextMockMvcBuilder(context);
 	}
 
-	/**
-	 * Build a {@link MockMvc} from a fully initialized {@link WebApplicationContext} --
-	 * e.g. through the Spring TestContext framework.
+    /**
+	 * Build a {@link MockMvc} by copying bean definitions from a {@link ConfigurableApplicationContext}
+	 * that may have been loaded for example through the Spring TestContext framework. The resulting
+	 * context may further be initialized through the returned {@link ContextMockMvcBuilder}.
 	 */
-	public static ContextMockMvcBuilderSupport applicationContextSetup(WebApplicationContext context) {
+    public static ContextMockMvcBuilder applicationContextSetup(ConfigurableApplicationContext context) {
+        GenericWebApplicationContext wac = new GenericWebApplicationContext();
+        for(String name : context.getBeanFactory().getBeanDefinitionNames()) {
+            wac.registerBeanDefinition(name, context.getBeanFactory().getBeanDefinition(name));
+        }
+        return new ContextMockMvcBuilder(wac);
+    }
+
+	/**
+	 * Build a {@link MockMvc} from a fully initialized {@link WebApplicationContext},
+	 * which may have been loaded for example through the Spring TestContext framework.
+	 * The provided context must have been setup with a {@link ServletContext}.
+	 */
+	public static ContextMockMvcBuilderSupport webApplicationContextSetup(WebApplicationContext context) {
 		return new InitializedContextMockMvcBuilder(context);
 	}
 
-    /**
-	 * Build a {@link MockMvc} from a fully initialized {@link ApplicationContext} --
-	 * e.g. through the Spring TestContext framework.
-	 */
-    public static ContextMockMvcBuilder applicationContextMvcSetup(ApplicationContext context) {
-        GenericApplicationContext applicationContext = (GenericApplicationContext) context;
-        DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) applicationContext.getBeanFactory();
-
-        GenericWebApplicationContext wac = new GenericWebApplicationContext();
-        for(String name : beanFactory.getBeanDefinitionNames()) {
-            wac.registerBeanDefinition(name, beanFactory.getBeanDefinition(name));
-        }
-
-        return new ContextMockMvcBuilder(wac);
-    }
-	
 	/**
 	 * Build a {@link MockMvc} by providing @{@link Controller} instances and configuring 
 	 * directly the required Spring MVC components rather than having them looked up in 

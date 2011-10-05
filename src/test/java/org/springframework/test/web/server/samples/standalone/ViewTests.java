@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.stereotype.Controller;
@@ -63,7 +62,7 @@ public class ViewTests {
 			.setViewResolvers(viewResolver).build()
 				.perform(get("/person/Patrick"))
 					.andExpect(model().attribute("person", hasProperty("name", equalTo("Patrick"))))
-					.andExpect(response().status(HttpStatus.OK))
+					.andExpect(response().status().isOk())
 					.andExpect(response().content().isEqualTo(""))	
 					.andExpect(response().forwardedUrl("/WEB-INF/person/show.jsp"));
 	}
@@ -78,7 +77,7 @@ public class ViewTests {
 		standaloneSetup(new PersonController())
 			.setSingleView(view).build()
 				.perform(get("/person/Patrick"))
-					.andExpect(response().status(HttpStatus.OK))
+					.andExpect(response().status().isOk())
 					.andExpect(response().contentType(MediaType.APPLICATION_JSON))
 					.andExpect(response().content().jsonPath("$.person.name").evaluatesTo("Patrick"));
 	}
@@ -96,7 +95,7 @@ public class ViewTests {
 		standaloneSetup(new PersonController())
 			.setSingleView(view).build()
 				.perform(get("/person/Patrick"))
-					.andExpect(response().status(HttpStatus.OK))
+					.andExpect(response().status().isOk())
 					.andExpect(response().contentType(MediaType.APPLICATION_XML))
 					.andExpect(response().content().xpath("/person/name/text()").evaluatesTo("Patrick"));
 	}
@@ -123,17 +122,17 @@ public class ViewTests {
 				.build();
 
 		mockMvc.perform(get("/person/Patrick"))
-			.andExpect(response().status(HttpStatus.OK))
+			.andExpect(response().status().isOk())
 			.andExpect(response().content().isEqualTo(""))	
 			.andExpect(response().forwardedUrl("person/show"));
 
 		mockMvc.perform(get("/person/Patrick").accept(MediaType.APPLICATION_JSON))
-			.andExpect(response().status(HttpStatus.OK))
+			.andExpect(response().status().isOk())
 			.andExpect(response().contentType(MediaType.APPLICATION_JSON))
 			.andExpect(response().content().jsonPath("$.person.name").evaluatesTo("Patrick"));
 
 		mockMvc.perform(get("/person/Patrick").accept(MediaType.APPLICATION_XML))
-			.andExpect(response().status(HttpStatus.OK))
+			.andExpect(response().status().isOk())
 			.andExpect(response().contentType(MediaType.APPLICATION_XML))
 			.andExpect(response().content().xpath("/person/name/text()").evaluatesTo("Patrick"));
 	}	
@@ -146,7 +145,7 @@ public class ViewTests {
 		standaloneSetup(new PersonController()).build()
 			.perform(get("/person/Patrick"))
 				.andExpect(model().attribute("person", hasProperty("name", equalTo("Patrick"))))
-				.andExpect(response().status(HttpStatus.OK))
+				.andExpect(response().status().isOk())
 				.andExpect(response().forwardedUrl("person/show"));
 	}
 	

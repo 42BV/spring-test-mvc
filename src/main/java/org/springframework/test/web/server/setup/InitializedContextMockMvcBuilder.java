@@ -34,7 +34,7 @@ public class InitializedContextMockMvcBuilder extends ContextMockMvcBuilderSuppo
 	
 	/**
      * Protected constructor. Not intended for direct instantiation.
-     * @see MockMvcBuilders#applicationContextSetup(WebApplicationContext)
+     * @see MockMvcBuilders#webApplicationContextSetup(WebApplicationContext)
 	 */
 	protected InitializedContextMockMvcBuilder(WebApplicationContext wac) {
 		Assert.notNull(wac, "WebApplicationContext is required");

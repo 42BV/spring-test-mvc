@@ -21,7 +21,6 @@ import static org.springframework.test.web.server.result.MockMvcResultActions.re
 import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
 
 import org.junit.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,7 +38,7 @@ public class ExceptionHandlerTests {
 	public void handleException() throws Exception {
 		standaloneSetup(new PersonController()).build()
 			.perform(get("/person/Clyde"))
-                .andExpect(response().status(HttpStatus.OK))
+				.andExpect(response().status().isOk())
                 .andExpect(response().forwardedUrl("errorView"));
 	}	
 

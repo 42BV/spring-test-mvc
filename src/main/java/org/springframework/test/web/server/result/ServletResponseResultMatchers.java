@@ -20,11 +20,9 @@ import static org.springframework.test.web.AssertionErrors.assertEquals;
 import static org.springframework.test.web.AssertionErrors.assertTrue;
 
 import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
 
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -42,7 +40,7 @@ public class ServletResponseResultMatchers {
 	
 	private ContentResultMatchers contentMatchers = new ContentResultMatchers();
 
-    private StatusResultMatchers statusMatchers = new StatusResultMatchers();
+    private StatusResultMatchers statusCodeMatchers = new StatusResultMatchers();
 	
 	/**
 	 * Protected constructor. 
@@ -65,36 +63,15 @@ public class ServletResponseResultMatchers {
      * @param statusMatchers
      */
     public void setStatusMatchers(StatusResultMatchers statusMatchers) {
-        this.statusMatchers = statusMatchers;
-    }
-
-    public StatusResultMatchers status(){
-        return this.statusMatchers;
+        this.statusCodeMatchers = statusMatchers;
     }
 
     /**
-	 * Match the expected response status to that of the HttpServletResponse
-	 */
-	public ResultMatcher status(final HttpStatus expectedStatus) {
-		return new ServletResponseResultMatcher() {
-			protected void matchResponse(MockHttpServletResponse response) {
-				assertEquals("Status", expectedStatus, HttpStatus.valueOf(response.getStatus()));
-			}
-		};
-	}
-
-	/**
-	 * Match the expected response status and reason to those set in the HttpServletResponse
-	 * via {@link HttpServletResponse#sendError(int, String)}. 
-	 */
-	public ResultMatcher statusAndReason(final HttpStatus expectedStatus, final String expectedReason) {
-		return new ServletResponseResultMatcher() {
-			protected void matchResponse(MockHttpServletResponse response) {
-				assertEquals("Status", expectedStatus, HttpStatus.valueOf(response.getStatus()));
-				assertEquals("Reason", expectedReason, response.getErrorMessage());
-			}
-		};
-	}
+	 * Return a class with ServletResponse status code matchers.
+     */
+    public StatusResultMatchers status(){
+        return this.statusCodeMatchers;
+    }
 
 	/**
 	 * Obtain the response content type looking it up in the ServletResponse first and 
@@ -132,8 +109,7 @@ public class ServletResponseResultMatchers {
 	}
 
 	/**
-	 * A {@code ServletResponseContentResultMatchers} for access to 
-	 * ServletResponse content result matchers.
+	 * Return a class with ServletResponse content result matchers.
 	 */
 	public ContentResultMatchers content() {
 		return this.contentMatchers;

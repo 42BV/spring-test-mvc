@@ -23,7 +23,7 @@ Test an `@ResponseBody` method in a controller:
 
     MockMvcBuilders.standaloneMvcSetup(new TestController()).build()
         .perform(get("/form"))
-            .andExpect(response().status().is(HttpStatus.OK))
+            .andExpect(response().status().isOk())
             .andExpect(response().contentType("text/plain"))
 	        .andExpect(response().responseBody("content"));
 

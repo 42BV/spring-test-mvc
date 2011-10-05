@@ -25,7 +25,6 @@ import static org.springframework.test.web.server.setup.MockMvcBuilders.xmlConfi
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.server.MockMvc;
 import org.springframework.web.servlet.resource.DefaultServletHttpRequestHandler;
@@ -72,7 +71,7 @@ public class WarRootDirectoryTests {
 	@Test
 	public void tilesDefinitions() throws Exception {
 		mockMvc.perform(get("/"))
-			.andExpect(response().status(HttpStatus.OK))
+			.andExpect(response().status().isOk())
 			.andExpect(response().forwardedUrl("/WEB-INF/layouts/standardLayout.jsp"));
 	}
 
@@ -81,7 +80,7 @@ public class WarRootDirectoryTests {
 	@Test
 	public void resourceRequest() throws Exception {
 		mockMvc.perform(get("/resources/Spring.js"))
-			.andExpect(response().status(HttpStatus.OK))
+			.andExpect(response().status().isOk())
 			.andExpect(response().contentType(MediaType.APPLICATION_OCTET_STREAM))
 			.andExpect(response().content().asText(containsString("Spring={};")));
 	}
@@ -91,7 +90,7 @@ public class WarRootDirectoryTests {
 	@Test
 	public void resourcesViaDefaultServlet() throws Exception {
 		mockMvc.perform(get("/unknown/resource"))
-			.andExpect(response().status(HttpStatus.OK))
+			.andExpect(response().status().isOk())
 			.andExpect(handler().type(DefaultServletHttpRequestHandler.class))
 			.andExpect(response().forwardedUrl("default"));
 	}

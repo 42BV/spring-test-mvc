@@ -42,7 +42,7 @@ public class ServletRequestResultMatchers {
 	 * Obtain a request attribute and match it to the {@code expectedValue}.
 	 */
 	public ResultMatcher requestAttribute(final String name, final Object expectedValue) {
-		return new ServletRequestResultMatcher() {
+		return new AbstractServletRequestResultMatcher() {
 			public void matchRequest(MockHttpServletRequest request) {
 				assertEquals("Request attribute", expectedValue, request.getAttribute(name));
 			}
@@ -53,7 +53,7 @@ public class ServletRequestResultMatchers {
 	 * Obtain a session attribute and match it to the {@code expectedValue}.
 	 */
 	public ResultMatcher sessionAttribute(final String name, final Object expectedValue) {
-		return new ServletRequestResultMatcher() {
+		return new AbstractServletRequestResultMatcher() {
 			public void matchRequest(MockHttpServletRequest request) {
 				assertEquals("Session attribute", expectedValue, request.getSession().getAttribute(name));
 			}
@@ -63,7 +63,7 @@ public class ServletRequestResultMatchers {
 	/**
 	 * Base class for Matchers that assert the HttpServletRequest.
 	 */
-	public static abstract class ServletRequestResultMatcher implements ResultMatcher {
+	public static abstract class AbstractServletRequestResultMatcher implements ResultMatcher {
 
 		public final void match(MockHttpServletRequest request, 
 								MockHttpServletResponse response, 

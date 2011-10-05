@@ -21,7 +21,6 @@ import static org.springframework.test.web.server.result.MockMvcResultActions.re
 import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
 
 import org.junit.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,7 +39,7 @@ public class ResponseTests {
 		
 		standaloneSetup(new PersonController()).build()
 			.perform(get("/person/Lee").accept(MediaType.APPLICATION_JSON))
-				.andExpect(response().status(HttpStatus.OK))
+				.andExpect(response().status().isOk())
 				.andExpect(response().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(response().content().jsonPath("$.name").evaluatesTo("Lee"));
 	}	

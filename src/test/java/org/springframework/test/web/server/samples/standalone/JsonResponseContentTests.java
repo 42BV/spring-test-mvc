@@ -31,7 +31,6 @@ import static org.springframework.test.web.server.setup.MockMvcBuilders.standalo
 import java.util.Arrays;
 
 import org.junit.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.LinkedMultiValueMap;
@@ -51,7 +50,7 @@ public class JsonResponseContentTests {
 		
 		standaloneSetup(new MusicController()).build()
 			.perform(get("/music/people").accept(MediaType.APPLICATION_JSON))
-				.andExpect(response().status(HttpStatus.OK))
+				.andExpect(response().status().isOk())
 				.andExpect(response().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(response().content().jsonPath("$.composers[?(@.name = 'Robert Schumann')]").exists())
 				.andExpect(response().content().jsonPath("$.performers[?(@.name = 'Yehudi Menuhin')]").exists());
@@ -70,7 +69,7 @@ public class JsonResponseContentTests {
 
 		standaloneSetup(new MusicController()).build()
 			.perform(get("/music/people").accept(MediaType.APPLICATION_JSON))
-				.andExpect(response().status(HttpStatus.OK))
+				.andExpect(response().status().isOk())
 				.andExpect(response().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(response().content().jsonPath("$.composers[0].name").evaluatesTo("Johann Sebastian Bach"))
 				.andExpect(response().content().jsonPath("$.performers[1].name").evaluatesTo("Yehudi Menuhin"));
@@ -82,7 +81,7 @@ public class JsonResponseContentTests {
 
 		standaloneSetup(new MusicController()).build()
 			.perform(get("/music/people").accept(MediaType.APPLICATION_JSON))
-				.andExpect(response().status(HttpStatus.OK))
+				.andExpect(response().status().isOk())
 				.andExpect(response().contentType(MediaType.APPLICATION_JSON))
 
 				.andExpect(response().content().jsonPath("$.composers").result(hasSize(4)))

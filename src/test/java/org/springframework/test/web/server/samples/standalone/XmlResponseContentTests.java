@@ -33,7 +33,6 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.junit.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -59,7 +58,7 @@ public class XmlResponseContentTests {
 	public void isEqualToXml() throws Exception {
 		standaloneSetup(new MusicController()).build()
 			.perform(get("/music/people").accept(MediaType.APPLICATION_XML))
-				.andExpect(response().status(HttpStatus.OK))
+				.andExpect(response().status().isOk())
 				.andExpect(response().contentType(MediaType.APPLICATION_XML))
 				.andExpect(response().content().isEqualToXml(PEOPLE_XML));
 	}
@@ -68,7 +67,7 @@ public class XmlResponseContentTests {
 	public void xpathExists() throws Exception {
 		standaloneSetup(new MusicController()).build()
 			.perform(get("/music/people").accept(MediaType.APPLICATION_XML))
-				.andExpect(response().status(HttpStatus.OK))
+				.andExpect(response().status().isOk())
 				.andExpect(response().contentType(MediaType.APPLICATION_XML))
 				.andExpect(response().content().xpath("/ns:people/composers", NAMESPACES).exists())
 				.andExpect(response().content().xpath("/ns:people/composers[1]/composer", NAMESPACES).exists())
@@ -79,7 +78,7 @@ public class XmlResponseContentTests {
 	public void xpathDoesNotExist() throws Exception {
 		standaloneSetup(new MusicController()).build()
 			.perform(get("/music/people").accept(MediaType.APPLICATION_XML))
-				.andExpect(response().status(HttpStatus.OK))
+				.andExpect(response().status().isOk())
 				.andExpect(response().contentType(MediaType.APPLICATION_XML))
 				.andExpect(response().content().xpath("/ns:people/performers[3]", NAMESPACES).doesNotExist());
 	}
@@ -88,7 +87,7 @@ public class XmlResponseContentTests {
 	public void xpathEvaluatesTo() throws Exception {
 		standaloneSetup(new MusicController()).build()
 			.perform(get("/music/people").accept(MediaType.APPLICATION_XML))
-				.andExpect(response().status(HttpStatus.OK))
+				.andExpect(response().status().isOk())
 				.andExpect(response().contentType(MediaType.APPLICATION_XML))
 				.andExpect(response().content().xpath("/ns:people/composers[1]/composer/name/text()", NAMESPACES)
 						.evaluatesTo("Johann Sebastian Bach"));
@@ -98,7 +97,7 @@ public class XmlResponseContentTests {
 	public void xpathAsText() throws Exception {
 		standaloneSetup(new MusicController()).build()
 			.perform(get("/music/people").accept(MediaType.APPLICATION_XML))
-				.andExpect(response().status(HttpStatus.OK))
+				.andExpect(response().status().isOk())
 				.andExpect(response().contentType(MediaType.APPLICATION_XML))
 				.andExpect(response().content().xpath("/ns:people/composers[1]/composer/name/text()", NAMESPACES)
 						.asText(containsString("Sebastian")));
@@ -108,7 +107,7 @@ public class XmlResponseContentTests {
 	public void xpathNodeCount() throws Exception {
 		standaloneSetup(new MusicController()).build()
 			.perform(get("/music/people").accept(MediaType.APPLICATION_XML))
-				.andExpect(response().status(HttpStatus.OK))
+				.andExpect(response().status().isOk())
 				.andExpect(response().contentType(MediaType.APPLICATION_XML))
 				.andExpect(response().content().xpath("/ns:people/composers/composer", NAMESPACES).nodeCount(4));
 	}

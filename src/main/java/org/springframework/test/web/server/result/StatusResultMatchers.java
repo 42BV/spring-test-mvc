@@ -1,28 +1,48 @@
 package org.springframework.test.web.server.result;
 
+import static org.springframework.test.web.AssertionErrors.assertEquals;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.server.ResultMatcher;
+import org.springframework.test.web.server.result.ServletResponseResultMatchers.ServletResponseResultMatcher;
 
-import static org.springframework.test.web.AssertionErrors.assertEquals;
-
+/**
+ * TODO..
+ * 
+ * @author Keesun Baik
+ */
 public class StatusResultMatchers {
 
+    /**
+	 * Match the expected response status to that of the HttpServletResponse
+	 */
     public ResultMatcher is(final HttpStatus status) {
-		return new MockHttpServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			protected void matchResponse(MockHttpServletResponse response) {
 				assertEquals("Status", status, HttpStatus.valueOf(response.getStatus()));
 			}
 		};
 	}
 
-    /**
-     * Convenience Methods for HttpStatus check
-     */
+	/**
+	 * Match the expected response status and reason to those set in the HttpServletResponse
+	 * via {@link HttpServletResponse#sendError(int, String)}. 
+	 */
+	public ResultMatcher is(final HttpStatus expectedStatus, final String expectedReason) {
+		return new ServletResponseResultMatcher() {
+			protected void matchResponse(MockHttpServletResponse response) {
+				assertEquals("Status", expectedStatus, HttpStatus.valueOf(response.getStatus()));
+				assertEquals("Reason", expectedReason, response.getErrorMessage());
+			}
+		};
+	}
 
     /**
-     * Convenience Method for {@link HttpStatus.OK}
-     * Check if the http is code is 200 or not.
+     * Convenience Method for {@code HttpStatus.OK}
+     * Check if the HTTP is code is 200 or not.
      * @return true if the is code is 200.
      */
     public ResultMatcher isOk(){
@@ -30,8 +50,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.NOT_FOUND}
-     * Check if the http is code is 404 or not.
+     * Convenience Method for {@code HttpStatus.NOT_FOUND}
+     * Check if the HTTP is code is 404 or not.
      * @return true if the is code is 404.
      */
     public ResultMatcher isNotFound(){
@@ -39,8 +59,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.CONTINUE}
-     * Check if the http is code is 100 or not.
+     * Convenience Method for {@code HttpStatus.CONTINUE}
+     * Check if the HTTP is code is 100 or not.
      * @return true if the is code is 100.
      */
     public ResultMatcher isContinue(){
@@ -48,8 +68,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.CONTINUE}
-     * Check if the http is code is 101 or not.
+     * Convenience Method for {@code HttpStatus.CONTINUE}
+     * Check if the HTTP is code is 101 or not.
      * @return true if the is code is 101.
      */
     public ResultMatcher isSwitchingProtocols(){
@@ -57,8 +77,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.PROCESSING}
-     * Check if the http is code is 102 or not.
+     * Convenience Method for {@code HttpStatus.PROCESSING}
+     * Check if the HTTP is code is 102 or not.
      * @return true if the is code is 102.
      */
     public ResultMatcher isProcessing(){
@@ -66,8 +86,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.CREATED}
-     * Check if the http is code is 201 or not.
+     * Convenience Method for {@code HttpStatus.CREATED}
+     * Check if the HTTP is code is 201 or not.
      * @return true if the is code is 201.
      */
     public ResultMatcher isCreated(){
@@ -75,8 +95,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.ACCEPTED}
-     * Check if the http is code is 202 or not.
+     * Convenience Method for {@code HttpStatus.ACCEPTED}
+     * Check if the HTTP is code is 202 or not.
      * @return true if the is code is 202.
      */
     public ResultMatcher isAccepted(){
@@ -84,8 +104,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.NON_AUTHORITATIVE_INFORMATION}
-     * Check if the http is code is 203 or not.
+     * Convenience Method for {@code HttpStatus.NON_AUTHORITATIVE_INFORMATION}
+     * Check if the HTTP is code is 203 or not.
      * @return true if the is code is 203.
      */
     public ResultMatcher isNonAuthoritativeInformation(){
@@ -94,8 +114,8 @@ public class StatusResultMatchers {
 
 
     /**
-     * Convenience Method for {@link HttpStatus.NO_CONTENT}
-     * Check if the http is code is 204 or not.
+     * Convenience Method for {@code HttpStatus.NO_CONTENT}
+     * Check if the HTTP is code is 204 or not.
      * @return true if the is code is 204.
      */
     public ResultMatcher isNoContent(){
@@ -103,8 +123,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.RESET_CONTENT}
-     * Check if the http is code is 205 or not.
+     * Convenience Method for {@code HttpStatus.RESET_CONTENT}
+     * Check if the HTTP is code is 205 or not.
      * @return true if the is code is 205.
      */
     public ResultMatcher isResetContent(){
@@ -112,8 +132,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.PARTIAL_CONTENT}
-     * Check if the http is code is 206 or not.
+     * Convenience Method for {@code HttpStatus.PARTIAL_CONTENT}
+     * Check if the HTTP is code is 206 or not.
      * @return true if the is code is 206.
      */
     public ResultMatcher isPartialContent(){
@@ -121,8 +141,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.MULTI_STATUS}
-     * Check if the http is code is 207 or not.
+     * Convenience Method for {@code HttpStatus.MULTI_STATUS}
+     * Check if the HTTP is code is 207 or not.
      * @return true if the is code is 207.
      */
     public ResultMatcher isMultiStatus(){
@@ -130,8 +150,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.ALREADY_REPORTED}
-     * Check if the http is code is 208 or not.
+     * Convenience Method for {@code HttpStatus.ALREADY_REPORTED}
+     * Check if the HTTP is code is 208 or not.
      * @return true if the is code is 208.
      */
     public ResultMatcher isAlreadyReported(){
@@ -139,8 +159,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.IM_USED}
-     * Check if the http is code is 226 or not.
+     * Convenience Method for {@code HttpStatus.IM_USED}
+     * Check if the HTTP is code is 226 or not.
      * @return true if the is code is 226.
      */
     public ResultMatcher isImUsed(){
@@ -148,8 +168,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.MULTIPLE_CHOICES}
-     * Check if the http is code is 300 or not.
+     * Convenience Method for {@code HttpStatus.MULTIPLE_CHOICES}
+     * Check if the HTTP is code is 300 or not.
      * @return true if the is code is 300.
      */
     public ResultMatcher isMultipleChoices(){
@@ -157,8 +177,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.MOVED_PERMANENTLY}
-     * Check if the http is code is 301 or not.
+     * Convenience Method for {@code HttpStatus.MOVED_PERMANENTLY}
+     * Check if the HTTP is code is 301 or not.
      * @return true if the is code is 301.
      */
     public ResultMatcher isMovedPermanently(){
@@ -166,8 +186,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.FOUND}
-     * Check if the http is code is 302 or not.
+     * Convenience Method for {@code HttpStatus.FOUND}
+     * Check if the HTTP is code is 302 or not.
      * @return true if the is code is 302.
      */
     public ResultMatcher isFound(){
@@ -175,8 +195,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.MOVED_TEMPORARILY}
-     * Check if the http is code is 302 or not.
+     * Convenience Method for {@code HttpStatus.MOVED_TEMPORARILY}
+     * Check if the HTTP is code is 302 or not.
      * @return true if the is code is 302.
      */
     public ResultMatcher isMovedTemporarily(){
@@ -184,8 +204,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.SEE_OTHER}
-     * Check if the http is code is 303 or not.
+     * Convenience Method for {@code HttpStatus.SEE_OTHER}
+     * Check if the HTTP is code is 303 or not.
      * @return true if the is code is 303.
      */
     public ResultMatcher isSeeOther(){
@@ -193,8 +213,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.NOT_MODIFIED}
-     * Check if the http is code is 304 or not.
+     * Convenience Method for {@code HttpStatus.NOT_MODIFIED}
+     * Check if the HTTP is code is 304 or not.
      * @return true if the is code is 304.
      */
     public ResultMatcher isNotModified(){
@@ -202,8 +222,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.USE_PROXY}
-     * Check if the http is code is 305 or not.
+     * Convenience Method for {@code HttpStatus.USE_PROXY}
+     * Check if the HTTP is code is 305 or not.
      * @return true if the is code is 305.
      */
     public ResultMatcher isUseProxy(){
@@ -211,8 +231,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.TEMPORARY_REDIRECT}
-     * Check if the http is code is 307 or not.
+     * Convenience Method for {@code HttpStatus.TEMPORARY_REDIRECT}
+     * Check if the HTTP is code is 307 or not.
      * @return true if the is code is 307.
      */
     public ResultMatcher isTemporaryRedirect(){
@@ -220,8 +240,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.BAD_REQUEST}
-     * Check if the http is code is 400 or not.
+     * Convenience Method for {@code HttpStatus.BAD_REQUEST}
+     * Check if the HTTP is code is 400 or not.
      * @return true if the is code is 400.
      */
     public ResultMatcher isBadRequest(){
@@ -229,8 +249,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.UNAUTHORIZED}
-     * Check if the http is code is 401 or not.
+     * Convenience Method for {@code HttpStatus.UNAUTHORIZED}
+     * Check if the HTTP is code is 401 or not.
      * @return true if the is code is 401.
      */
     public ResultMatcher isUnauthorized(){
@@ -238,8 +258,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.PAYMENT_REQUIRED}
-     * Check if the http is code is 402 or not.
+     * Convenience Method for {@code HttpStatus.PAYMENT_REQUIRED}
+     * Check if the HTTP is code is 402 or not.
      * @return true if the is code is 402.
      */
     public ResultMatcher isPaymentRequired(){
@@ -247,8 +267,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.FORBIDDEN}
-     * Check if the http is code is 403 or not.
+     * Convenience Method for {@code HttpStatus.FORBIDDEN}
+     * Check if the HTTP is code is 403 or not.
      * @return true if the is code is 403.
      */
     public ResultMatcher isForbidden(){
@@ -256,8 +276,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.METHOD_NOT_ALLOWED}
-     * Check if the http is code is 405 or not.
+     * Convenience Method for {@code HttpStatus.METHOD_NOT_ALLOWED}
+     * Check if the HTTP is code is 405 or not.
      * @return true if the is code is 405.
      */
     public ResultMatcher isMethodNotAllowed(){
@@ -265,8 +285,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.NOT_ACCEPTABLE}
-     * Check if the http is code is 406 or not.
+     * Convenience Method for {@code HttpStatus.NOT_ACCEPTABLE}
+     * Check if the HTTP is code is 406 or not.
      * @return true if the is code is 406.
      */
     public ResultMatcher isNotAcceptable(){
@@ -274,8 +294,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.PROXY_AUTHENTICATION_REQUIRED}
-     * Check if the http is code is 407 or not.
+     * Convenience Method for {@code HttpStatus.PROXY_AUTHENTICATION_REQUIRED}
+     * Check if the HTTP is code is 407 or not.
      * @return true if the is code is 407.
      */
     public ResultMatcher isProxyAuthenticationRequired(){
@@ -283,8 +303,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.REQUEST_TIMEOUT}
-     * Check if the http is code is 408 or not.
+     * Convenience Method for {@code HttpStatus.REQUEST_TIMEOUT}
+     * Check if the HTTP is code is 408 or not.
      * @return true if the is code is 408.
      */
     public ResultMatcher isRequestTimeout(){
@@ -292,8 +312,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.CONFLICT}
-     * Check if the http is code is 409 or not.
+     * Convenience Method for {@code HttpStatus.CONFLICT}
+     * Check if the HTTP is code is 409 or not.
      * @return true if the is code is 409.
      */
     public ResultMatcher isConflict(){
@@ -301,8 +321,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.GONE}
-     * Check if the http is code is 410 or not.
+     * Convenience Method for {@code HttpStatus.GONE}
+     * Check if the HTTP is code is 410 or not.
      * @return true if the is code is 410.
      */
     public ResultMatcher isGone(){
@@ -310,8 +330,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.LENGTH_REQUIRED}
-     * Check if the http is code is 411 or not.
+     * Convenience Method for {@code HttpStatus.LENGTH_REQUIRED}
+     * Check if the HTTP is code is 411 or not.
      * @return true if the is code is 411.
      */
     public ResultMatcher isLengthRequired(){
@@ -319,8 +339,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.PRECONDITION_FAILED}
-     * Check if the http is code is 412 or not.
+     * Convenience Method for {@code HttpStatus.PRECONDITION_FAILED}
+     * Check if the HTTP is code is 412 or not.
      * @return true if the is code is 412.
      */
     public ResultMatcher isPreconditionFailed(){
@@ -328,8 +348,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.REQUEST_ENTITY_TOO_LARGE}
-     * Check if the http is code is 413 or not.
+     * Convenience Method for {@code HttpStatus.REQUEST_ENTITY_TOO_LARGE}
+     * Check if the HTTP is code is 413 or not.
      * @return true if the is code is 413.
      */
     public ResultMatcher isRequestEntityTooLarge(){
@@ -337,8 +357,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.REQUEST_URI_TOO_LONG}
-     * Check if the http is code is 414 or not.
+     * Convenience Method for {@code HttpStatus.REQUEST_URI_TOO_LONG}
+     * Check if the HTTP is code is 414 or not.
      * @return true if the is code is 414.
      */
     public ResultMatcher isRequestUriTooLong(){
@@ -346,8 +366,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.UNSUPPORTED_MEDIA_TYPE}
-     * Check if the http is code is 415 or not.
+     * Convenience Method for {@code HttpStatus.UNSUPPORTED_MEDIA_TYPE}
+     * Check if the HTTP is code is 415 or not.
      * @return true if the is code is 415.
      */
     public ResultMatcher isUnsupportedMediaType(){
@@ -355,8 +375,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE}
-     * Check if the http is code is 416 or not.
+     * Convenience Method for {@code HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE}
+     * Check if the HTTP is code is 416 or not.
      * @return true if the is code is 416.
      */
     public ResultMatcher isRequestedRangeNotSatisfiable(){
@@ -364,8 +384,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.EXPECTATION_FAILED}
-     * Check if the http is code is 417 or not.
+     * Convenience Method for {@code HttpStatus.EXPECTATION_FAILED}
+     * Check if the HTTP is code is 417 or not.
      * @return true if the is code is 417.
      */
     public ResultMatcher isExpectationFailed(){
@@ -373,8 +393,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.INSUFFICIENT_SPACE_ON_RESOURCE}
-     * Check if the http is code is 419 or not.
+     * Convenience Method for {@code HttpStatus.INSUFFICIENT_SPACE_ON_RESOURCE}
+     * Check if the HTTP is code is 419 or not.
      * @return true if the is code is 419.
      */
     public ResultMatcher isInsufficientSpaceOnResource(){
@@ -382,8 +402,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.METHOD_FAILURE}
-     * Check if the http is code is 420 or not.
+     * Convenience Method for {@code HttpStatus.METHOD_FAILURE}
+     * Check if the HTTP is code is 420 or not.
      * @return true if the is code is 420.
      */
     public ResultMatcher isMethodFailure(){
@@ -391,8 +411,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.DESTINATION_LOCKED}
-     * Check if the http is code is 421 or not.
+     * Convenience Method for {@code HttpStatus.DESTINATION_LOCKED}
+     * Check if the HTTP is code is 421 or not.
      * @return true if the is code is 421.
      */
     public ResultMatcher isDestinationLocked(){
@@ -400,8 +420,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.UNPROCESSABLE_ENTITY}
-     * Check if the http is code is 422 or not.
+     * Convenience Method for {@code HttpStatus.UNPROCESSABLE_ENTITY}
+     * Check if the HTTP is code is 422 or not.
      * @return true if the is code is 422.
      */
     public ResultMatcher isUnprocessableEntity(){
@@ -409,8 +429,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.LOCKED}
-     * Check if the http is code is 423 or not.
+     * Convenience Method for {@code HttpStatus.LOCKED}
+     * Check if the HTTP is code is 423 or not.
      * @return true if the is code is 423.
      */
     public ResultMatcher isLocked(){
@@ -418,8 +438,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.FAILED_DEPENDENCY}
-     * Check if the http is code is 424 or not.
+     * Convenience Method for {@code HttpStatus.FAILED_DEPENDENCY}
+     * Check if the HTTP is code is 424 or not.
      * @return true if the is code is 424.
      */
     public ResultMatcher isFailedDependency(){
@@ -427,8 +447,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.UPGRADE_REQUIRED}
-     * Check if the http is code is 426 or not.
+     * Convenience Method for {@code HttpStatus.UPGRADE_REQUIRED}
+     * Check if the HTTP is code is 426 or not.
      * @return true if the is code is 426.
      */
     public ResultMatcher isUpgradeRequired(){
@@ -436,8 +456,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.INTERNAL_SERVER_ERROR}
-     * Check if the http is code is 500 or not.
+     * Convenience Method for {@code HttpStatus.INTERNAL_SERVER_ERROR}
+     * Check if the HTTP is code is 500 or not.
      * @return true if the is code is 500.
      */
     public ResultMatcher isInternalServerError(){
@@ -445,8 +465,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.NOT_IMPLEMENTED}
-     * Check if the http is code is 501 or not.
+     * Convenience Method for {@code HttpStatus.NOT_IMPLEMENTED}
+     * Check if the HTTP is code is 501 or not.
      * @return true if the is code is 501.
      */
     public ResultMatcher isNotImplemented(){
@@ -454,8 +474,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.BAD_GATEWAY}
-     * Check if the http is code is 502 or not.
+     * Convenience Method for {@code HttpStatus.BAD_GATEWAY}
+     * Check if the HTTP is code is 502 or not.
      * @return true if the is code is 502.
      */
     public ResultMatcher isBadGateway(){
@@ -463,8 +483,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.SERVICE_UNAVAILABLE}
-     * Check if the http is code is 503 or not.
+     * Convenience Method for {@code HttpStatus.SERVICE_UNAVAILABLE}
+     * Check if the HTTP is code is 503 or not.
      * @return true if the is code is 503.
      */
     public ResultMatcher isServiceUnavailable(){
@@ -472,8 +492,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.GATEWAY_TIMEOUT}
-     * Check if the http is code is 504 or not.
+     * Convenience Method for {@code HttpStatus.GATEWAY_TIMEOUT}
+     * Check if the HTTP is code is 504 or not.
      * @return true if the is code is 504.
      */
     public ResultMatcher isGatewayTimeout(){
@@ -481,8 +501,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.HTTP_VERSION_NOT_SUPPORTED}
-     * Check if the http is code is 505 or not.
+     * Convenience Method for {@code HttpStatus.HTTP_VERSION_NOT_SUPPORTED}
+     * Check if the HTTP is code is 505 or not.
      * @return true if the is code is 505.
      */
     public ResultMatcher isHttpVersionNotSupported(){
@@ -490,8 +510,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.VARIANT_ALSO_NEGOTIATES}
-     * Check if the http is code is 506 or not.
+     * Convenience Method for {@code HttpStatus.VARIANT_ALSO_NEGOTIATES}
+     * Check if the HTTP is code is 506 or not.
      * @return true if the is code is 506.
      */
     public ResultMatcher isVariantAlsoNegotiates(){
@@ -499,8 +519,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.INSUFFICIENT_STORAGE}
-     * Check if the http is code is 507 or not.
+     * Convenience Method for {@code HttpStatus.INSUFFICIENT_STORAGE}
+     * Check if the HTTP is code is 507 or not.
      * @return true if the is code is 507.
      */
     public ResultMatcher isInsufficientStorage(){
@@ -508,8 +528,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.LOOP_DETECTED}
-     * Check if the http is code is 508 or not.
+     * Convenience Method for {@code HttpStatus.LOOP_DETECTED}
+     * Check if the HTTP is code is 508 or not.
      * @return true if the is code is 508.
      */
     public ResultMatcher isLoopDetected(){
@@ -517,8 +537,8 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Convenience Method for {@link HttpStatus.NOT_EXTENDED}
-     * Check if the http is code is 509 or not.
+     * Convenience Method for {@code HttpStatus.NOT_EXTENDED}
+     * Check if the HTTP is code is 509 or not.
      * @return true if the is code is 509.
      */
     public ResultMatcher isNotExtended(){

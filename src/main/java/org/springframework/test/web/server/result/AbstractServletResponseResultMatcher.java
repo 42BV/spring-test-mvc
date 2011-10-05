@@ -1,5 +1,6 @@
 package org.springframework.test.web.server.result;
 
+import java.io.IOException;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -8,9 +9,10 @@ import org.springframework.test.web.server.ResultMatcher;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.io.IOException;
-
-public abstract class MockHttpServletResponseResultMatcher implements ResultMatcher {
+/**
+ * Base class for Matchers that assert the HttpServletResponse.
+ */
+public abstract class AbstractServletResponseResultMatcher implements ResultMatcher {
 
     public final void match(MockHttpServletRequest request,
             MockHttpServletResponse response,
@@ -29,4 +31,5 @@ public abstract class MockHttpServletResponseResultMatcher implements ResultMatc
     }
 
     protected abstract void matchResponse(MockHttpServletResponse response) throws IOException;
+    
 }
