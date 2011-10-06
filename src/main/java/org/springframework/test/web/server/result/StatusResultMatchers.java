@@ -10,7 +10,7 @@ import org.springframework.test.web.server.ResultMatcher;
 import org.springframework.test.web.server.result.ServletResponseResultMatchers.ServletResponseResultMatcher;
 
 /**
- * TODO..
+ * Provides methods to define expectations on the HttpStatus
  * 
  * @author Keesun Baik
  */
