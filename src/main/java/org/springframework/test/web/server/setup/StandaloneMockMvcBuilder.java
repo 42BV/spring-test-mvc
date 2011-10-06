@@ -195,7 +195,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 		RequestMappingHandlerAdapter handlerAdapter = new RequestMappingHandlerAdapter();
 		handlerAdapter.setWebBindingInitializer(initializer);
 		handlerAdapter.setMessageConverters(this.messageConverters);
-        handlerAdapter.setArgumentResolvers(this.argumentResolvers);
+        handlerAdapter.setCustomArgumentResolvers(this.argumentResolvers);
 		handlerAdapter.setApplicationContext(wac);	// for SpEL expressions in annotations
 		handlerAdapter.afterPropertiesSet();
 		
