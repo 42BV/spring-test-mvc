@@ -48,6 +48,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.support.ConfigurableWebBindingInitializer;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.GenericWebApplicationContext;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.HandlerAdapter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -94,6 +95,8 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	private final List<MappedInterceptor> mappedInterceptors = new ArrayList<MappedInterceptor>();
 
 	private List<ViewResolver> viewResolvers;
+
+    private List<HandlerMethodArgumentResolver> argumentResolvers;
 
 	/**
      * Protected constructor. Not intended for direct instantiation.
@@ -152,6 +155,11 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 		this.viewResolvers = Arrays.asList(resolvers);
 		return this;
 	}
+
+    public StandaloneMockMvcBuilder setArgumentResolvers(HandlerMethodArgumentResolver... resolvers) {
+        this.argumentResolvers = Arrays.asList(resolvers);
+        return this;
+    }
 	
 	@Override
 	protected ServletContext initServletContext() {
@@ -187,6 +195,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 		RequestMappingHandlerAdapter handlerAdapter = new RequestMappingHandlerAdapter();
 		handlerAdapter.setWebBindingInitializer(initializer);
 		handlerAdapter.setMessageConverters(this.messageConverters);
+        handlerAdapter.setCustomArgumentResolvers(this.argumentResolvers);
 		handlerAdapter.setApplicationContext(wac);	// for SpEL expressions in annotations
 		handlerAdapter.afterPropertiesSet();
 		
