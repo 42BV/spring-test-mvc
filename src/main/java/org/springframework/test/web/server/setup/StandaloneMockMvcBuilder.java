@@ -96,7 +96,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 
 	private List<ViewResolver> viewResolvers;
 
-	private List<HandlerMethodArgumentResolver> argumentResolvers;
+	private List<HandlerMethodArgumentResolver> customArgumentResolvers = new ArrayList<HandlerMethodArgumentResolver>();
 
 	/**
 	 * Protected constructor. Not intended for direct instantiation.
@@ -156,11 +156,14 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 		return this;
 	}
 
-	public StandaloneMockMvcBuilder setArgumentResolvers(HandlerMethodArgumentResolver... resolvers) {
-		this.argumentResolvers = Arrays.asList(resolvers);
+	/**
+	 * Provide resolvers for custom argument types.
+	 */
+	public StandaloneMockMvcBuilder addCustomArgumentResolvers(HandlerMethodArgumentResolver... argumentResolvers) {
+		this.customArgumentResolvers.addAll(Arrays.asList(argumentResolvers));
 		return this;
 	}
-	
+
 	@Override
 	protected ServletContext initServletContext() {
 		return new MockServletContext();
@@ -195,7 +198,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 		RequestMappingHandlerAdapter handlerAdapter = new RequestMappingHandlerAdapter();
 		handlerAdapter.setWebBindingInitializer(initializer);
 		handlerAdapter.setMessageConverters(this.messageConverters);
-		handlerAdapter.setCustomArgumentResolvers(this.argumentResolvers);
+		handlerAdapter.setCustomArgumentResolvers(this.customArgumentResolvers);
 		handlerAdapter.setApplicationContext(wac);	// for SpEL expressions in annotations
 		handlerAdapter.afterPropertiesSet();
 		
