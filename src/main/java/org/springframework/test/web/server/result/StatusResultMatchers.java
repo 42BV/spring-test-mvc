@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.server.ResultMatcher;
-import org.springframework.test.web.server.result.ServletResponseResultMatchers.ServletResponseResultMatcher;
 
 /**
  * TODO..
@@ -32,7 +31,7 @@ public class StatusResultMatchers {
 	 * via {@link HttpServletResponse#sendError(int, String)}. 
 	 */
 	public ResultMatcher is(final HttpStatus expectedStatus, final String expectedReason) {
-		return new ServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			protected void matchResponse(MockHttpServletResponse response) {
 				assertEquals("Status", expectedStatus, HttpStatus.valueOf(response.getStatus()));
 				assertEquals("Reason", expectedReason, response.getErrorMessage());

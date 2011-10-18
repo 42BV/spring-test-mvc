@@ -16,21 +16,14 @@
 
 package org.springframework.test.web.server.result;
 
-import static org.springframework.test.web.AssertionErrors.assertTrue;
-import static org.springframework.test.web.AssertionErrors.fail;
-
 import java.util.Map;
 
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.AssertionErrors;
 import org.springframework.test.web.server.ResultMatcher;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
 
 /**
  * Provides methods to define expectations on model attributes.
@@ -51,30 +44,48 @@ public class ModelResultMatchers {
 	}
 
 	public ResultMatcher attribute(final String name, final Matcher<Object> matcher) {
-		return new ModelResultMatcher() {
+		return new AbstractModelResultMatcher() {
 			public void matchModel(Map<String, Object> model) {
 				MatcherAssert.assertThat("Model attribute", model.get(name), matcher);
 			}
 		};
 	}
 
+	/**
+	 * Assert the actual number of attributes in the model excluding 
+	 * BindingResult attributes.
+	 */
+	public ResultMatcher size(final int expectedSize) {
+		return new AbstractModelResultMatcher() {
+			public void matchModel(Map<String, Object> model) {
+				int actualSize = 0;
+				for (String key : model.keySet()) {
+					if (!key.startsWith(BindingResult.MODEL_KEY_PREFIX)) {
+						actualSize++;
+					}
+				}
+				AssertionErrors.assertEquals("Model size", expectedSize, actualSize);
+			}
+		};
+	}
+
 	public ResultMatcher hasErrorsForAttribute(final String attributeName) {
-		return new ModelResultMatcher() {
+		return new AbstractModelResultMatcher() {
 			public void matchModel(Map<String, Object> model) {
 				AssertionErrors.assertTrue("Attribute not found: " + attributeName, model.get(attributeName) != null);
 				BindingResult result = (BindingResult) model.get(BindingResult.MODEL_KEY_PREFIX + attributeName);
 				AssertionErrors.assertTrue("BindingResult not found: " + attributeName, result != null);
-				assertTrue("Expected errors for attribute: " + attributeName, result.hasErrors());
+				AssertionErrors.assertTrue("Expected errors for attribute: " + attributeName, result.hasErrors());
 			}
 		};
 	}
 
 	public ResultMatcher hasAttributes(final String...attributeNames) {
-		return new ModelResultMatcher() {
+		return new AbstractModelResultMatcher() {
 			public void matchModel(Map<String, Object> model) {
 				for (String name : attributeNames) {
 					if (!model.containsKey(name)) {
-						fail("Model attribute <" + name + "> not found.");
+						AssertionErrors.fail("Model attribute <" + name + "> not found.");
 					}
 				}
 			}
@@ -82,35 +93,16 @@ public class ModelResultMatchers {
 	}
 	
 	public ResultMatcher hasNoErrors() {
-		return new ModelResultMatcher() {
+		return new AbstractModelResultMatcher() {
 			public void matchModel(Map<String, Object> model) {
 				for (Object value : model.values()) {
 					if (value instanceof BindingResult) {
 						BindingResult result = (BindingResult) value;
-						assertTrue("Unexpected binding error(s): " + result, !result.hasErrors());
+						AssertionErrors.assertTrue("Unexpected binding error(s): " + result, !result.hasErrors());
 					}
 				}
 			}
 		};
-	}
-
-	/**
-	 * Base class for Matchers that assert model attributes.
-	 */
-	public static abstract class ModelResultMatcher implements ResultMatcher {
-
-		public final void match(MockHttpServletRequest request, 
-								MockHttpServletResponse response, 
-								Object handler,	
-								HandlerInterceptor[] interceptors, 
-								ModelAndView mav, 
-								Exception resolvedException) throws Exception {
-			
-			assertTrue("No ModelAndView", mav != null);
-			matchModel(mav.getModel());
-		}
-
-		protected abstract void matchModel(Map<String, Object> model) throws Exception;
 	}
 
 }

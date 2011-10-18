@@ -62,6 +62,13 @@ public abstract class MockMvcResultActions {
 	}
 
 	/**
+	 * "Output" FlashMap-related matchers.
+	 */
+	public static FlashMapResultMatchers flashMap() {
+		return new FlashMapResultMatchers();
+	}
+
+	/**
 	 * Console-based printer.
 	 */
 	public static DefaultResultPrinter toConsole() {

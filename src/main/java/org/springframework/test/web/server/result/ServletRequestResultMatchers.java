@@ -19,10 +19,7 @@ package org.springframework.test.web.server.result;
 import static org.springframework.test.web.AssertionErrors.assertEquals;
 
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.server.ResultMatcher;
-import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
 
 /**
  * Provides methods to define expectations on the HttpServletRequest.
@@ -58,24 +55,6 @@ public class ServletRequestResultMatchers {
 				assertEquals("Session attribute", expectedValue, request.getSession().getAttribute(name));
 			}
 		};
-	}
-	
-	/**
-	 * Base class for Matchers that assert the HttpServletRequest.
-	 */
-	public static abstract class AbstractServletRequestResultMatcher implements ResultMatcher {
-
-		public final void match(MockHttpServletRequest request, 
-								MockHttpServletResponse response, 
-								Object handler,	
-								HandlerInterceptor[] interceptors, 
-								ModelAndView mav, 
-								Exception resolvedException) throws Exception {
-			
-			matchRequest(request);
-		}
-
-		protected abstract void matchRequest(MockHttpServletRequest request) throws Exception;
 	}
 	
 }

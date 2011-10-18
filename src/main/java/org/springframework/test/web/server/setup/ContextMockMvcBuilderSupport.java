@@ -27,6 +27,7 @@ import org.springframework.core.OrderComparator;
 import org.springframework.test.web.server.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
+import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.HandlerAdapter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.HandlerMapping;
@@ -42,6 +43,7 @@ import org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerExc
 import org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping;
 import org.springframework.web.servlet.mvc.annotation.ResponseStatusExceptionResolver;
 import org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver;
+import org.springframework.web.servlet.support.DefaultFlashMapManager;
 import org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
@@ -111,14 +113,8 @@ public abstract class ContextMockMvcBuilderSupport extends AbstractMockMvcBuilde
 
 	@Override
 	protected RequestToViewNameTranslator initViewNameTranslator(WebApplicationContext wac) {
-		String name = DispatcherServlet.REQUEST_TO_VIEW_NAME_TRANSLATOR_BEAN_NAME;
-		return getBeanByName(wac, name, RequestToViewNameTranslator.class, DefaultRequestToViewNameTranslator.class);
-	}
-
-	@Override
-	protected LocaleResolver initLocaleResolver(WebApplicationContext wac) {
-		String name = DispatcherServlet.LOCALE_RESOLVER_BEAN_NAME;
-		return getBeanByName(wac, name, LocaleResolver.class, AcceptHeaderLocaleResolver.class);
+		return getBeanByName(wac, DispatcherServlet.REQUEST_TO_VIEW_NAME_TRANSLATOR_BEAN_NAME, 
+				RequestToViewNameTranslator.class, DefaultRequestToViewNameTranslator.class);
 	}
 
 	private <T> T getBeanByName(WebApplicationContext wac, String name, Class<T> requiredType, Class<? extends T> defaultType) {
@@ -128,6 +124,18 @@ public abstract class ContextMockMvcBuilderSupport extends AbstractMockMvcBuilde
 		catch (NoSuchBeanDefinitionException ex) {
 			return (defaultType != null) ? BeanUtils.instantiate(defaultType) : null;
 		}
+	}
+	
+	@Override
+	protected LocaleResolver initLocaleResolver(WebApplicationContext wac) {
+		return getBeanByName(wac, DispatcherServlet.LOCALE_RESOLVER_BEAN_NAME, 
+				LocaleResolver.class, AcceptHeaderLocaleResolver.class);
+	}
+
+	@Override
+	protected FlashMapManager initFlashMapManager(WebApplicationContext wac) {
+		return getBeanByName(wac, DispatcherServlet.FLASH_MAP_MANAGER_BEAN_NAME, 
+				FlashMapManager.class, DefaultFlashMapManager.class);
 	}
 	
 }

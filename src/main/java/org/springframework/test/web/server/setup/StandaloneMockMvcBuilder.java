@@ -25,6 +25,8 @@ import java.util.Locale;
 import javax.servlet.ServletContext;
 import javax.xml.transform.Source;
 
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
@@ -50,6 +52,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.StaticWebApplicationContext;
 import org.springframework.web.context.support.WebApplicationObjectSupport;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.HandlerAdapter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -59,6 +62,7 @@ import org.springframework.web.servlet.RequestToViewNameTranslator;
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import org.springframework.web.servlet.handler.MappedInterceptor;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 import org.springframework.web.servlet.mvc.annotation.ResponseStatusExceptionResolver;
@@ -66,6 +70,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExc
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver;
+import org.springframework.web.servlet.support.DefaultFlashMapManager;
 import org.springframework.web.servlet.view.BeanNameViewResolver;
 import org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
@@ -98,6 +103,12 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	private List<ViewResolver> viewResolvers;
 
 	private List<HandlerMethodArgumentResolver> customArgumentResolvers = new ArrayList<HandlerMethodArgumentResolver>();
+
+	private RequestToViewNameTranslator viewNameTranslator = new DefaultRequestToViewNameTranslator();
+	
+	private LocaleResolver localeResolver = new AcceptHeaderLocaleResolver();
+	
+	private FlashMapManager flashMapManager = new DefaultFlashMapManager();
 
 	/**
 	 * Protected constructor. Not intended for direct instantiation.
@@ -164,6 +175,33 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 		this.customArgumentResolvers.addAll(Arrays.asList(argumentResolvers));
 		return this;
 	}
+	
+	/**
+	 * Provide a RequestToViewNameTranslator instance. 
+	 * The default one used is DefaultRequestToViewNameTranslator.
+	 */
+	public StandaloneMockMvcBuilder setViewNameTranslator(RequestToViewNameTranslator viewNameTranslator) {
+		this.viewNameTranslator = viewNameTranslator;
+		return this;
+	}
+
+	/**
+	 * Provide a LocaleResolver instance. 
+	 * The default one used is AcceptHeaderLocaleResolver.
+	 */
+	public StandaloneMockMvcBuilder setLocaleResolver(LocaleResolver localeResolver) {
+		this.localeResolver = localeResolver;
+		return this;
+	}
+	
+	/**
+	 * Provide a FlashMapManager instance. 
+	 * The default one used is DefaultFlashMapManager.
+	 */
+	public StandaloneMockMvcBuilder setFlashMapManager(FlashMapManager flashMapManager) {
+		this.flashMapManager = flashMapManager;
+		return this;
+	}
 
 	@Override
 	protected ServletContext initServletContext() {
@@ -194,7 +232,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 		}
 		ConfigurableWebBindingInitializer initializer = new ConfigurableWebBindingInitializer();
 		initializer.setConversionService(this.conversionService);
-		initializer.setValidator(this.validator);
+		initializer.setValidator(initValidator());
 
 		RequestMappingHandlerAdapter handlerAdapter = new RequestMappingHandlerAdapter();
 		handlerAdapter.setWebBindingInitializer(initializer);
@@ -206,6 +244,24 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 		return Collections.<HandlerAdapter>singletonList(handlerAdapter);
 	}
 
+	protected Validator initValidator() {
+		if (this.validator == null) {
+			if (ClassUtils.isPresent("javax.validation.Validator", getClass().getClassLoader())) {
+				Class<?> clazz;
+				try {
+					String className = "org.springframework.validation.beanvalidation.LocalValidatorFactoryBean";
+					clazz = ClassUtils.forName(className, WebMvcConfigurationSupport.class.getClassLoader());
+				} catch (ClassNotFoundException e) {
+					throw new BeanInitializationException("Could not find default validator");
+				} catch (LinkageError e) {
+					throw new BeanInitializationException("Could not find default validator");
+				}
+				validator = (Validator) BeanUtils.instantiate(clazz);
+			}
+		}
+		return validator;
+	}
+	
 	/**
 	 * Override this method to add default {@link HttpMessageConverter}s. 
 	 * @param messageConverters the list to add the default message converters to
@@ -262,12 +318,17 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 
 	@Override
 	protected RequestToViewNameTranslator initViewNameTranslator(WebApplicationContext wac) {
-		return new DefaultRequestToViewNameTranslator();
+		return this.viewNameTranslator;
 	}
 
 	@Override
 	protected LocaleResolver initLocaleResolver(WebApplicationContext wac) {
-		return new AcceptHeaderLocaleResolver();
+		return this.localeResolver;
+	}
+	
+	@Override
+	protected FlashMapManager initFlashMapManager(WebApplicationContext wac) {
+		return this.flashMapManager;
 	}
 
 	@Override

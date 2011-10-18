@@ -30,7 +30,6 @@ import org.hamcrest.Matchers;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.AssertionErrors;
 import org.springframework.test.web.server.ResultMatcher;
-import org.springframework.test.web.server.result.ServletResponseResultMatchers.ServletResponseResultMatcher;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
@@ -67,7 +66,7 @@ public class ContentResultMatchers {
 	 * </pre>
 	 */
 	public ResultMatcher asText(final Matcher<String> matcher) {
-		return new ServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			public void matchResponse(MockHttpServletResponse response) throws Exception {
 				MatcherAssert.assertThat("Response content", response.getContentAsString(), matcher);
 			}
@@ -79,7 +78,7 @@ public class ContentResultMatchers {
 	 * @see org.hamcrest.Matchers#hasXPath
 	 */
 	public ResultMatcher asNode(final Matcher<Node> matcher) {
-		return new ServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			public void matchResponse(MockHttpServletResponse response) throws Exception {
 				Document document = ResultMatcherUtils.toDocument(response.getContentAsString());
 				MatcherAssert.assertThat("Response content", document, matcher);
@@ -92,7 +91,7 @@ public class ContentResultMatchers {
 	 * @see <a href="http://code.google.com/p/xml-matchers/">xml-matchers</a> 
 	 */
 	public ResultMatcher asSource(final Matcher<Source> matcher) {
-		return new ServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			public void matchResponse(MockHttpServletResponse response) throws Exception {
 				Document document = ResultMatcherUtils.toDocument(response.getContentAsString());
 				MatcherAssert.assertThat("Response content", new DOMSource(document), matcher);
@@ -124,7 +123,7 @@ public class ContentResultMatchers {
 	 * <a href="http://xmlunit.sourceforge.net/"/>XMLUnit</a>.
 	 */
 	public ResultMatcher isEqualToXml(final String expectedXmlContent) {
-		return new ServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			public void matchResponse(MockHttpServletResponse response) throws Exception {
 				Document control = XMLUnit.buildControlDocument(expectedXmlContent);
 				Document test = XMLUnit.buildTestDocument(response.getContentAsString());

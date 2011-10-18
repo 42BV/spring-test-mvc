@@ -19,7 +19,7 @@ public abstract class AbstractServletResponseResultMatcher implements ResultMatc
             Object handler,
             HandlerInterceptor[] interceptors,
             ModelAndView mav,
-            Exception resolvedException) {
+            Exception resolvedException) throws Exception {
 
         try {
             matchResponse(response);
@@ -30,6 +30,6 @@ public abstract class AbstractServletResponseResultMatcher implements ResultMatc
         }
     }
 
-    protected abstract void matchResponse(MockHttpServletResponse response) throws IOException;
+    protected abstract void matchResponse(MockHttpServletResponse response) throws Exception;
     
 }

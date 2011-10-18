@@ -24,6 +24,7 @@ import javax.servlet.ServletContext;
 import org.springframework.test.web.server.MockMvc;
 import org.springframework.test.web.server.MvcSetup;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.HandlerAdapter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.HandlerMapping;
@@ -55,6 +56,7 @@ public abstract class AbstractMockMvcBuilder {
 		final List<ViewResolver> viewResolvers = initViewResolvers(wac);
 		final RequestToViewNameTranslator viewNameTranslator = initViewNameTranslator(wac);
 		final LocaleResolver localeResolver = initLocaleResolver(wac);
+		final FlashMapManager flashMapManager = initFlashMapManager(wac);
 		
 		MvcSetup mvcSetup = new MvcSetup() {
 
@@ -80,6 +82,10 @@ public abstract class AbstractMockMvcBuilder {
 
 			public LocaleResolver getLocaleResolver() {
 				return localeResolver;
+			}
+
+			public FlashMapManager getFlashMapManager() {
+				return flashMapManager;
 			}
 		};
 
@@ -141,6 +147,13 @@ public abstract class AbstractMockMvcBuilder {
 	 * @return a LocaleResolver, never {@code null}
 	 */
 	protected abstract LocaleResolver initLocaleResolver(WebApplicationContext wac);
+
+	/**
+	 * Return the FlashMapManager to use for flash attribute support.
+	 * @param wac the fully initialized Spring application context
+	 * @return a FlashMapManager, never {@code null}
+	 */
+	protected abstract FlashMapManager initFlashMapManager(WebApplicationContext wac);
 
 	/**
 	 * A hook for sub-classes providing access to the initialized MvcSetup, 
