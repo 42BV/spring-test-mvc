@@ -82,7 +82,9 @@ public abstract class AbstractMockMvcBuilder {
 				return localeResolver;
 			}
 		};
-		
+
+		mvcSetupInitialized(mvcSetup, servletContext, wac);
+
 		return new MockMvc(servletContext, mvcSetup) {};
 	}
 
@@ -93,44 +95,58 @@ public abstract class AbstractMockMvcBuilder {
 
 	/**
 	 * Return the WebApplicationContext to use, possibly {@code null}.
-	 * @param servletContext the ServletContext returned from {@link #initServletContext()}
+	 * @param servletContext the ServletContext returned 
+	 * from {@link #initServletContext()}
 	 */
 	protected abstract WebApplicationContext initWebApplicationContext(ServletContext servletContext);
 
 	/**
-	 * Return the {@link HandlerMapping}s to use to map requests, never {@code null}.
+	 * Return the HandlerMappings to use to map requests.
 	 * @param wac the fully initialized Spring application context
+	 * @return a List of HandlerMapping types or an empty list.
 	 */
 	protected abstract List<HandlerMapping> initHandlerMappings(WebApplicationContext wac);
 
 	/**
-	 * Return the {@link HandlerAdapter}s to use to invoke handlers, never {@code null}.
+	 * Return the HandlerAdapters to use to invoke handlers.
 	 * @param wac the fully initialized Spring application context
+	 * @return a List of HandlerExceptionResolver types or an empty list.
 	 */
 	protected abstract List<HandlerAdapter> initHandlerAdapters(WebApplicationContext wac);
 
 	/**
-	 * Return the {@link HandlerExceptionResolver}s to use to resolve controller exceptions, never {@code null}.
+	 * Return HandlerExceptionResolvers for resolving controller exceptions.
 	 * @param wac the fully initialized Spring application context
+	 * @return a List of HandlerExceptionResolver types or an empty list.
 	 */
 	protected abstract List<HandlerExceptionResolver> initHandlerExceptionResolvers(WebApplicationContext wac);
 
 	/**
-	 * Return the {@link ViewResolver}s to use to resolve view names, never {@code null}.
+	 * Return the ViewResolvers to use to resolve view names.
 	 * @param wac the fully initialized Spring application context
+	 * @return a List of ViewResolver types or an empty list.
 	 */
 	protected abstract List<ViewResolver> initViewResolvers(WebApplicationContext wac);
 
 	/**
-	 * Return the {@link RequestToViewNameTranslator} to use to derive a view name, never {@code null}.
+	 * Return the RequestToViewNameTranslator to use to derive a view name
 	 * @param wac the fully initialized Spring application context
+	 * @return a RequestToViewNameTranslator, never {@code null}
 	 */
 	protected abstract RequestToViewNameTranslator initViewNameTranslator(WebApplicationContext wac);
 
 	/**
-	 * Return the {@link LocaleResolver} to use for locale resolution, never {@code null}.
+	 * Return the LocaleResolver to use for locale resolution.
 	 * @param wac the fully initialized Spring application context
+	 * @return a LocaleResolver, never {@code null}
 	 */
 	protected abstract LocaleResolver initLocaleResolver(WebApplicationContext wac);
+
+	/**
+	 * A hook for sub-classes providing access to the initialized MvcSetup, 
+	 * ServletContext, and WebApplicationContext.
+	 */
+	protected void mvcSetupInitialized(MvcSetup mvcSetup, ServletContext servletContext, WebApplicationContext wac) {
+	}
 
 }
