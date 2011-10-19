@@ -91,9 +91,11 @@ class MockDispatcher {
 	public void execute(MockHttpServletRequest request, MockHttpServletResponse response) throws Exception {
 		try {
 			RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+			this.mvcSetup.getFlashMapManager().requestStarted(request);
 			doExecute(request, response);
 		}
 		finally {
+			this.mvcSetup.getFlashMapManager().requestCompleted(request);
 			RequestContextHolder.resetRequestAttributes();
 		}
 	}

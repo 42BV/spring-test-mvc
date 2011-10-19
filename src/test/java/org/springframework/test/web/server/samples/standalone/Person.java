@@ -16,11 +16,13 @@
 
 package org.springframework.test.web.server.samples.standalone;
 
+import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class Person {
 
+	@NotNull
 	private String name;
 
 	public Person() {

@@ -18,6 +18,7 @@ package org.springframework.test.web.server;
 
 import java.util.List;
 
+import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.HandlerAdapter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.HandlerMapping;
@@ -33,33 +34,38 @@ import org.springframework.web.servlet.ViewResolver;
 public interface MvcSetup {
 
 	/**
-	 * Return the {@link HandlerMapping}s to use to map requests, never "null".
+	 * Return HandlerMappings to use to map requests.
 	 */
 	List<HandlerMapping> getHandlerMappings();
 
 	/**
-	 * Return the {@link HandlerAdapter}s to use to invoke handlers, never "null".
+	 * Return HandlerAdapters to use to invoke handlers.
 	 */
 	List<HandlerAdapter> getHandlerAdapters();
 
 	/**
-	 * Return the {@link HandlerExceptionResolver}s to use to resolve controller exceptions, never "null".
+	 * Return HandlerExceptionResolvers to use to resolve controller exceptions.
 	 */
 	List<HandlerExceptionResolver> getExceptionResolvers();
 
 	/**
-	 * Return the {@link ViewResolver}s to use to resolve view names, never "null".
+	 * Return ViewResolvers to use to resolve view names.
 	 */
 	List<ViewResolver> getViewResolvers();
 
 	/**
-	 * Return the {@link RequestToViewNameTranslator} to use to derive a view name, never "null".
+	 * Return RequestToViewNameTranslator to use to derive a view name.
 	 */
 	RequestToViewNameTranslator getViewNameTranslator();
 
 	/**
-	 * Return the {@link LocaleResolver} to use for locale resolution, never "null".
+	 * Return LocaleResolver to use for locale resolution.
 	 */
 	LocaleResolver getLocaleResolver();
+
+	/**
+	 * Return FlashMapManager to use for flash attribute support.
+	 */
+	FlashMapManager getFlashMapManager();
 
 }

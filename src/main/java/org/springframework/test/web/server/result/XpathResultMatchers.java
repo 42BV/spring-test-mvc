@@ -29,7 +29,6 @@ import org.hamcrest.Matchers;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.AssertionErrors;
 import org.springframework.test.web.server.ResultMatcher;
-import org.springframework.test.web.server.result.ServletResponseResultMatchers.ServletResponseResultMatcher;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.xml.SimpleNamespaceContext;
 import org.w3c.dom.Document;
@@ -69,7 +68,7 @@ public class XpathResultMatchers {
 	 * Assert there is content at the underlying XPath path.
 	 */
 	public ResultMatcher exists() {
-		return new ServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			public void matchResponse(MockHttpServletResponse response) throws Exception {
 				Node node = applyXpath(response.getContentAsString(), XPathConstants.NODE, Node.class);
 				AssertionErrors.assertTrue("No content for xpath: " + expression, node != null);
@@ -81,7 +80,7 @@ public class XpathResultMatchers {
 	 * Assert there is no content at the underlying XPath path.
 	 */
 	public ResultMatcher doesNotExist() {
-		return new ServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			public void matchResponse(MockHttpServletResponse response) throws Exception {
 				Node node = applyXpath(response.getContentAsString(), XPathConstants.NODE, Node.class);
 				AssertionErrors.assertTrue("Content found for xpath: " + expression, node == null);
@@ -110,7 +109,7 @@ public class XpathResultMatchers {
 	 *  </pre>
 	 */
 	public ResultMatcher asText(final Matcher<String> matcher) {
-		return new ServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			public void matchResponse(MockHttpServletResponse response) throws Exception {
 				String result = applyXpath(response.getContentAsString(), XPathConstants.STRING, String.class);
 				MatcherAssert.assertThat("Text for xpath: " + expression, result, matcher);
@@ -123,7 +122,7 @@ public class XpathResultMatchers {
 	 * assert it with the given {@code Matcher<Double>}.
 	 */
 	public ResultMatcher asNumber(final Matcher<Double> matcher) {
-		return new ServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			public void matchResponse(MockHttpServletResponse response) throws Exception {
 				double result = applyXpath(response.getContentAsString(), XPathConstants.NUMBER, double.class);
 				MatcherAssert.assertThat("Number for xpath: " + expression, result, matcher);
@@ -136,7 +135,7 @@ public class XpathResultMatchers {
 	 * assert it with the given {@code Matcher<Double>}.
 	 */
 	public ResultMatcher asBoolean(final Matcher<Boolean> matcher) {
-		return new ServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			public void matchResponse(MockHttpServletResponse response) throws Exception {
 				boolean result = applyXpath(response.getContentAsString(), XPathConstants.BOOLEAN, boolean.class);
 				MatcherAssert.assertThat("Boolean for xpath: " + expression, result, matcher);
@@ -149,7 +148,7 @@ public class XpathResultMatchers {
 	 * and assert the number of items in it.
 	 */
 	public ResultMatcher nodeCount(final int count) {
-		return new ServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			public void matchResponse(MockHttpServletResponse response) throws Exception {
 				NodeList nodes = applyXpath(response.getContentAsString(), XPathConstants.NODESET, NodeList.class);
 				AssertionErrors.assertEquals("Number of nodes for xpath: " + expression, nodes.getLength(), count);

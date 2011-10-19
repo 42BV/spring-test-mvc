@@ -20,8 +20,10 @@ import javax.servlet.ServletContext;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.web.servlet.FlashMap;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
 /**
  * <strong>Main entry point for server-side Spring MVC test support.</strong> 
@@ -86,6 +88,7 @@ public class MockMvc {
 		final HandlerInterceptor[] interceptors = dispatcher.getInterceptors();
 		final ModelAndView mav = dispatcher.getMav();
 		final Exception resolvedException = dispatcher.getResolvedException();
+		final FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
 
         return new ResultActions() {
         	

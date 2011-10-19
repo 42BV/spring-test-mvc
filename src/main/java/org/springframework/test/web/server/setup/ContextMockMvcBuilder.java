@@ -55,23 +55,6 @@ public class ContextMockMvcBuilder extends ContextMockMvcBuilderSupport {
 	public ContextMockMvcBuilder(ConfigurableWebApplicationContext applicationContext) {
 		this.applicationContext = applicationContext;
 	}
-
-	@Override
-	protected ServletContext initServletContext() {
-		return new MockServletContext(this.webResourceBasePath, this.webResourceLoader) {
-			// Required for DefaultServletHttpRequestHandler...
-			public RequestDispatcher getNamedDispatcher(String path) {
-				return (path.equals("default")) ? new MockRequestDispatcher(path) : super.getNamedDispatcher(path); 
-			}			
-		};
-	}
-
-	@Override
-	protected WebApplicationContext initWebApplicationContext(ServletContext servletContext) {
-		this.applicationContext.setServletContext(servletContext);
-		this.applicationContext.refresh();
-		return this.applicationContext;
-	}
 	
 	/**
 	 * Specify the location of the web application root directory. 
@@ -108,6 +91,23 @@ public class ContextMockMvcBuilder extends ContextMockMvcBuilderSupport {
 			initializer.initialize((T) this.applicationContext);
 		}
 		return this;
+	}
+	
+	@Override
+	protected ServletContext initServletContext() {
+		return new MockServletContext(this.webResourceBasePath, this.webResourceLoader) {
+			// Required for DefaultServletHttpRequestHandler...
+			public RequestDispatcher getNamedDispatcher(String path) {
+				return (path.equals("default")) ? new MockRequestDispatcher(path) : super.getNamedDispatcher(path); 
+			}			
+		};
+	}
+
+	@Override
+	protected WebApplicationContext initWebApplicationContext(ServletContext servletContext) {
+		this.applicationContext.setServletContext(servletContext);
+		this.applicationContext.refresh();
+		return this.applicationContext;
 	}
 
 }

@@ -21,7 +21,6 @@ import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.server.ResultMatcher;
-import org.springframework.test.web.server.result.ServletResponseResultMatchers.ServletResponseResultMatcher;
 
 /**
  * Provides methods to define expectations on the ServletResponse content
@@ -80,7 +79,7 @@ public class JsonPathResultMatchers {
 	 *  </pre>
 	 */
 	public <T> ResultMatcher result(final Matcher<T> matcher) {
-		return new ServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			@SuppressWarnings("unchecked")
 			public void matchResponse(MockHttpServletResponse response) throws Exception {
 				T extractedContent = (T) applyJsonPath(response.getContentAsString());

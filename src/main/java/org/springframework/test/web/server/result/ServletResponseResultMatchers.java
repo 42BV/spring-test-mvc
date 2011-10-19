@@ -24,12 +24,9 @@ import javax.servlet.http.Cookie;
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.AssertionErrors;
 import org.springframework.test.web.server.ResultMatcher;
-import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
 
 /**
  * Provides methods to define expectations on the HttpServletResponse.
@@ -50,8 +47,8 @@ public class ServletResponseResultMatchers {
 	}
 	
 	/**
-	 * Set the {@link ServletResponseResultMatchers} instance to return 
-	 * from {@link #content()};
+	 * Set the {@link AbstractServletResponseResultMatcher} instance 
+	 * to return from {@link #content()};
 	 */
 	public void setContentResultMatchers(ContentResultMatchers contentMatchers) {
 		this.contentMatchers = contentMatchers;
@@ -79,7 +76,7 @@ public class ServletResponseResultMatchers {
 	 * MediaType and compare it to the {@code expectedContentType}.
 	 */
 	public ResultMatcher contentType(final MediaType expectedContentType) {
-		return new ServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			public void matchResponse(MockHttpServletResponse response) {
 				String value = response.getContentType();
 				value = (value != null) ? value : response.getHeader("Content-Type"); 
@@ -100,7 +97,7 @@ public class ServletResponseResultMatchers {
 	 * Match the expected character encoding to that of the ServletResponse.
 	 */
 	public ResultMatcher characterEncoding(final String expectedCharacterEncoding) {
-		return new ServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			public void matchResponse(MockHttpServletResponse response) {
 				String value = response.getCharacterEncoding();
 				assertEquals("Character encoding", expectedCharacterEncoding, value);
@@ -119,7 +116,7 @@ public class ServletResponseResultMatchers {
 	 * Match the URL the response was forwarded to, to the {@code expectedUrl}.
 	 */
 	public ResultMatcher forwardedUrl(final String expectedUrl) {
-		return new ServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			protected void matchResponse(MockHttpServletResponse response) {
 				assertEquals("Forwarded URL", expectedUrl, response.getForwardedUrl());
 			}
@@ -130,7 +127,7 @@ public class ServletResponseResultMatchers {
 	 * Match the URL the response was redirected to, to the {@code expectedUrl}. 
 	 */
 	public ResultMatcher redirectedUrl(final String expectedUrl) {
-		return new ServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			protected void matchResponse(MockHttpServletResponse response) {
 				assertEquals("Redirected URL", expectedUrl, response.getRedirectedUrl());
 			}
@@ -141,7 +138,7 @@ public class ServletResponseResultMatchers {
 	 * Obtain a response header and match it to the {@code expectedValue}.
 	 */
 	public ResultMatcher header(final String headerName, final Object expectedValue) {
-		return new ServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			protected void matchResponse(MockHttpServletResponse response) {
 				assertEquals("Response header", expectedValue, response.getHeader(headerName));
 			}
@@ -159,7 +156,7 @@ public class ServletResponseResultMatchers {
 	 * </pre>
 	 */
 	public ResultMatcher header(final String headerName, final Matcher<String> matcher) {
-		return new ServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			protected void matchResponse(MockHttpServletResponse response) {
 				MatcherAssert.assertThat("Response header", response.getHeader(headerName), matcher);
 			}
@@ -170,7 +167,7 @@ public class ServletResponseResultMatchers {
 	 * Obtain a response cookie value and match it to the {@code expectedValue}.
 	 */
 	public ResultMatcher cookieValue(final String cookieName, final String expectedValue) {
-		return new ServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			protected void matchResponse(MockHttpServletResponse response) {
 				Cookie cookie = response.getCookie(cookieName);
 				assertTrue("Cookie not found", cookie != null);
@@ -190,7 +187,7 @@ public class ServletResponseResultMatchers {
 	 * </pre>
 	 */
 	public ResultMatcher cookieValue(final String cookieName, final Matcher<String> matcher) {
-		return new ServletResponseResultMatcher() {
+		return new AbstractServletResponseResultMatcher() {
 			protected void matchResponse(MockHttpServletResponse response) {
 				Cookie cookie = response.getCookie(cookieName);
 				assertTrue("Cookie not found", cookie != null);
@@ -199,22 +196,4 @@ public class ServletResponseResultMatchers {
 		};
 	}
 
-	/**
-	 * Base class for Matchers that assert the HttpServletResponse.
-	 */
-	public static abstract class ServletResponseResultMatcher implements ResultMatcher {
-
-		public final void match(MockHttpServletRequest request, 
-				MockHttpServletResponse response, 
-				Object handler,	
-				HandlerInterceptor[] interceptors, 
-				ModelAndView mav, 
-				Exception resolvedException) throws Exception {
-			
-			matchResponse(response);
-		}
-
-		protected abstract void matchResponse(MockHttpServletResponse response) throws Exception;
-	}
-	
 }
