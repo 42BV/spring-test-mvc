@@ -65,12 +65,7 @@ public class StatusResultMatchers {
      * @return true if the is code is 404 and the error message is equal.
      */
     public ResultMatcher isNotFound(final String reason){
-        return new AbstractServletResponseResultMatcher() {
-			protected void matchResponse(MockHttpServletResponse response) {
-				assertEquals("Status", HttpStatus.NOT_FOUND, HttpStatus.valueOf(response.getStatus()));
-                assertEquals("Error Message", reason, response.getErrorMessage());
-			}
-		};
+        return is(HttpStatus.NOT_FOUND, reason);
     }
 
     /**
