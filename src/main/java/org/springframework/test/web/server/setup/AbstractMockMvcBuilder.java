@@ -37,7 +37,7 @@ import org.springframework.web.servlet.ViewResolver;
  *
  * @author Rossen Stoyanchev
  */
-public abstract class AbstractMockMvcBuilder {
+public abstract class AbstractMockMvcBuilder implements MockMvcBuilder {
 
 	/**
 	 * Build a {@link MockMvc} instance.
