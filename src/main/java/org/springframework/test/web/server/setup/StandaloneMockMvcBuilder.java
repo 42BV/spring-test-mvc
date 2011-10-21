@@ -52,6 +52,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.StaticWebApplicationContext;
 import org.springframework.web.context.support.WebApplicationObjectSupport;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.HandlerAdapter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
@@ -92,7 +93,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 
 	private final Object[] controllers;
 	
-	private List<HttpMessageConverter<?>> messageConverters;
+	private List<HttpMessageConverter<?>> messageConverters = getDefaultHttpMessageConverters();
 	
 	private Validator validator;
 	
@@ -102,7 +103,9 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 
 	private List<ViewResolver> viewResolvers;
 
-	private List<HandlerMethodArgumentResolver> customArgumentResolvers = new ArrayList<HandlerMethodArgumentResolver>();
+	private List<HandlerMethodArgumentResolver> customArgumentResolvers = null;
+
+	private List<HandlerMethodReturnValueHandler> customReturnValueHandlers = null;
 
 	private RequestToViewNameTranslator viewNameTranslator = new DefaultRequestToViewNameTranslator();
 	
@@ -119,27 +122,48 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 		this.controllers = controllers;
 	}
 
+	/**
+	 * Set the message converters to use in argument resolvers and in return value 
+	 * handlers, which support reading and/or writing to the body of the request 
+	 * and response. If no message converters are added to the list, a default 
+	 * list of converters is added instead.
+	 */
 	public StandaloneMockMvcBuilder setMessageConverters(HttpMessageConverter<?>...messageConverters) {
 		this.messageConverters = Arrays.asList(messageConverters);
 		return this;
 	}
 
+	/**
+	 * Provide a custom {@link Validator} instead of the one created by default.
+	 * The default implementation used, assuming JSR-303 is on the classpath, is
+	 * {@link org.springframework.validation.beanvalidation.LocalValidatorFactoryBean}.
+	 */
 	public StandaloneMockMvcBuilder setValidator(Validator validator) {
 		this.validator = validator;
 		return this;
 	}
 
+	/**
+	 * Provide a conversion service with custom formatters and converters.
+	 * If not set, a {@link DefaultFormattingConversionService} is used by default.
+	 */
 	public StandaloneMockMvcBuilder setConversionService(FormattingConversionService conversionService) {
 		this.conversionService = conversionService;
 		return this;
 	}
 	
+	/**
+	 * Add interceptors mapped to all incoming requests.
+	 */
 	public StandaloneMockMvcBuilder addInterceptors(HandlerInterceptor... interceptors) {
-		mapInterceptors(null, interceptors);
+		addMappedInterceptors(null, interceptors);
 		return this;
 	}
 
-	public StandaloneMockMvcBuilder mapInterceptors(String[] pathPatterns, HandlerInterceptor... interceptors) {
+	/**
+	 * Add interceptors mapped to a set of path patterns.
+	 */
+	public StandaloneMockMvcBuilder addMappedInterceptors(String[] pathPatterns, HandlerInterceptor... interceptors) {
 		for (HandlerInterceptor interceptor : interceptors) {
 			this.mappedInterceptors.add(new MappedInterceptor(pathPatterns, interceptor));
 		}
@@ -147,10 +171,34 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	}
 	
 	/**
+	 * Provide custom resolvers for controller method arguments.
+	 */
+	public StandaloneMockMvcBuilder setCustomArgumentResolvers(HandlerMethodArgumentResolver... argumentResolvers) {
+		this.customArgumentResolvers = Arrays.asList(argumentResolvers);
+		return this;
+	}
+
+	/**
+	 * Provide custom handlers for controller method return values.
+	 */
+	public StandaloneMockMvcBuilder setCustomReturnValueHandlers(HandlerMethodReturnValueHandler... handlers) {
+		this.customReturnValueHandlers = Arrays.asList(handlers);
+		return this;
+	}
+	
+	/**
+	 * Set up view resolution with the given {@link ViewResolver}s.
+	 * If not set, an {@link InternalResourceViewResolver} is used by default.
+	 */
+	public StandaloneMockMvcBuilder setViewResolvers(ViewResolver...resolvers) {
+		this.viewResolvers = Arrays.asList(resolvers);
+		return this;
+	}
+	
+	/**
 	 * Sets up a single {@link ViewResolver} that always returns the provided 
 	 * view instance. This is a convenient shortcut if you need to use one 
 	 * View instance only -- e.g. rendering generated content (JSON, XML, Atom).
-	 * @param view the View instance to return every time
 	 */
 	public StandaloneMockMvcBuilder setSingleView(View view) {
 		this.viewResolvers = Collections.<ViewResolver>singletonList(new StubViewResolver(view));
@@ -158,27 +206,8 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	}
 
 	/**
-	 * Set up view resolution with the given {@link ViewResolver}s. If this property is
-	 * not used, a fixed, noop View is used instead.
-	 * 
-	 * <p>If you need to use a {@link BeanNameViewResolver}, use {@link ContextMockMvcBuilderSupport} instead.
-	 */
-	public StandaloneMockMvcBuilder setViewResolvers(ViewResolver...resolvers) {
-		this.viewResolvers = Arrays.asList(resolvers);
-		return this;
-	}
-
-	/**
-	 * Provide resolvers for custom argument types.
-	 */
-	public StandaloneMockMvcBuilder addCustomArgumentResolvers(HandlerMethodArgumentResolver... argumentResolvers) {
-		this.customArgumentResolvers.addAll(Arrays.asList(argumentResolvers));
-		return this;
-	}
-	
-	/**
 	 * Provide a RequestToViewNameTranslator instance. 
-	 * The default one used is DefaultRequestToViewNameTranslator.
+	 * If not provided, the default one used is {@link DefaultRequestToViewNameTranslator}.
 	 */
 	public StandaloneMockMvcBuilder setViewNameTranslator(RequestToViewNameTranslator viewNameTranslator) {
 		this.viewNameTranslator = viewNameTranslator;
@@ -187,7 +216,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 
 	/**
 	 * Provide a LocaleResolver instance. 
-	 * The default one used is AcceptHeaderLocaleResolver.
+	 * If not provided, the default one used is {@link AcceptHeaderLocaleResolver}.
 	 */
 	public StandaloneMockMvcBuilder setLocaleResolver(LocaleResolver localeResolver) {
 		this.localeResolver = localeResolver;
@@ -195,8 +224,8 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	}
 	
 	/**
-	 * Provide a FlashMapManager instance. 
-	 * The default one used is DefaultFlashMapManager.
+	 * Provide a custom FlashMapManager instance. 
+	 * If not provided, {@link DefaultFlashMapManager} is used by default.
 	 */
 	public StandaloneMockMvcBuilder setFlashMapManager(FlashMapManager flashMapManager) {
 		this.flashMapManager = flashMapManager;
@@ -227,9 +256,6 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 
 	@Override
 	protected List<HandlerAdapter> initHandlerAdapters(WebApplicationContext wac) {
-		if (this.messageConverters == null) {
-			this.messageConverters = getDefaultHttpMessageConverters();
-		}
 		ConfigurableWebBindingInitializer initializer = new ConfigurableWebBindingInitializer();
 		initializer.setConversionService(this.conversionService);
 		initializer.setValidator(initValidator());
@@ -238,6 +264,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 		handlerAdapter.setWebBindingInitializer(initializer);
 		handlerAdapter.setMessageConverters(this.messageConverters);
 		handlerAdapter.setCustomArgumentResolvers(this.customArgumentResolvers);
+		handlerAdapter.setCustomReturnValueHandlers(this.customReturnValueHandlers);
 		handlerAdapter.setApplicationContext(wac);	// for SpEL expressions in annotations
 		handlerAdapter.afterPropertiesSet();
 		
