@@ -88,7 +88,6 @@ public class MockMvc {
 		final HandlerInterceptor[] interceptors = dispatcher.getInterceptors();
 		final ModelAndView mav = dispatcher.getMav();
 		final Exception resolvedException = dispatcher.getResolvedException();
-		final FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
 
         return new ResultActions() {
         	

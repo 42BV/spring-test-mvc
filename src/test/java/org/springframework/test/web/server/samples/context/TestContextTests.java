@@ -41,7 +41,7 @@ import org.springframework.web.context.WebApplicationContext;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(
 		loader=TestGenericWebXmlContextLoader.class,
-		locations={"classpath:org/springframework/test/web/server/samples/servlet-context.xml"})
+		locations={"/org/springframework/test/web/server/samples/servlet-context.xml"})
 public class TestContextTests {
 
 	@Autowired

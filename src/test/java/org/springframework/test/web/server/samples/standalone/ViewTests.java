@@ -63,7 +63,6 @@ public class ViewTests {
 				.perform(get("/person/Patrick"))
 					.andExpect(model().attribute("person", hasProperty("name", equalTo("Patrick"))))
 					.andExpect(response().status().isOk())
-					.andExpect(response().content().isEqualTo(""))	
 					.andExpect(response().forwardedUrl("/WEB-INF/person/show.jsp"));
 	}
 

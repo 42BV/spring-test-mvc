@@ -37,7 +37,7 @@ public abstract class AbstractFlashMapResultMatcher implements ResultMatcher {
 							Exception resolvedException) throws Exception {
 		
 		FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
-		matchFlashMap(flashMap );
+		matchFlashMap(flashMap);
 	}
 
 	protected abstract void matchFlashMap(FlashMap flashMap) throws Exception;
