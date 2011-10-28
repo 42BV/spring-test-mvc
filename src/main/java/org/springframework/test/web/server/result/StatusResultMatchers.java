@@ -55,7 +55,7 @@ public class StatusResultMatchers {
      * @return true if the is code is 200 and the message is equal.
      */
     public ResultMatcher isOk(String reason){
-        return is(HttpStatus.NOT_FOUND, reason);
+        return is(HttpStatus.OK, reason);
     }
 
     /**
