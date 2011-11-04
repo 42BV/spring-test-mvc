@@ -25,22 +25,22 @@ Test an `@ResponseBody` method in a controller:
         .perform(get("/form"))
             .andExpect(response().status().isOk())
             .andExpect(response().contentType("text/plain"))
-	        .andExpect(response().responseBody("content"));
+	        .andExpect(response().content().isEqualTo("content"));
 
 Test binding failure by pointing to Spring MVC XML-based context configuration:
 
     MockMvcBuilders.xmlConfigMvcSetup("classpath:org/examples/servlet-context.xml").build()
         .perform(get("/form"))
-            .andExpect(response().status().isOk())
-            .andExpect(model().modelAttributesWithErrors("formBean"))
-            .andExpect(view().viewName("form"));
+	        .andExpect(response().status().isOk())
+	        .andExpect(model().hasErrorsForAttribute("formBean"))
+	        .andExpect(view().name("form"));
 
 Test serving a resource by pointing to Spring MVC Java-based application configuration:
 
     MockMvcBuilders.annotationConfigMvcSetup(TestConfiguration.class).build()
         .perform(get("/resources/Spring.js"))
-            .andExpect(response().contentType("application/octet-stream"))
-            .andExpect(response().responseBodyContains("Spring={};"));
+	        .andExpect(response().contentType("application/octet-stream"))
+	        .andExpect(response().content().asText(containsString("Spring={};")));
 
 For more examples see tests in the [org.springframework.test.web.server](spring-test-mvc/tree/master/src/test/java/org/springframework/test/web/server) package.
 
