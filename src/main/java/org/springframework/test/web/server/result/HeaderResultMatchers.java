@@ -16,35 +16,47 @@
 
 package org.springframework.test.web.server.result;
 
-import static org.springframework.test.web.AssertionErrors.assertTrue;
+import static org.springframework.test.web.AssertionErrors.assertEquals;
 
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.server.ResultMatcher;
-import org.springframework.web.servlet.ModelAndView;
 
-public class ViewResultMatchers {
+public class HeaderResultMatchers {
+
+	/**
+	 * Assert a response header with the given {@link Matcher}.
+	 */
+	public ResultMatcher string(final String name, final Matcher<? super String> matcher) {
+		return new ResultMatcherAdapter() {
+			
+			@Override
+			protected void matchResponse(MockHttpServletResponse response) {
+				MatcherAssert.assertThat("Response header", response.getHeader(name), matcher);
+			}
+		};
+	}
+	
+	/**
+	 * TODO
+	 */
+	public ResultMatcher string(final String name, final String value) {
+		return string(name, Matchers.equalTo(value));
+	}
 
 	/**
 	 * TODO
 	 */
-	public ResultMatcher name(final Matcher<? super String> matcher) {
+	public ResultMatcher longValue(final String name, final long value) {
 		return new ResultMatcherAdapter() {
-
+			
 			@Override
-			protected void matchModelAndView(ModelAndView mav) throws Exception {
-				assertTrue("No ModelAndView found", mav != null);
-				MatcherAssert.assertThat("View name", mav.getViewName(), matcher);
+			protected void matchResponse(MockHttpServletResponse response) {
+				assertEquals("Response header " + name, value, Long.parseLong(response.getHeader(name)));
 			}
 		};
 	}
 
-	/**
-	 * TODO
-	 */
-	public ResultMatcher name(final String name) {
-		return name(Matchers.equalTo(name));
-	}
-	
 }

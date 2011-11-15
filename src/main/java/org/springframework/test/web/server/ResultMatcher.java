@@ -22,18 +22,26 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * A contract for matching an expectation against the result of an 
- * executed Spring MVC request.
+ * A contract to match the results of an executed request against some expectation.
  * 
- * <p>Access all available result matchers through:
+ * <p>See static factory methods in 
  * {@code org.springframework.test.web.server.result.MockMvcResultActions}.
+ * 
+ * <p>Example, assuming a static import of {@code MockMvcRequestBuilders.*} and
+ * {@code MockMvcResultActions.*}:
+ * 
+ * <pre>
+ * mockMvc.perform(get("/form"))
+ *   .andExpect(status.isOk())
+ *   .andExpect(content().type(MediaType.APPLICATION_JSON));
+ * </pre> 
  * 
  * @author Rossen Stoyanchev
  */
 public interface ResultMatcher {
 
 	/**
-	 * Match an expectation against the result of an executed Spring MVC request.
+	 * Match the result of an executed Spring MVC request to an expectation.
 	 * 
 	 * @param request the input request 
 	 * @param response the resulting response

@@ -5,9 +5,9 @@ import javax.servlet.ServletContext;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 /** 
- * A contract for building a {@link MockHttpServletRequest}.
+ * A contract to build a {@link MockHttpServletRequest}.
  * 
- * <p>Access all available request builders through:
+ * <p>See static factory methods in
  * {@code org.springframework.test.web.server.request.MockMvcRequestBuilders}.
  * 
  * @author Arjen Poutsma 

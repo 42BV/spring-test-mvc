@@ -27,45 +27,31 @@ import org.springframework.web.servlet.RequestToViewNameTranslator;
 import org.springframework.web.servlet.ViewResolver;
 
 /**
- * Provides {@link MockMvc} with access to Spring MVC infrastructure components.
+ * Provides access to Spring MVC infrastructure components.
  * 
  * @author Rossen Stoyanchev
  */
 public interface MvcSetup {
 
-	/**
-	 * Return HandlerMappings to use to map requests.
-	 */
+	/** Return HandlerMappings to use to map requests. */
 	List<HandlerMapping> getHandlerMappings();
 
-	/**
-	 * Return HandlerAdapters to use to invoke handlers.
-	 */
+	/** Return HandlerAdapters to use to invoke handlers. */
 	List<HandlerAdapter> getHandlerAdapters();
 
-	/**
-	 * Return HandlerExceptionResolvers to use to resolve controller exceptions.
-	 */
+	/** Return HandlerExceptionResolvers to use to resolve controller exceptions. */
 	List<HandlerExceptionResolver> getExceptionResolvers();
 
-	/**
-	 * Return ViewResolvers to use to resolve view names.
-	 */
+	/** Return ViewResolvers to use to resolve view names. */
 	List<ViewResolver> getViewResolvers();
 
-	/**
-	 * Return RequestToViewNameTranslator to use to derive a view name.
-	 */
+	/** Return RequestToViewNameTranslator to use to derive a view name. */
 	RequestToViewNameTranslator getViewNameTranslator();
 
-	/**
-	 * Return LocaleResolver to use for locale resolution.
-	 */
+	/** Return LocaleResolver to use for locale resolution. */
 	LocaleResolver getLocaleResolver();
 
-	/**
-	 * Return FlashMapManager to use for flash attribute support.
-	 */
+	/** Return FlashMapManager to use for flash attribute support. */
 	FlashMapManager getFlashMapManager();
 
 }

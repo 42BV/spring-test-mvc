@@ -18,8 +18,10 @@ package org.springframework.test.web.server.samples.context;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.server.result.MockMvcResultActions.handler;
-import static org.springframework.test.web.server.result.MockMvcResultActions.response;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.forwardedUrl;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.handler;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.annotationConfigSetup;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.xmlConfigSetup;
 
@@ -71,8 +73,8 @@ public class WarRootDirectoryTests {
 	@Test
 	public void tilesDefinitions() throws Exception {
 		mockMvc.perform(get("/"))
-			.andExpect(response().status().isOk())
-			.andExpect(response().forwardedUrl("/WEB-INF/layouts/standardLayout.jsp"));
+			.andExpect(status().isOk())
+			.andExpect(forwardedUrl("/WEB-INF/layouts/standardLayout.jsp"));
 	}
 
 	// Resource request (i.e. <mvc:resources ... />).
@@ -80,9 +82,9 @@ public class WarRootDirectoryTests {
 	@Test
 	public void resourceRequest() throws Exception {
 		mockMvc.perform(get("/resources/Spring.js"))
-			.andExpect(response().status().isOk())
-			.andExpect(response().contentType(MediaType.APPLICATION_OCTET_STREAM))
-			.andExpect(response().content().asText(containsString("Spring={};")));
+			.andExpect(status().isOk())
+			.andExpect(content().type(MediaType.APPLICATION_OCTET_STREAM))
+			.andExpect(content().string(containsString("Spring={};")));
 	}
 
 	// Resource request forwarded to the default servlet (i.e. <mvc:default-servlet-handler />).
@@ -90,9 +92,9 @@ public class WarRootDirectoryTests {
 	@Test
 	public void resourcesViaDefaultServlet() throws Exception {
 		mockMvc.perform(get("/unknown/resource"))
-			.andExpect(response().status().isOk())
+			.andExpect(status().isOk())
 			.andExpect(handler().type(DefaultServletHttpRequestHandler.class))
-			.andExpect(response().forwardedUrl("default"));
+			.andExpect(forwardedUrl("default"));
 	}
 
 }

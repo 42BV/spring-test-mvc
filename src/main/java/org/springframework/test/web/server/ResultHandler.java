@@ -23,17 +23,17 @@ import org.springframework.web.servlet.ModelAndView;
 
 
 /**
- * A contract for printing the result of an executed Spring MVC request.
+ * A contract for a generic action on the results of an executed request.
  * 
- * <p>Access all available print matchers through:
+ * <p>See static factory methods in
  * {@code org.springframework.test.web.server.result.MockMvcResultActions}.
  * 
  * @author Rossen Stoyanchev
  */
-public interface ResultPrinter {
+public interface ResultHandler {
 
 	/**
-	 * Print the result of an executed Spring MVC request.
+	 * Apply an action on the result of an executed Spring MVC request.
 	 * 
 	 * @param request the input request 
 	 * @param response the resulting response
@@ -44,11 +44,11 @@ public interface ResultPrinter {
 	 *
 	 * @throws Exception if a failure occurs while printing
 	 */
-	void print(MockHttpServletRequest request, 
-			   MockHttpServletResponse response, 
-			   Object handler,
-			   HandlerInterceptor[] interceptors, 
-			   ModelAndView mav, 
-			   Exception exception) throws Exception;
+	void handle(MockHttpServletRequest request, 
+				MockHttpServletResponse response, 
+				Object handler,
+			 	HandlerInterceptor[] interceptors, 
+			 	ModelAndView mav, 
+			 	Exception exception) throws Exception;
 
 }

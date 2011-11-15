@@ -15,11 +15,16 @@
  */
 
 /**
- * Contains built-in {@link org.springframework.test.web.server.ResultMatcher} and 
- * {@link org.springframework.test.web.server.ResultPrinter} classes that allow 
- * applying expectations and actions on the results of an executed Spring MVC request.
+ * Contains {@link org.springframework.test.web.server.ResultMatcher}
+ * implementations for setting up expectations on the results of an executed
+ * request. Most of the implementations are anonymous classes available
+ * through static methods via 
+ * {@link org.springframework.test.web.server.result.MockMvcResultMatchers}.
  * 
- * <p>{@link org.springframework.test.web.server.result.MockMvcResultActions} is 
- * the main class to import to get access to all such implementations.
+ * <p>Also contains 
+ * {@link org.springframework.test.web.server.result.MockMvcResultHandlers}
+ * implementations with for general actions on the results of of an executed
+ * request. Implementations are available thorugh static methods in
+ * {@link org.springframework.test.web.server.result.MockMvcResultHandlers}. 
  */
 package org.springframework.test.web.server.result;

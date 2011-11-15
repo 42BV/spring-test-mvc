@@ -16,7 +16,8 @@
 
 package org.springframework.test.web.server.result;
 
-import java.util.Map;
+import static org.springframework.test.web.AssertionErrors.assertEquals;
+import static org.springframework.test.web.AssertionErrors.assertTrue;
 
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
@@ -24,83 +25,106 @@ import org.hamcrest.Matchers;
 import org.springframework.test.web.AssertionErrors;
 import org.springframework.test.web.server.ResultMatcher;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.servlet.ModelAndView;
 
-/**
- * Provides methods to define expectations on model attributes.
- * 
- * @author Rossen Stoyanchev
- */
 public class ModelResultMatchers {
 
 	/**
-	 * Protected constructor. 
-	 * @see MockMvcResultActions#model()
+	 * TODO
 	 */
-	protected ModelResultMatchers() {
+	public <T> ResultMatcher attribute(final String name, final Matcher<T> matcher) {
+		return new ResultMatcherAdapter() {
+			
+			@Override 
+			@SuppressWarnings("unchecked")
+			protected void matchModelAndView(ModelAndView mav) throws Exception {
+				assertTrue("No ModelAndView found", mav != null);
+				MatcherAssert.assertThat("Model attribute", (T) mav.getModel().get(name), matcher);
+			}
+		};
 	}
-
-	public ResultMatcher attribute(final String attributeName, final Object attributeValue) {
-		return attribute(attributeName, Matchers.equalTo(attributeValue));
+	
+	/**
+	 * Syntactic sugar, equivalent to:
+	 * <pre>
+	 * modelAttribute("attrName", equalTo("attrValue"))
+	 * </pre>
+	 */
+	public ResultMatcher attribute(String name, Object value) {
+		return attribute(name, Matchers.equalTo(value));
 	}
-
-	public ResultMatcher attribute(final String name, final Matcher<Object> matcher) {
-		return new AbstractModelResultMatcher() {
-			public void matchModel(Map<String, Object> model) {
-				MatcherAssert.assertThat("Model attribute", model.get(name), matcher);
+	
+	/**
+	 * Syntactic sugar, equivalent to:
+	 * <pre>
+	 * modelAttribute("attrName", notNullValue())
+	 * </pre>
+	 */
+	public ResultMatcher attributeExists(final String... names) {
+		return new ResultMatcherAdapter() {
+			
+			@Override 
+			protected void matchModelAndView(ModelAndView mav) throws Exception {
+				assertTrue("No ModelAndView found", mav != null);
+				for (String name : names) {
+					attribute(name, Matchers.notNullValue());
+				}
 			}
 		};
 	}
 
 	/**
-	 * Assert the actual number of attributes in the model excluding 
-	 * BindingResult attributes.
+	 * TODO
 	 */
-	public ResultMatcher size(final int expectedSize) {
-		return new AbstractModelResultMatcher() {
-			public void matchModel(Map<String, Object> model) {
-				int actualSize = 0;
-				for (String key : model.keySet()) {
-					if (!key.startsWith(BindingResult.MODEL_KEY_PREFIX)) {
-						actualSize++;
-					}
+	public <T> ResultMatcher attributeHasErrors(final String... names) {
+		return new ResultMatcherAdapter() {
+			
+			@Override 
+			protected void matchModelAndView(ModelAndView mav) throws Exception {
+				assertTrue("No ModelAndView found", mav != null);
+				for (String name : names) {
+					BindingResult result = (BindingResult) mav.getModel().get(BindingResult.MODEL_KEY_PREFIX + name);
+					assertTrue("No BindingResult for attribute: " + name, result != null);
+					assertTrue("No errors for attribute: " + name, result.hasErrors());
 				}
-				AssertionErrors.assertEquals("Model size", expectedSize, actualSize);
 			}
 		};
 	}
 
-	public ResultMatcher hasErrorsForAttribute(final String attributeName) {
-		return new AbstractModelResultMatcher() {
-			public void matchModel(Map<String, Object> model) {
-				AssertionErrors.assertTrue("Attribute not found: " + attributeName, model.get(attributeName) != null);
-				BindingResult result = (BindingResult) model.get(BindingResult.MODEL_KEY_PREFIX + attributeName);
-				AssertionErrors.assertTrue("BindingResult not found: " + attributeName, result != null);
-				AssertionErrors.assertTrue("Expected errors for attribute: " + attributeName, result.hasErrors());
-			}
-		};
-	}
-
-	public ResultMatcher hasAttributes(final String...attributeNames) {
-		return new AbstractModelResultMatcher() {
-			public void matchModel(Map<String, Object> model) {
-				for (String name : attributeNames) {
-					if (!model.containsKey(name)) {
-						AssertionErrors.fail("Model attribute <" + name + "> not found.");
+	/**
+	 * TODO
+	 */
+	public <T> ResultMatcher hasNoErrors() {
+		return new ResultMatcherAdapter() {
+			
+			@Override 
+			protected void matchModelAndView(ModelAndView mav) throws Exception {
+				assertTrue("No ModelAndView found", mav != null);
+				for (Object value : mav.getModel().values()) {
+					if (value instanceof BindingResult) {
+						assertTrue("Unexpected binding error(s): " + value, !((BindingResult) value).hasErrors());
 					}
 				}
 			}
 		};
 	}
 	
-	public ResultMatcher hasNoErrors() {
-		return new AbstractModelResultMatcher() {
-			public void matchModel(Map<String, Object> model) {
-				for (Object value : model.values()) {
-					if (value instanceof BindingResult) {
-						BindingResult result = (BindingResult) value;
-						AssertionErrors.assertTrue("Unexpected binding error(s): " + result, !result.hasErrors());
+	/**
+	 * Assert the number of attributes excluding BindingResult instances.
+	 */
+	public <T> ResultMatcher size(final int size) {
+		return new ResultMatcherAdapter() {
+			
+			@Override 
+			protected void matchModelAndView(ModelAndView mav) throws Exception {
+				AssertionErrors.assertTrue("No ModelAndView found", mav != null);
+				int actual = 0;
+				for (String key : mav.getModel().keySet()) {
+					if (!key.startsWith(BindingResult.MODEL_KEY_PREFIX)) {
+						actual++;
 					}
 				}
+				assertEquals("Model size", size, actual);
 			}
 		};
 	}

@@ -17,7 +17,7 @@
 package org.springframework.test.web.server.samples.standalone;
 
 import static org.springframework.test.web.server.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.server.result.MockMvcResultActions.*;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
 
 import javax.validation.Valid;
@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
- * Tests with redirect scenarios.
+ * Redirect scenarios.
  *
  * @author Rossen Stoyanchev
  */
@@ -39,26 +39,27 @@ public class RedirectTests {
 	@Test
 	public void testRedirect() throws Exception {
 		standaloneSetup(new PersonController()).build()
-			.perform(post("/persons").param("name", "James"))
-				.andExpect(response().status().isOk())
-	            .andExpect(response().redirectedUrl("/person/1"))
+			.perform(post("/persons").param("name", "Andy"))
+				.andExpect(status().isOk())
+	            .andExpect(redirectedUrl("/person/1"))
 	            .andExpect(model().size(1))
-	            .andExpect(model().hasAttributes("id"))
-	            .andExpect(flashMap().size(1))
-	            .andExpect(flashMap().attribute("message", "success!"));
+	            .andExpect(model().attributeExists("id"))
+	            .andExpect(flash().attributeCount(1))
+	            .andExpect(flash().attribute("message", "success!"));
 	}
 
 	@Test
 	public void testBindingErrors() throws Exception {
 		standaloneSetup(new PersonController()).build()
 			.perform(post("/persons"))
-				.andExpect(response().status().isOk())
-	            .andExpect(response().forwardedUrl("person/add"))
+				.andExpect(status().isOk())
+	            .andExpect(forwardedUrl("person/add"))
 	            .andExpect(model().size(1))
-	            .andExpect(model().hasAttributes("person"))
-	            .andExpect(flashMap().size(0));
+	            .andExpect(model().attributeExists("person"))
+	            .andExpect(flash().attributeCount(0));
 	}
 
+	
 	@Controller
 	@SuppressWarnings("unused")
 	private static class PersonController {
@@ -73,5 +74,4 @@ public class RedirectTests {
 			return "redirect:/person/{id}";
 		}
 	}
-	
 }

@@ -16,38 +16,50 @@
 
 package org.springframework.test.web.server;
 
+
 /**
- * A contract for defining actions such as expectations on the result of an 
- * executed Spring MVC request using chained methods.
+ * A contract for defining actions on the results of an executed request.
  * 
- * <p>Note that instead of creating {@link ResultMatcher} instances directly, 
- * tests will rather create expectations (and other actions) via chained 
- * static methods the main entry point for which is in 
- * {@code org.springframework.test.web.server.result.MockMvcResultActions}.
- * 
- * <p>Below is a short example:
- * <pre>
- *   // Assumes static import of MockMvcResultActions.*
- * 
- *   mockMvc.perform(get("/form"))
- *     .andExpect(response().status(HttpStatus.OK))
- *     .andPrintTo(console());
- * </pre> 
+ * <p>See static factory methods in
+ * {@code org.springframework.test.web.server.result.MockMvcResultMatchers} and
+ * {@code org.springframework.test.web.server.result.MockMvcResultHandlers}.
  * 
  * @author Rossen Stoyanchev
  */
 public interface ResultActions {
 
 	/**
-	 * Define an expectation.
-	 * {@code org.springframework.test.web.server.result.MockMvcResultActions}
+	 * Provide an expectation. For example:
+	 * <pre>
+	 * // Assuming static import of MockMvcResultMatchers.*
+	 * 
+	 * mockMvc.perform(get("/person/1"))
+	 *   .andExpect(status.isOk())
+	 *   .andExpect(content().type(MediaType.APPLICATION_JSON))
+	 *   .andExpect(jsonPath("$.person.name").equalTo("Jason"));
+	 *   
+	 * mockMvc.perform(post("/form"))
+	 *   .andExpect(status.isOk())
+	 *   .andExpect(redirectedUrl("/person/1"))
+	 *   .andExpect(model().size(1))
+	 *   .andExpect(model().attributeExists("person"))
+	 *   .andExpect(flash().attributeCount(1))
+	 *   .andExpect(flash().attribute("message", "success!"));
+	 * </pre> 
 	 */
 	ResultActions andExpect(ResultMatcher matcher) throws Exception;
 
 	/**
-	 * Define a print action.
-	 * @see org.springframework.test.web.server.result.MockMvcResultActions#toConsole()
+	 * Provide a general action. For example:
+	 * <pre>
+	 * // Assuming static imports of MockMvcResultHandlers.* and MockMvcResultMatchers.*
+	 * 
+	 * mockMvc.perform(get("/form"))
+	 *   .andDo(print())         // Print the results
+	 *   .andExpect(status.isOk())
+	 *   .andExpect(contentType(MediaType.APPLICATION_JSON));
+	 * </pre>
 	 */
-	ResultActions andPrint(ResultPrinter printer) throws Exception;
+	ResultActions andDo(ResultHandler handler) throws Exception;
 	
 }

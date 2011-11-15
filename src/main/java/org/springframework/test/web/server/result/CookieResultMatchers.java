@@ -18,24 +18,27 @@ package org.springframework.test.web.server.result;
 
 import static org.springframework.test.web.AssertionErrors.assertTrue;
 
+import javax.servlet.http.Cookie;
+
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.server.ResultMatcher;
-import org.springframework.web.servlet.ModelAndView;
 
-public class ViewResultMatchers {
+public class CookieResultMatchers {
 
 	/**
-	 * TODO
+	 * Assert a cookie value with a {@link Matcher}.
 	 */
-	public ResultMatcher name(final Matcher<? super String> matcher) {
+	public ResultMatcher value(final String name, final Matcher<? super String> matcher) {
 		return new ResultMatcherAdapter() {
-
+			
 			@Override
-			protected void matchModelAndView(ModelAndView mav) throws Exception {
-				assertTrue("No ModelAndView found", mav != null);
-				MatcherAssert.assertThat("View name", mav.getViewName(), matcher);
+			protected void matchResponse(MockHttpServletResponse response) {
+				Cookie cookie = response.getCookie(name);
+				assertTrue("Response cookie not found: " + name, cookie != null);
+				MatcherAssert.assertThat("Response cookie", cookie.getValue(), matcher);
 			}
 		};
 	}
@@ -43,8 +46,8 @@ public class ViewResultMatchers {
 	/**
 	 * TODO
 	 */
-	public ResultMatcher name(final String name) {
-		return name(Matchers.equalTo(name));
+	public ResultMatcher value(final String name, final String value) {
+		return value(name, Matchers.equalTo(value));
 	}
-	
+
 }

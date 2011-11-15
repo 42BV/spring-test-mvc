@@ -1,7 +1,7 @@
 Spring MVC Test Support
 =======================
 
-The goal of this project is to faciliate unit testing _Spring MVC_ controllers on the server side and client code on the client side that depends on the RestTemplate.
+The goal of this project is to facilitate testing _Spring MVC_ controllers on the server side and _RestTemplate_ based code on the client side.
 
 This code will be included in the `spring-test` module of the __Spring Framework__. Its present home here allows us to evolve it on a flexible release schedule and with community feedback potentially accommodating a wide range of scenarios.
 
@@ -21,33 +21,45 @@ Examples
 
 Test an `@ResponseBody` method in a controller:
 
-    MockMvcBuilders.standaloneMvcSetup(new TestController()).build()
+    MockMvcBuilders.standaloneSetup(new TestController()).build()
         .perform(get("/form"))
-            .andExpect(response().status().isOk())
-            .andExpect(response().contentType("text/plain"))
-	        .andExpect(response().content().isEqualTo("content"));
+            .andExpect(status().isOk())
+            .andExpect(content().type("text/plain"))
+            .andExpect(content().string("hello world"));
 
 Test binding failure by pointing to Spring MVC XML-based context configuration:
 
-    MockMvcBuilders.xmlConfigMvcSetup("classpath:org/examples/servlet-context.xml").build()
+    MockMvcBuilders.xmlConfigSetup("classpath:org/examples/servlet-context.xml").build()
         .perform(get("/form"))
-	        .andExpect(response().status().isOk())
-	        .andExpect(model().hasErrorsForAttribute("formBean"))
+	        .andExpect(status().isOk())
+	        .andExpect(model().attributeHasErrors("formBean"))
 	        .andExpect(view().name("form"));
 
 Test serving a resource by pointing to Spring MVC Java-based application configuration:
 
-    MockMvcBuilders.annotationConfigMvcSetup(TestConfiguration.class).build()
+    MockMvcBuilders.annotationConfigSetup(TestConfiguration.class).build()
         .perform(get("/resources/Spring.js"))
-	        .andExpect(response().contentType("application/octet-stream"))
-	        .andExpect(response().content().asText(containsString("Spring={};")));
+	        .andExpect(content().type("application/octet-stream"))
+	        .andExpect(content().string(containsString("Spring={};")));
 
-For more examples see tests in the [org.springframework.test.web.server](spring-test-mvc/tree/master/src/test/java/org/springframework/test/web/server) package.
+The last example uses a Hamcrest matcher to check if the content contains specific text.
+
+Tips on Getting Started
+-----------------------
+
+There are many more examples in the [org.springframework.test.web.server.samples](spring-test-mvc/tree/master/src/test/java/org/springframework/test/web/server/samples) package.
+
+The API is designed to be fluent and readable. Therefore to learn we recommend writing some tests and using code completion to discover what is available. 
+
+Eclipse developers should add the following classes as "Favorites" under Preferences/Java/Editor/Content Assist: 
+_MockMvcBuilders.*_, _MockMvcRequestBuilders.*_, _MockMvcResultMatchers.*_, and _MockMvcResultHandlers.*_. 
+
+Now when you use _Ctrl+Space_, Eclipse will suggest matching static factory methods from those classes.  
 
 Limitations
 -----------
 
-Most rendering technologies should work as expected. For _Tiles_ and _JSP_, while you can test with your existing configuration as is, no actual JSP-based rendering will take place. Instead you should verify the path the request was forwarded to (i.e. the path to the JSP page) or you can also verify the selected view name.
+Most rendering technologies should work as expected. For _Tiles_ and _JSP_, while you can test with your existing configuration as is, no actual JSP-based rendering will take place. Instead you can verify the path the request was forwarded to (i.e. the path to the JSP page) or you can also verify the selected view name.
 
 Maven
 =====

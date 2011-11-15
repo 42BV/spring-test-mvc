@@ -7,7 +7,10 @@ import org.springframework.test.web.server.RequestBuilder;
 import org.springframework.web.util.UriTemplate;
 
 /** 
- * A central class for access to all built-in {@link RequestBuilder}s.
+ * The main class to import to access all available {@link RequestBuilder}s.
+ * 
+ * <p><strong>Eclipse users:</strong> you can add this class as a Java editor 
+ * favorite. To navigate, open the Preferences and type "favorites".
  * 
  * @author Arjen Poutsma 
  * @author Rossen Stoyanchev

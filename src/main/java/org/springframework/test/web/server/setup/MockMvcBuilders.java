@@ -28,7 +28,10 @@ import org.springframework.web.context.support.AnnotationConfigWebApplicationCon
 import org.springframework.web.context.support.XmlWebApplicationContext;
 
 /**
- * A central class for access to all built-in {@link MockMvc} builders. 
+ * The main class to import to access all available {@link MockMvcBuilder}s.
+ * 
+ * <p><strong>Eclipse users:</strong> you can add this class as a Java editor 
+ * favorite. To navigate, open the Preferences and type "favorites".
  *
  * @author Rossen Stoyanchev
  */

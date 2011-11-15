@@ -17,83 +17,72 @@
 package org.springframework.test.web.server.result;
 
 import org.hamcrest.Matcher;
-import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.server.ResultMatcher;
+import org.springframework.test.web.support.JsonPathExpectationsHelper;
+
 
 /**
- * Provides methods to define expectations on the ServletResponse content
- * with <a href="http://code.google.com/p/json-path"/>JsonPath</a>.
- *
+ * TODO ...
+ * 
  * @author Rossen Stoyanchev
  */
 public class JsonPathResultMatchers {
 
-	private final String jsonPath;
-
-	/**
-	 * Protected constructor.
-	 * @param jsonPath the JSON path to use in result matchers
-	 * 
-	 * @see MockMvcResultActions#response()
-	 * @see ServletResponseResultMatchers#content()
-	 * @see ContentResultMatchers#jsonPath(String)
-	 */
-	protected JsonPathResultMatchers(String jsonPath) {
-		this.jsonPath = jsonPath;
-	}
+	private JsonPathExpectationsHelper jsonPathHelper;
 	
 	/**
-	 * Assert there is content at the underlying JSON path.
+	 * TODO
 	 */
-	public ResultMatcher exists() {
-		return result(Matchers.notNullValue());
+	public JsonPathResultMatchers(String expression, Object ... args) {
+		this.jsonPathHelper = new JsonPathExpectationsHelper(expression, args);
 	}
 
 	/**
-	 * Assert there is no content at the underlying JSON path.
+	 * TODO
 	 */
-	public ResultMatcher doesNotExist() {
-		return result(Matchers.nullValue());
-	}
+	public <T> ResultMatcher value(final Matcher<T> matcher) {
+		return new ResultMatcherAdapter() {
 
-	/**
-	 * Extract the content at the underlying JSON path and assert it equals 
-	 * the given Object. This is a shortcut {@link #result(Matcher)} with
-	 * {@link Matchers#equalTo(Object)}.
-	 */
-	public ResultMatcher evaluatesTo(Object expectedContent) {
-		return result(Matchers.equalTo(expectedContent));
-	}
-	
-	/**
-	 * Extract the content at the underlying JSON path and  assert it with 
-	 * the given {@link Matcher}.
-	 * <p>Example:
-	 * <pre>
-	 * // Assumes static import of org.hamcrest.Matchers.equalTo
-	 * 
-	 * mockMvc.perform(get("/path.json"))
-	 *   .andExpect(response().content().jsonPath("$.store.bicycle.price").result(equalTo(19.95D)));
-	 *  </pre>
-	 */
-	public <T> ResultMatcher result(final Matcher<T> matcher) {
-		return new AbstractServletResponseResultMatcher() {
-			@SuppressWarnings("unchecked")
+			@Override
 			public void matchResponse(MockHttpServletResponse response) throws Exception {
-				T extractedContent = (T) applyJsonPath(response.getContentAsString());
-				MatcherAssert.assertThat("Response content JSON path: " + JsonPathResultMatchers.this.jsonPath, 
-						extractedContent, matcher);
+				jsonPathHelper.assertValue(response.getContentAsString(), matcher);
 			}
 		};
-	}	
+	}
+	
+	/**
+	 * TODO
+	 */
+	public ResultMatcher value(Object value) {
+		return value(Matchers.equalTo(value));
+	}
+	
+	/**
+	 * TODO
+	 */
+	public ResultMatcher exists() {
+		return new ResultMatcherAdapter() {
+			
+			@Override
+			public void matchResponse(MockHttpServletResponse response) throws Exception {
+				jsonPathHelper.exists(response.getContentAsString());
+			}
+		};
+	}
 
 	/**
-	 * Apply the underlying JSON path to the given content.
+	 * TODO
 	 */
-	protected Object applyJsonPath(String content) throws Exception {
-		return com.jayway.jsonpath.JsonPath.read(content, this.jsonPath);
+	public ResultMatcher doesNotExist() {
+		return new ResultMatcherAdapter() {
+			
+			@Override
+			public void matchResponse(MockHttpServletResponse response) throws Exception {
+				jsonPathHelper.doesNotExist(response.getContentAsString());
+			}
+		};
 	}
 
 }

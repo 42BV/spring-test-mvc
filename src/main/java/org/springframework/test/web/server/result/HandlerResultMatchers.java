@@ -16,68 +16,73 @@
 
 package org.springframework.test.web.server.result;
 
+import static org.springframework.test.web.AssertionErrors.assertEquals;
+import static org.springframework.test.web.AssertionErrors.assertTrue;
+
 import java.lang.reflect.Method;
 
-import org.springframework.test.web.AssertionErrors;
+import org.hamcrest.Matcher;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.springframework.test.web.server.ResultMatcher;
-import org.springframework.util.ReflectionUtils;
+import org.springframework.util.ClassUtils;
 import org.springframework.web.method.HandlerMethod;
 
-/**
- * Provides methods to define expectations on the selected handler.
- * 
- * @author Rossen Stoyanchev
- */
 public class HandlerResultMatchers {
 
 	/**
-	 * Protected constructor. 
-	 * @see MockMvcResultActions#handler()  
+	 * TODO
 	 */
-	HandlerResultMatchers() {
-	}
+	public ResultMatcher type(final Class<?> type) {
+		return new ResultMatcherAdapter() {
 
-	public ResultMatcher methodName(final String methodName) {
-		return new AbstractHandlerMethodResultMatcher() {
-			protected void matchHandlerMethod(HandlerMethod handlerMethod) {
-				AssertionErrors.assertEquals("Handler method", methodName, handlerMethod.getMethod().getName());
+			@Override
+			protected void matchHandler(Object handler) throws Exception {
+				assertTrue("No handler: ", handler != null);
+				Class<?> actual = handler.getClass();
+				if (HandlerMethod.class.isInstance(handler)) {
+					actual = ((HandlerMethod) handler).getBeanType();
+				}
+				assertEquals("Handler type", type, ClassUtils.getUserClass(actual));
 			}
 		};
 	}
 	
-	public ResultMatcher method(final Class<?> controllerType, 
-								final String methodName, 
-								final Class<?>...argumentTypes) {
-		return new AbstractHandlerMethodResultMatcher() {
-			protected void matchHandlerMethod(HandlerMethod handlerMethod) {
-				Method method = ReflectionUtils.findMethod(controllerType, methodName, argumentTypes);
-				AssertionErrors.assertTrue("Handler method not found", method != null);
-				AssertionErrors.assertEquals("Method", method, handlerMethod.getMethod());
+	/**
+	 * TODO
+	 */
+	public ResultMatcher methodName(final Matcher<? super String> matcher) {
+		return new ResultMatcherAdapter() {
+
+			@Override
+			protected void matchHandler(Object handler) throws Exception {
+				assertTrue("No handler: ", handler != null);
+				assertTrue("Not a HandlerMethod: " + handler, HandlerMethod.class.isInstance(handler));
+				MatcherAssert.assertThat("HandlerMethod", ((HandlerMethod) handler).getMethod().getName(), matcher);
 			}
 		};
 	}
-
-	public ResultMatcher type(final Class<?> handlerType) {
-		return new AbstractHandlerResultMatcher() {
-			protected void matchHandler(Object handler) {
-				AssertionErrors.assertEquals("Handler type", handlerType, handler.getClass());
-			}
-		};
+	
+	/**
+	 * TODO
+	 */
+	public ResultMatcher methodName(final String name) {
+		return methodName(Matchers.equalTo(name));
 	}
 
 	/**
-	 * Base class for assertions on a handler of type {@link HandlerMethod}.
+	 * TODO
 	 */
-	private abstract static class AbstractHandlerMethodResultMatcher extends AbstractHandlerResultMatcher {
+	public ResultMatcher method(final Method method) {
+		return new ResultMatcherAdapter() {
 
-		public final void matchHandler(Object handler) throws Exception {
-			Class<?> type = handler.getClass();
-			boolean result = HandlerMethod.class.isAssignableFrom(type);
-			AssertionErrors.assertTrue("Not a HandlerMethod. Actual type " + type, result);
-			matchHandlerMethod((HandlerMethod) handler);
-		}
-		
-		protected abstract void matchHandlerMethod(HandlerMethod handlerMethod) throws Exception;
+			@Override
+			protected void matchHandler(Object handler) throws Exception {
+				assertTrue("No handler: ", handler != null);
+				assertTrue("Not a HandlerMethod: " + handler, HandlerMethod.class.isInstance(handler));
+				assertEquals("HandlerMethod", method, ((HandlerMethod) handler).getMethod());
+			}
+		};
 	}
-
+	
 }

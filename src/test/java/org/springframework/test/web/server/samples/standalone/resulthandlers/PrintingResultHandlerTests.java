@@ -14,45 +14,41 @@
  * limitations under the License.
  */
 
-package org.springframework.test.web.server.samples.standalone;
+package org.springframework.test.web.server.samples.standalone.resulthandlers;
 
 import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.server.result.MockMvcResultActions.response;
+import static org.springframework.test.web.server.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
 
 import org.junit.Test;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- * Tests that write directly to the response.
+ * Print debugging information about the executed request and response to System.out.
  *
  * @author Rossen Stoyanchev
  */
-public class ResponseTests {
+public class PrintingResultHandlerTests {
 
 	@Test
-	public void json() throws Exception {
+	public void testPrint() throws Exception {
 		
-		standaloneSetup(new PersonController()).build()
-			.perform(get("/person/Lee").accept(MediaType.APPLICATION_JSON))
-				.andExpect(response().status().isOk())
-				.andExpect(response().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(response().content().jsonPath("$.name").evaluatesTo("Lee"));
-	}	
-
-	@Controller
-	@SuppressWarnings("unused")
-	private class PersonController {
-
-		@RequestMapping(value="/person/{name}")
-		public @ResponseBody Person get(@PathVariable String name) {
-			Person person = new Person(name);
-			return person;
-		}
+		// Not testing anything, just to see the output
+		
+		standaloneSetup(new SimpleController()).build().perform(get("/")).andDo(print());
 	}
 
+	
+	@Controller
+	@SuppressWarnings("unused")
+	private static class SimpleController {
+
+		@RequestMapping("/")
+		@ResponseBody
+		public String hello() {
+			return "Hello world";
+		}
+	}
 }

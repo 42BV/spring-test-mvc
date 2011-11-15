@@ -14,51 +14,56 @@
  * limitations under the License.
  */
 
-package org.springframework.test.web.server.samples.standalone;
+package org.springframework.test.web.server.samples.standalone.resultmatchers;
 
 import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.server.result.MockMvcResultMatchers.forwardedUrl;
-import static org.springframework.test.web.server.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.test.web.server.MockMvc;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
- * Exception handling via {@code @ExceptionHandler} method.
- *
+ * Examples of expectations on forwarded or redirected URLs. 
+ * 
  * @author Rossen Stoyanchev
  */
-public class ExceptionHandlerTests {
+public class UrlResultMatcherTests {
+
+	private MockMvc mockMvc;
+
+	@Before
+	public void setup() {
+		this.mockMvc = standaloneSetup(new SimpleController()).build();
+	}
 	
 	@Test
-	public void testExceptionHandlerMethod() throws Exception {
-		standaloneSetup(new PersonController()).build()
-			.perform(get("/person/Clyde"))
-				.andExpect(status().isOk())
-                .andExpect(forwardedUrl("errorView"));
-	}	
+	public void testRedirect() throws Exception {
+		this.mockMvc.perform(get("/persons")).andExpect(redirectedUrl("/persons/1"));
+	}
+
+	@Test
+	public void testForward() throws Exception {
+		this.mockMvc.perform(get("/")).andExpect(forwardedUrl("/home"));
+	}
 
 	
 	@Controller
 	@SuppressWarnings("unused")
-	private static class PersonController {
+	private static class SimpleController {
 		
-		@RequestMapping(value="/person/{name}", method=RequestMethod.GET)
-		public String show(@PathVariable String name) {
-			if (name.equals("Clyde")) {
-				throw new IllegalArgumentException("Black listed");
-			}
-			return "person/show";
+		@RequestMapping("/persons")
+		public String save() {
+			return "redirect:/persons/1";
 		}
-		
-		@ExceptionHandler
-		public String handleException(IllegalArgumentException exception) {
-			return "errorView";
+
+		@RequestMapping("/")
+		public String forward() {
+			return "forward:/home";
 		}
 	}
 }

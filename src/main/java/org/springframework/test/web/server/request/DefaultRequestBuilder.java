@@ -65,6 +65,13 @@ public class DefaultRequestBuilder implements RequestBuilder {
     private final Map<String, Object> sessionAttributes = new LinkedHashMap<String, Object>();
 
     private Principal principal;
+    
+	private String contextPath = "";
+	
+	private String servletPath = "";
+	
+	private String pathInfo;
+
 
     /** Use methods on {@link MockMvc} to obtain a new instance. */
     DefaultRequestBuilder(URI uri, HttpMethod method) {
@@ -85,7 +92,7 @@ public class DefaultRequestBuilder implements RequestBuilder {
     public DefaultRequestBuilder contentType(MediaType mediaType) {
         Assert.notNull(mediaType, "'mediaType' must not be null");
         this.contentType = mediaType.toString();
-        headers.set("Content-Type", mediaType);
+        headers.set("Content-Type", this.contentType);
         return this;
     }
 
@@ -142,6 +149,22 @@ public class DefaultRequestBuilder implements RequestBuilder {
         return this;
     }
 
+    public DefaultRequestBuilder contextPath(String contextPath) {
+        this.contextPath = contextPath;
+        return this;
+    }
+
+    public DefaultRequestBuilder servletPath(String servletPath) {
+        this.servletPath = servletPath;
+        return this;
+    }
+
+    public DefaultRequestBuilder pathInfo(String pathInfo) {
+        this.pathInfo = pathInfo;
+        return this;
+    }
+    
+    
     public MockHttpServletRequest buildRequest(ServletContext servletContext) {
 
         MockHttpServletRequest request = createServletRequest(servletContext);
@@ -171,6 +194,9 @@ public class DefaultRequestBuilder implements RequestBuilder {
         request.setCookies(cookies);
         request.setCharacterEncoding(characterEncoding);
         request.setUserPrincipal(principal);
+        request.setContextPath(contextPath);
+        request.setServletPath(servletPath);
+        request.setPathInfo(pathInfo);
 
         if (locale != null) {
             request.addPreferredLocale(locale);

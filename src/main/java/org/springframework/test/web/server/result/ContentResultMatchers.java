@@ -16,130 +16,152 @@
 
 package org.springframework.test.web.server.result;
 
+import static org.springframework.test.web.AssertionErrors.assertEquals;
+import static org.springframework.test.web.AssertionErrors.assertTrue;
+
 import java.util.Map;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 
-import org.custommonkey.xmlunit.Diff;
-import org.custommonkey.xmlunit.XMLAssert;
-import org.custommonkey.xmlunit.XMLUnit;
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.web.AssertionErrors;
 import org.springframework.test.web.server.ResultMatcher;
-import org.w3c.dom.Document;
+import org.springframework.test.web.support.XmlExpectationsHelper;
 import org.w3c.dom.Node;
 
-/**
- * Provides methods to define expectations on the ServletResponse content.
- *
- * @author Rossen Stoyanchev
- */
 public class ContentResultMatchers {
 	
-	/**
-	 * Protected constructor. 
-	 * @see MockMvcResultActions#response()
-	 * @see ServletResponseResultMatchers#content()
-	 */
-	protected ContentResultMatchers() {
+	private final XmlExpectationsHelper xmlHelper;
+	
+	public ContentResultMatchers() {
+		this.xmlHelper = new XmlExpectationsHelper();
 	}
 
 	/**
-	 * Match the response body to {@code expectedContent}.
+	 * Assert the ServletResponse content type.
 	 */
-	public ResultMatcher isEqualTo(final String expectedContent) {
-		return asText(Matchers.equalTo(expectedContent));
-	}	
+	public ResultMatcher type(final String contentType) {
+		return type(MediaType.parseMediaType(contentType));
+	}
 	
 	/**
-	 * Match the response body with the given {@code Matcher<String>}.
-	 * <p>Example:
+	 * Assert the ServletResponse content type after parsing it as a MediaType. 
+	 */
+	public ResultMatcher type(final MediaType contentType) {
+		return new ResultMatcherAdapter() {
+			
+			@Override
+			public void matchResponse(MockHttpServletResponse response) throws Exception {
+				String actual = response.getContentType();
+				assertTrue("Content type not set", actual != null);
+				assertEquals("Content type", contentType, MediaType.parseMediaType(actual));
+			}
+		};
+	}
+
+	/**
+	 * Assert the character encoding in the ServletResponse.
+	 * @see HttpServletResponse#getCharacterEncoding()
+	 */
+	public ResultMatcher encoding(final String characterEncoding) {
+		return new ResultMatcherAdapter() {
+			public void matchResponse(MockHttpServletResponse response) {
+				String actual = response.getCharacterEncoding();
+				assertEquals("Character encoding", characterEncoding, actual);
+			}
+		};
+	}
+
+	/**
+	 * Apply a {@link Matcher} to the response content. For example:
 	 * <pre>
-	 * // import static org.hamcrest.Matchers.containsString;
-	 * 
 	 * mockMvc.perform(get("/path"))
-	 *   .andExpect(response().content().asText(containsString("text")));
+	 *   .andExpect(content(containsString("text")));
 	 * </pre>
 	 */
-	public ResultMatcher asText(final Matcher<String> matcher) {
-		return new AbstractServletResponseResultMatcher() {
+	public ResultMatcher string(final Matcher<? super String> matcher) {
+		return new ResultMatcherAdapter() {
+			
+			@Override
 			public void matchResponse(MockHttpServletResponse response) throws Exception {
 				MatcherAssert.assertThat("Response content", response.getContentAsString(), matcher);
 			}
 		};
 	}
+
+	/**
+	 * TODO
+	 */
+	public ResultMatcher string(String content) {
+		return string(Matchers.equalTo(content));
+	}
+
+	/**
+	 * TODO
+	 */
+	public ResultMatcher bytes(final byte[] content) {
+		return new ResultMatcherAdapter() {
+			
+			@Override
+			public void matchResponse(MockHttpServletResponse response) throws Exception {
+				MatcherAssert.assertThat("Response content", response.getContentAsByteArray(), Matchers.equalTo(content));
+			}
+		};
+	}
+
+	/**
+	 * Parse the response content and the given string as XML and assert the 
+	 * two are "similar" - i.e. they contain the same elements and attributes
+	 * regardless of order.
+	 * <p>Use of this matcher requires the 
+	 * <a href="http://xmlunit.sourceforge.net/">XMLUnit<a/> library.
+	 * @param xmlContent the expected XML content
+	 * @see MockMvcResultMatchers#xpath(String, Object...)
+	 * @see MockMvcResultMatchers#xpath(String, Map, Object...)
+	 */
+	public ResultMatcher xml(final String xmlContent) {
+		return new ResultMatcherAdapter() {
+			
+			@Override
+			public void matchResponse(MockHttpServletResponse response) throws Exception {
+				xmlHelper.assertXmlEqual(xmlContent, response.getContentAsString());
+			}
+		};
+	}
+
+	// TODO: XML validation
 	
 	/**
-	 * Match the response body with the given {@code Matcher<Node>}.
+	 * Parse the content as {@link Node} and apply a {@link Matcher}.
 	 * @see org.hamcrest.Matchers#hasXPath
 	 */
-	public ResultMatcher asNode(final Matcher<Node> matcher) {
-		return new AbstractServletResponseResultMatcher() {
+	public ResultMatcher node(final Matcher<? super Node> matcher) {
+		return new ResultMatcherAdapter() {
+			
+			@Override
 			public void matchResponse(MockHttpServletResponse response) throws Exception {
-				Document document = ResultMatcherUtils.toDocument(response.getContentAsString());
-				MatcherAssert.assertThat("Response content", document, matcher);
+				xmlHelper.assertNode(response.getContentAsString(), matcher);
 			}
 		};
 	}
 
 	/**
-	 * Match the response body with the given {@code Matcher<Source>}.
+	 * Parse the content as {@link DOMSource} and apply a {@link Matcher}.
 	 * @see <a href="http://code.google.com/p/xml-matchers/">xml-matchers</a> 
 	 */
-	public ResultMatcher asSource(final Matcher<Source> matcher) {
-		return new AbstractServletResponseResultMatcher() {
+	public ResultMatcher source(final Matcher<? super Source> matcher) {
+		return new ResultMatcherAdapter() {
+			
+			@Override
 			public void matchResponse(MockHttpServletResponse response) throws Exception {
-				Document document = ResultMatcherUtils.toDocument(response.getContentAsString());
-				MatcherAssert.assertThat("Response content", new DOMSource(document), matcher);
+				xmlHelper.assertSource(response.getContentAsString(), matcher);
 			}
 		};
 	}
 
-	/**
-	 * Return a class with XPath result matchers.
-	 * @param xpath the XPath expression to use in result matchers
-	 */
-	public XpathResultMatchers xpath(String xpath) {
-		return new XpathResultMatchers(xpath, null);
-	}
-
-	/**
-	 * Return a class with XPath result matchers.
-	 * @param xpath the XPath expression to use in result matchers
-	 * @param namespaces namespaces used in the XPath expression, or {@code null}
-	 */
-	public XpathResultMatchers xpath(String xpath, Map<String, String> namespaces) {
-		return new XpathResultMatchers(xpath, namespaces);
-	}
-
-	/**
-	 * Compare the response body to {@code expectedXmlContent} via 
-	 * {@link XMLAssert#assertXMLEqual(String, Document, Document)}.
-	 * <p>Use of this matcher requires
-	 * <a href="http://xmlunit.sourceforge.net/"/>XMLUnit</a>.
-	 */
-	public ResultMatcher isEqualToXml(final String expectedXmlContent) {
-		return new AbstractServletResponseResultMatcher() {
-			public void matchResponse(MockHttpServletResponse response) throws Exception {
-				Document control = XMLUnit.buildControlDocument(expectedXmlContent);
-				Document test = XMLUnit.buildTestDocument(response.getContentAsString());
-				Diff diff = new Diff(control, test);
-				if (!diff.similar()) {
-					AssertionErrors.fail("Response content, " + diff.toString());
-		        }				
-			}
-		};
-	}
-	
-	/**
-	 * Return a class with JsonPath result matchers.
-	 */
-	public JsonPathResultMatchers jsonPath(String jsonPath) {
-		return new JsonPathResultMatchers(jsonPath);
-	}
-	
 }

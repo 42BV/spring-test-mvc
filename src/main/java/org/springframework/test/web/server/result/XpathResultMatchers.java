@@ -18,159 +18,128 @@ package org.springframework.test.web.server.result;
 
 import java.util.Map;
 
-import javax.xml.namespace.QName;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
+import javax.xml.xpath.XPathExpressionException;
 
 import org.hamcrest.Matcher;
-import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.web.AssertionErrors;
 import org.springframework.test.web.server.ResultMatcher;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.xml.SimpleNamespaceContext;
-import org.w3c.dom.Document;
+import org.springframework.test.web.support.XpathExpectationsHelper;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
- * Provides methods to define expectations on the HttpServletResponse content 
- * with XPath expressions.
  * 
+ * TODO ...
+ *
  * @author Rossen Stoyanchev
  */
 public class XpathResultMatchers {
-	
-	private final String expression;
-	
-	private final SimpleNamespaceContext namespaceContext;
-	
-	/**
-	 * Protected constructor.
-	 * @param expression the XPath expression to use
-	 * @param namespaces namespaces used in the XPath expression, or {@code null}
-	 * 
-	 * @see MockMvcResultActions#response()
-	 * @see ServletResponseResultMatchers#content()
-	 * @see ContentResultMatchers#jsonPath(String)
-	 */
-	protected XpathResultMatchers(String expression, final Map<String, String> namespaces) {
-		this.expression = expression;
-		this.namespaceContext = new SimpleNamespaceContext();
-		if (!CollectionUtils.isEmpty(namespaces)) {
-			this.namespaceContext.setBindings(namespaces);
-		}
+
+	private final XpathExpectationsHelper xpathHelper;
+
+	public XpathResultMatchers(String expression, Map<String, String> namespaces, Object ... args) 
+			throws XPathExpressionException {
+		this.xpathHelper = new XpathExpectationsHelper(expression, namespaces, args);
 	}
 
 	/**
-	 * Assert there is content at the underlying XPath path.
+	 * Apply the XPath and assert it with the given {@code Matcher<Node>}.
+	 */
+	public ResultMatcher node(final Matcher<? super Node> matcher) {
+		return new ResultMatcherAdapter() {
+			
+			@Override
+			public void matchResponse(MockHttpServletResponse response) throws Exception {
+				xpathHelper.assertNode(response.getContentAsString(), matcher);
+			}
+		};
+	}
+
+	/**
+	 * TODO
 	 */
 	public ResultMatcher exists() {
-		return new AbstractServletResponseResultMatcher() {
-			public void matchResponse(MockHttpServletResponse response) throws Exception {
-				Node node = applyXpath(response.getContentAsString(), XPathConstants.NODE, Node.class);
-				AssertionErrors.assertTrue("No content for xpath: " + expression, node != null);
-			}
-		};
+		return node(Matchers.notNullValue());
 	}
 
 	/**
-	 * Assert there is no content at the underlying XPath path.
+	 * TODO
 	 */
 	public ResultMatcher doesNotExist() {
-		return new AbstractServletResponseResultMatcher() {
-			public void matchResponse(MockHttpServletResponse response) throws Exception {
-				Node node = applyXpath(response.getContentAsString(), XPathConstants.NODE, Node.class);
-				AssertionErrors.assertTrue("Content found for xpath: " + expression, node == null);
-			}
-		};
-	}
-
-	/**
-	 * Extract the content at the underlying XPath path and assert it equals 
-	 * the given Object. This is a shortcut {@link #asText(Matcher)} with
-	 * {@link Matchers#equalTo(Object)}.
-	 */
-	public ResultMatcher evaluatesTo(String expectedContent) {
-		return asText(Matchers.equalTo(expectedContent));
+		return node(Matchers.nullValue());
 	}
 	
 	/**
-	 * Evaluate the content at the underlying XPath path as a String and assert it with 
-	 * the given {@code Matcher<String>}.
-	 * <p>Example:
-	 * <pre>
-	 * // Assumes static import of org.hamcrest.Matchers.equalTo
-	 * 
-	 * mockMvc.perform(get("/person/Patrick"))
-	 *   .andExpect(response().content().xpath("/person/name/text()").evaluatesTo("Patrick"));
-	 *  </pre>
+	 * TODO
 	 */
-	public ResultMatcher asText(final Matcher<String> matcher) {
-		return new AbstractServletResponseResultMatcher() {
+	public ResultMatcher nodeCount(final Matcher<Integer> matcher) {
+		return new ResultMatcherAdapter() {
+			
+			@Override
 			public void matchResponse(MockHttpServletResponse response) throws Exception {
-				String result = applyXpath(response.getContentAsString(), XPathConstants.STRING, String.class);
-				MatcherAssert.assertThat("Text for xpath: " + expression, result, matcher);
+				xpathHelper.assertNodeCount(response.getContentAsString(), matcher);
+			}
+		};
+	}
+	
+	/**
+	 * TODO
+	 */
+	public ResultMatcher nodeCount(int count) {
+		return nodeCount(Matchers.equalTo(count));
+	}
+	
+	/**
+	 * TODO
+	 */
+	public ResultMatcher string(final Matcher<? super String> matcher) {
+		return new ResultMatcherAdapter() {
+			
+			@Override
+			public void matchResponse(MockHttpServletResponse response) throws Exception {
+				xpathHelper.assertString(response.getContentAsString(), matcher);
 			}
 		};
 	}
 
 	/**
-	 * Evaluate the content at the underlying XPath path as a Number and
-	 * assert it with the given {@code Matcher<Double>}.
+	 * TODO
 	 */
-	public ResultMatcher asNumber(final Matcher<Double> matcher) {
-		return new AbstractServletResponseResultMatcher() {
+	public ResultMatcher string(String value) {
+		return string(Matchers.equalTo(value));
+	}
+
+	/**
+	 * TODO
+	 */
+	public ResultMatcher number(final Matcher<? super Double> matcher) {
+		return new ResultMatcherAdapter() {
+			
+			@Override
 			public void matchResponse(MockHttpServletResponse response) throws Exception {
-				double result = applyXpath(response.getContentAsString(), XPathConstants.NUMBER, double.class);
-				MatcherAssert.assertThat("Number for xpath: " + expression, result, matcher);
+				xpathHelper.assertNumber(response.getContentAsString(), matcher);
 			}
 		};
 	}
 
 	/**
-	 * Evaluate the content at the underlying XPath path as a Boolean and 
-	 * assert it with the given {@code Matcher<Double>}.
+	 * TODO
 	 */
-	public ResultMatcher asBoolean(final Matcher<Boolean> matcher) {
-		return new AbstractServletResponseResultMatcher() {
-			public void matchResponse(MockHttpServletResponse response) throws Exception {
-				boolean result = applyXpath(response.getContentAsString(), XPathConstants.BOOLEAN, boolean.class);
-				MatcherAssert.assertThat("Boolean for xpath: " + expression, result, matcher);
-			}
-		};
+	public ResultMatcher number(Double value) {
+		return number(Matchers.equalTo(value));
 	}
 
 	/**
-	 * Evaluate the content at the underlying XPath path as a {@link NodeList}
-	 * and assert the number of items in it.
+	 * TODO
 	 */
-	public ResultMatcher nodeCount(final int count) {
-		return new AbstractServletResponseResultMatcher() {
+	public ResultMatcher booleanValue(final Boolean value) {
+		return new ResultMatcherAdapter() {
+			
+			@Override
 			public void matchResponse(MockHttpServletResponse response) throws Exception {
-				NodeList nodes = applyXpath(response.getContentAsString(), XPathConstants.NODESET, NodeList.class);
-				AssertionErrors.assertEquals("Number of nodes for xpath: " + expression, nodes.getLength(), count);
+				xpathHelper.assertBoolean(response.getContentAsString(), value);
 			}
 		};
-	}
-
-	/**
-	 * Apply the underlying XPath to the given content. 
-	 * @param <T> The expected return type (String, Double, Boolean, etc.)
-	 * @param content the response content 
-	 * @param evaluationType the type of evaluation to use
-	 * @param returnType the expected return type
-	 * @return the result of the evaluation
-	 * @throws Exception if evaluation fails
-	 */
-	@SuppressWarnings("unchecked")
-	protected <T> T applyXpath(String content, QName evaluationType, Class<T> returnType) throws Exception {
-		XPath xpath = XPathFactory.newInstance().newXPath();
-		xpath.setNamespaceContext(this.namespaceContext);
-		Document document = ResultMatcherUtils.toDocument(content);
-		return (T) xpath.evaluate(this.expression, document, evaluationType);
 	}
 
 }

@@ -41,7 +41,6 @@ import org.springframework.http.converter.xml.SourceHttpMessageConverter;
 import org.springframework.http.converter.xml.XmlAwareFormHttpMessageConverter;
 import org.springframework.mock.web.MockServletContext;
 import org.springframework.test.web.server.MockMvc;
-import org.springframework.test.web.server.MvcSetup;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -72,7 +71,6 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver;
 import org.springframework.web.servlet.support.DefaultFlashMapManager;
-import org.springframework.web.servlet.view.BeanNameViewResolver;
 import org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
@@ -251,6 +249,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 		handlerMapping.registerHandlers(this.controllers);
 		handlerMapping.setInterceptors(this.mappedInterceptors.toArray());
 		handlerMapping.setOrder(0);
+		handlerMapping.setApplicationContext(wac);
 		return Collections.<HandlerMapping>singletonList(handlerMapping);
 	}
 
@@ -258,7 +257,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	protected List<HandlerAdapter> initHandlerAdapters(WebApplicationContext wac) {
 		ConfigurableWebBindingInitializer initializer = new ConfigurableWebBindingInitializer();
 		initializer.setConversionService(this.conversionService);
-		initializer.setValidator(initValidator());
+		initializer.setValidator(initValidator(wac));
 
 		RequestMappingHandlerAdapter handlerAdapter = new RequestMappingHandlerAdapter();
 		handlerAdapter.setWebBindingInitializer(initializer);
@@ -271,7 +270,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 		return Collections.<HandlerAdapter>singletonList(handlerAdapter);
 	}
 
-	protected Validator initValidator() {
+	protected Validator initValidator(WebApplicationContext wac) {
 		if (this.validator == null) {
 			if (ClassUtils.isPresent("javax.validation.Validator", getClass().getClassLoader())) {
 				Class<?> clazz;
@@ -283,7 +282,8 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 				} catch (LinkageError e) {
 					throw new BeanInitializationException("Could not find default validator");
 				}
-				validator = (Validator) BeanUtils.instantiate(clazz);
+				this.validator = (Validator) BeanUtils.instantiate(clazz);
+				wac.getAutowireCapableBeanFactory().initializeBean(this.validator, "mvcValidator");
 			}
 		}
 		return validator;
@@ -340,6 +340,13 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	protected List<ViewResolver> initViewResolvers(WebApplicationContext wac) {
 		this.viewResolvers = (this.viewResolvers == null) ? 
 				Arrays.<ViewResolver>asList(new InternalResourceViewResolver()) : viewResolvers;
+				
+		for (Object viewResolver : this.viewResolvers) {
+			if (viewResolver instanceof WebApplicationObjectSupport) {
+				((WebApplicationObjectSupport) viewResolver).setApplicationContext(wac);
+			}
+		}	
+		
 		return this.viewResolvers;
 	}
 
@@ -356,18 +363,6 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	@Override
 	protected FlashMapManager initFlashMapManager(WebApplicationContext wac) {
 		return this.flashMapManager;
-	}
-
-	@Override
-	protected void mvcSetupInitialized(MvcSetup mvcSetup, ServletContext servletContext, WebApplicationContext wac) {	
-		
-		wac.getAutowireCapableBeanFactory().initializeBean(this.validator, "mvcValidator");
-		
-		for (Object viewResolver : this.viewResolvers) {
-			if (viewResolver instanceof WebApplicationObjectSupport) {
-				((WebApplicationObjectSupport) viewResolver).setApplicationContext(wac);
-			}
-		}
 	}
 	
 	/**

@@ -41,10 +41,13 @@ import org.springframework.web.servlet.ViewResolver;
 
 /**
  * Executes requests by driving Spring MVC infrastructure components, much like the
- * DispatcherServlet does but outside a ServletContainer. 
+ * {@link DispatcherServlet} but outside a ServletContainer. 
  * 
- * <p>After the request is executed exposes information about the mapped handler, 
- * the resulting model and view, resolved exceptions, etc.
+ * <p>Unlike the DispatcherServlet, this class is not involved in the initialization
+ * of Spring MVC infrastructure components. Instead it accepts an {@link MvcSetup} 
+ * instance prepared elsewhere. Also it records additional execution context such as
+ * the selected handler, the model and view, and the resolved exception and makes
+ * that available through getters after request execution.
  * 
  * @author Rossen Stoyanchev
  */
@@ -91,7 +94,9 @@ class MockDispatcher {
 	public void execute(MockHttpServletRequest request, MockHttpServletResponse response) throws Exception {
 		try {
 			RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+			request.setAttribute(DispatcherServlet.LOCALE_RESOLVER_ATTRIBUTE, this.mvcSetup.getLocaleResolver());
 			this.mvcSetup.getFlashMapManager().requestStarted(request);
+
 			doExecute(request, response);
 		}
 		finally {

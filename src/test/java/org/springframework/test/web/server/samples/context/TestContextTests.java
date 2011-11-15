@@ -17,7 +17,8 @@
 package org.springframework.test.web.server.samples.context;
 
 import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.server.result.MockMvcResultActions.response;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.forwardedUrl;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.status;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -57,8 +58,8 @@ public class TestContextTests {
 	@Test
 	public void tilesDefinitions() throws Exception {
 		this.mockMvc.perform(get("/"))
-				.andExpect(response().status().isOk())
-				.andExpect(response().forwardedUrl("/WEB-INF/layouts/standardLayout.jsp"));
+				.andExpect(status().isOk())
+				.andExpect(forwardedUrl("/WEB-INF/layouts/standardLayout.jsp"));
 	}
 
 }

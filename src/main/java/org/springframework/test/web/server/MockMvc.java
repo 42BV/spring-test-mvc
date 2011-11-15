@@ -20,36 +20,27 @@ import javax.servlet.ServletContext;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.web.servlet.FlashMap;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.support.RequestContextUtils;
 
 /**
  * <strong>Main entry point for server-side Spring MVC test support.</strong> 
  *  
- * <p>Example:
- * <pre>
- *  // Assumes static import of: 
- *  // MockMvcBuilders.*, MockMvcRequestBuilders.*, and MockMvcResultActions.*
+ * <p>Example, assuming static imports of {@code MockMvcBuilders.*}, 
+ * {@code MockMvcRequestBuilders.*} and {@code MockMvcResultMatchers.*}:
  * 
- *  MockMvc mockMvc = 
- *      annotationConfigMvcSetup(TestConfiguration.class)
- *          .configureWarRootDir("src/main/webapp", false).build()
+ * <pre>
+ * MockMvc mockMvc = 
+ *     annotationConfigMvcSetup(TestConfiguration.class)
+ *         .configureWarRootDir("src/main/webapp", false).build()
  *  
- *  mockMvc.perform(get("/form"))
- *      .andExpect(response().status().is(HttpStatus.OK))
- *      .andExpect(response().forwardedUrl("/WEB-INF/layouts/main.jsp"));
- *      
- *  mockMvc.perform(post("/form")).andPrintTo(console());
+ * mockMvc.perform(get("/form"))
+ *     .andExpect(status().isOk())
+ *     .andExpect(content().type("text/plain"))
+ *     .andExpect(forwardedUrl("/WEB-INF/layouts/main.jsp"));
  * </pre> 
  * 
- *  
  * @author Rossen Stoyanchev
- *  
- * @see org.springframework.test.web.server.setup.MockMvcBuilders
- * @see org.springframework.test.web.server.request.MockMvcRequestBuilders
- * @see org.springframework.test.web.server.result.MockMvcResultActions
  */
 public class MockMvc {
 
@@ -58,7 +49,7 @@ public class MockMvc {
     private final MvcSetup mvcSetup;
 
     /** 
-     * Protected constructor. Not for direct instantiation. 
+     * Protected constructor not for direct instantiation. 
      * @see org.springframework.test.web.server.setup.MockMvcBuilders
      */
     protected MockMvc(ServletContext servletContext, MvcSetup mvcSetup) {
@@ -67,14 +58,16 @@ public class MockMvc {
     }
 
     /**
-     * Build a request using the provided {@link RequestBuilder}, execute it,
-     * and return a {@link ResultActions} instance that wraps the result.
+     * Execute a request and return a {@link ResultActions} instance that wraps 
+     * the results and enables further actions such as setting up expectations.
      * 
-	 * @return a ResultActions instance, never {@code null}
-	 * @throws Exception if an exception occurs not handled by a HandlerExceptionResolver
-	 * 
+     * @param requestBuilder used to prepare the request to execute; 
+     * see static factory methods in
+     * {@link org.springframework.test.web.server.request.MockMvcRequestBuilders}
+	 * @return A ResultActions instance; never {@code null}
+	 * @throws Exception any exception not handled by a HandlerExceptionResolver occurs 
 	 * @see org.springframework.test.web.server.request.MockMvcRequestBuilders
-	 * @see org.springframework.test.web.server.result.MockMvcResultActions
+	 * @see org.springframework.test.web.server.result.MockMvcResultMatchers
      */
     public ResultActions perform(RequestBuilder requestBuilder) throws Exception {
         
@@ -96,8 +89,8 @@ public class MockMvc {
 				return this;
 			}
 			
-			public ResultActions andPrint(ResultPrinter printer) throws Exception {
-				printer.print(request, response, handler, interceptors, mav, resolvedException);
+			public ResultActions andDo(ResultHandler printer) throws Exception {
+				printer.handle(request, response, handler, interceptors, mav, resolvedException);
 				return this;
 			}
 		};

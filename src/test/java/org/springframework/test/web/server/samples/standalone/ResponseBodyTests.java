@@ -17,48 +17,43 @@
 package org.springframework.test.web.server.samples.standalone;
 
 import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.server.result.MockMvcResultMatchers.forwardedUrl;
-import static org.springframework.test.web.server.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
 
 import org.junit.Test;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- * Exception handling via {@code @ExceptionHandler} method.
+ * Response written from {@code @ResponseBody} method.
  *
  * @author Rossen Stoyanchev
  */
-public class ExceptionHandlerTests {
-	
+public class ResponseBodyTests {
+
 	@Test
-	public void testExceptionHandlerMethod() throws Exception {
+	public void json() throws Exception {
+		
 		standaloneSetup(new PersonController()).build()
-			.perform(get("/person/Clyde"))
+			.perform(get("/person/Lee").accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
-                .andExpect(forwardedUrl("errorView"));
+				.andExpect(content().type(MediaType.APPLICATION_JSON))
+				.andExpect(jsonPath("$.name").value("Lee"));
 	}	
 
-	
 	@Controller
 	@SuppressWarnings("unused")
-	private static class PersonController {
-		
-		@RequestMapping(value="/person/{name}", method=RequestMethod.GET)
-		public String show(@PathVariable String name) {
-			if (name.equals("Clyde")) {
-				throw new IllegalArgumentException("Black listed");
-			}
-			return "person/show";
-		}
-		
-		@ExceptionHandler
-		public String handleException(IllegalArgumentException exception) {
-			return "errorView";
+	private class PersonController {
+
+		@RequestMapping(value="/person/{name}")
+		@ResponseBody
+		public Person get(@PathVariable String name) {
+			Person person = new Person(name);
+			return person;
 		}
 	}
+
 }
