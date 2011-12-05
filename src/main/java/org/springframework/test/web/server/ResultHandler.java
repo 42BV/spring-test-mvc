@@ -16,10 +16,6 @@
 
 package org.springframework.test.web.server;
 
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
 
 
 /**
@@ -34,21 +30,9 @@ public interface ResultHandler {
 
 	/**
 	 * Apply an action on the result of an executed Spring MVC request.
-	 * 
-	 * @param request the input request 
-	 * @param response the resulting response
-	 * @param handler the selected handler, or "null" if no matching handler found
-	 * @param interceptors the selected handler interceptors, or "null" if none selected
-	 * @param mav the result of the handler invocation, or "null" if view resolution was not required  
-	 * @param resolvedException a successfully resolved controller exception, or "null"
-	 *
+	 * @param mvcResult TODO
 	 * @throws Exception if a failure occurs while printing
 	 */
-	void handle(MockHttpServletRequest request, 
-				MockHttpServletResponse response, 
-				Object handler,
-			 	HandlerInterceptor[] interceptors, 
-			 	ModelAndView mav, 
-			 	Exception exception) throws Exception;
+	void handle(MvcResult mvcResult) throws Exception;
 
 }

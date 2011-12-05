@@ -21,7 +21,7 @@ import static org.springframework.test.web.AssertionErrors.assertEquals;
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 
 public class HeaderResultMatchers {
@@ -30,11 +30,9 @@ public class HeaderResultMatchers {
 	 * Assert a response header with the given {@link Matcher}.
 	 */
 	public ResultMatcher string(final String name, final Matcher<? super String> matcher) {
-		return new ResultMatcherAdapter() {
-			
-			@Override
-			protected void matchResponse(MockHttpServletResponse response) {
-				MatcherAssert.assertThat("Response header", response.getHeader(name), matcher);
+		return new ResultMatcher() {
+			public void match(MvcResult result) {
+				MatcherAssert.assertThat("Response header", result.getResponse().getHeader(name), matcher);
 			}
 		};
 	}
@@ -50,11 +48,9 @@ public class HeaderResultMatchers {
 	 * TODO
 	 */
 	public ResultMatcher longValue(final String name, final long value) {
-		return new ResultMatcherAdapter() {
-			
-			@Override
-			protected void matchResponse(MockHttpServletResponse response) {
-				assertEquals("Response header " + name, value, Long.parseLong(response.getHeader(name)));
+		return new ResultMatcher() {
+			public void match(MvcResult result) {
+				assertEquals("Response header " + name, value, Long.parseLong(result.getResponse().getHeader(name)));
 			}
 		};
 	}

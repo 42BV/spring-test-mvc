@@ -23,6 +23,7 @@ import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.springframework.test.web.AssertionErrors;
+import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
@@ -33,13 +34,11 @@ public class ModelResultMatchers {
 	 * TODO
 	 */
 	public <T> ResultMatcher attribute(final String name, final Matcher<T> matcher) {
-		return new ResultMatcherAdapter() {
-			
-			@Override 
+		return new ResultMatcher() {
 			@SuppressWarnings("unchecked")
-			protected void matchModelAndView(ModelAndView mav) throws Exception {
-				assertTrue("No ModelAndView found", mav != null);
-				MatcherAssert.assertThat("Model attribute", (T) mav.getModel().get(name), matcher);
+			public void match(MvcResult result) throws Exception {
+				assertTrue("No ModelAndView found", result.getModelAndView() != null);
+				MatcherAssert.assertThat("Model attribute", (T) result.getModelAndView().getModel().get(name), matcher);
 			}
 		};
 	}
@@ -61,11 +60,9 @@ public class ModelResultMatchers {
 	 * </pre>
 	 */
 	public ResultMatcher attributeExists(final String... names) {
-		return new ResultMatcherAdapter() {
-			
-			@Override 
-			protected void matchModelAndView(ModelAndView mav) throws Exception {
-				assertTrue("No ModelAndView found", mav != null);
+		return new ResultMatcher() {
+			public void match(MvcResult result) throws Exception {
+				assertTrue("No ModelAndView found", result.getModelAndView() != null);
 				for (String name : names) {
 					attribute(name, Matchers.notNullValue());
 				}
@@ -77,10 +74,9 @@ public class ModelResultMatchers {
 	 * TODO
 	 */
 	public <T> ResultMatcher attributeHasErrors(final String... names) {
-		return new ResultMatcherAdapter() {
-			
-			@Override 
-			protected void matchModelAndView(ModelAndView mav) throws Exception {
+		return new ResultMatcher() {
+			public void match(MvcResult mvcResult) throws Exception {
+				ModelAndView mav = mvcResult.getModelAndView();
 				assertTrue("No ModelAndView found", mav != null);
 				for (String name : names) {
 					BindingResult result = (BindingResult) mav.getModel().get(BindingResult.MODEL_KEY_PREFIX + name);
@@ -95,12 +91,10 @@ public class ModelResultMatchers {
 	 * TODO
 	 */
 	public <T> ResultMatcher hasNoErrors() {
-		return new ResultMatcherAdapter() {
-			
-			@Override 
-			protected void matchModelAndView(ModelAndView mav) throws Exception {
-				assertTrue("No ModelAndView found", mav != null);
-				for (Object value : mav.getModel().values()) {
+		return new ResultMatcher() {
+			public void match(MvcResult result) throws Exception {
+				assertTrue("No ModelAndView found", result.getModelAndView() != null);
+				for (Object value : result.getModelAndView().getModel().values()) {
 					if (value instanceof BindingResult) {
 						assertTrue("Unexpected binding error(s): " + value, !((BindingResult) value).hasErrors());
 					}
@@ -113,13 +107,11 @@ public class ModelResultMatchers {
 	 * Assert the number of attributes excluding BindingResult instances.
 	 */
 	public <T> ResultMatcher size(final int size) {
-		return new ResultMatcherAdapter() {
-			
-			@Override 
-			protected void matchModelAndView(ModelAndView mav) throws Exception {
-				AssertionErrors.assertTrue("No ModelAndView found", mav != null);
+		return new ResultMatcher() {
+			public void match(MvcResult result) throws Exception {
+				AssertionErrors.assertTrue("No ModelAndView found", result.getModelAndView() != null);
 				int actual = 0;
-				for (String key : mav.getModel().keySet()) {
+				for (String key : result.getModelAndView().getModel().keySet()) {
 					if (!key.startsWith(BindingResult.MODEL_KEY_PREFIX)) {
 						actual++;
 					}

@@ -21,6 +21,7 @@ import static org.springframework.test.web.AssertionErrors.assertTrue;
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -30,10 +31,9 @@ public class ViewResultMatchers {
 	 * TODO
 	 */
 	public ResultMatcher name(final Matcher<? super String> matcher) {
-		return new ResultMatcherAdapter() {
-
-			@Override
-			protected void matchModelAndView(ModelAndView mav) throws Exception {
+		return new ResultMatcher() {
+			public void match(MvcResult result) throws Exception {
+				ModelAndView mav = result.getModelAndView();
 				assertTrue("No ModelAndView found", mav != null);
 				MatcherAssert.assertThat("View name", mav.getViewName(), matcher);
 			}

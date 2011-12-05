@@ -23,7 +23,7 @@ import javax.servlet.http.Cookie;
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 
 public class CookieResultMatchers {
@@ -32,11 +32,9 @@ public class CookieResultMatchers {
 	 * Assert a cookie value with a {@link Matcher}.
 	 */
 	public ResultMatcher value(final String name, final Matcher<? super String> matcher) {
-		return new ResultMatcherAdapter() {
-			
-			@Override
-			protected void matchResponse(MockHttpServletResponse response) {
-				Cookie cookie = response.getCookie(name);
+		return new ResultMatcher() {
+			public void match(MvcResult result) {
+				Cookie cookie = result.getResponse().getCookie(name);
 				assertTrue("Response cookie not found: " + name, cookie != null);
 				MatcherAssert.assertThat("Response cookie", cookie.getValue(), matcher);
 			}

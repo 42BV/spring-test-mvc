@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.method.HandlerMethod;
@@ -34,10 +35,9 @@ public class HandlerResultMatchers {
 	 * TODO
 	 */
 	public ResultMatcher type(final Class<?> type) {
-		return new ResultMatcherAdapter() {
-
-			@Override
-			protected void matchHandler(Object handler) throws Exception {
+		return new ResultMatcher() {
+			public void match(MvcResult result) throws Exception {
+				Object handler = result.getHandler();
 				assertTrue("No handler: ", handler != null);
 				Class<?> actual = handler.getClass();
 				if (HandlerMethod.class.isInstance(handler)) {
@@ -52,10 +52,9 @@ public class HandlerResultMatchers {
 	 * TODO
 	 */
 	public ResultMatcher methodName(final Matcher<? super String> matcher) {
-		return new ResultMatcherAdapter() {
-
-			@Override
-			protected void matchHandler(Object handler) throws Exception {
+		return new ResultMatcher() {
+			public void match(MvcResult result) throws Exception {
+				Object handler = result.getHandler();
 				assertTrue("No handler: ", handler != null);
 				assertTrue("Not a HandlerMethod: " + handler, HandlerMethod.class.isInstance(handler));
 				MatcherAssert.assertThat("HandlerMethod", ((HandlerMethod) handler).getMethod().getName(), matcher);
@@ -74,10 +73,9 @@ public class HandlerResultMatchers {
 	 * TODO
 	 */
 	public ResultMatcher method(final Method method) {
-		return new ResultMatcherAdapter() {
-
-			@Override
-			protected void matchHandler(Object handler) throws Exception {
+		return new ResultMatcher() {
+			public void match(MvcResult result) throws Exception {
+				Object handler = result.getHandler();
 				assertTrue("No handler: ", handler != null);
 				assertTrue("Not a HandlerMethod: " + handler, HandlerMethod.class.isInstance(handler));
 				assertEquals("HandlerMethod", method, ((HandlerMethod) handler).getMethod());

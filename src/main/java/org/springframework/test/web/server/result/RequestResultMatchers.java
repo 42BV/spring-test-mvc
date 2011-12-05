@@ -19,7 +19,7 @@ package org.springframework.test.web.server.result;
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 
 public class RequestResultMatchers {
@@ -28,12 +28,10 @@ public class RequestResultMatchers {
 	 * TODO
 	 */
 	public <T> ResultMatcher attribute(final String name, final Matcher<T> matcher) {
-		return new ResultMatcherAdapter() {
-			
-			@Override
+		return new ResultMatcher() {
 			@SuppressWarnings("unchecked")
-			public void matchRequest(MockHttpServletRequest request) {
-				T value = (T) request.getAttribute(name);
+			public void match(MvcResult result) {
+				T value = (T) result.getRequest().getAttribute(name);
 				MatcherAssert.assertThat("Request attribute: ", value, matcher);
 			}
 		};
@@ -50,12 +48,10 @@ public class RequestResultMatchers {
 	 * TODO
 	 */
 	public <T> ResultMatcher sessionAttribute(final String name, final Matcher<T> matcher) {
-		return new ResultMatcherAdapter() {
-			
-			@Override
+		return new ResultMatcher() {
 			@SuppressWarnings("unchecked")
-			public void matchRequest(MockHttpServletRequest request) {
-				T value = (T) request.getSession().getAttribute(name);
+			public void match(MvcResult result) {
+				T value = (T) result.getRequest().getSession().getAttribute(name);
 				MatcherAssert.assertThat("Request attribute: ", value, matcher);
 			}
 		};

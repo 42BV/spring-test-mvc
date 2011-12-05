@@ -8,7 +8,7 @@ import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.springframework.http.HttpStatus;
-import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 
 /**
@@ -25,11 +25,9 @@ public class StatusResultMatchers {
 	 * @see #reason(String)
 	 */
 	public ResultMatcher is(final Matcher<Integer> matcher) {
-		return new ResultMatcherAdapter() {
-			
-			@Override
-			public void matchResponse(MockHttpServletResponse response) throws Exception {
-				MatcherAssert.assertThat("Status: ", response.getStatus(), matcher);
+		return new ResultMatcher() {
+			public void match(MvcResult result) throws Exception {
+				MatcherAssert.assertThat("Status: ", result.getResponse().getStatus(), matcher);
 			}
 		};
 	}
@@ -49,11 +47,9 @@ public class StatusResultMatchers {
 	 * @see HttpServletResponse#sendError(int, String)
 	 */
 	public ResultMatcher reason(final Matcher<? super String> matcher) {
-		return new ResultMatcherAdapter() {
-			
-			@Override
-			public void matchResponse(MockHttpServletResponse response) throws Exception {
-				MatcherAssert.assertThat("Status reason: ", response.getErrorMessage(), matcher);
+		return new ResultMatcher() {
+			public void match(MvcResult result) throws Exception {
+				MatcherAssert.assertThat("Status reason: ", result.getResponse().getErrorMessage(), matcher);
 			}
 		};
 	}
@@ -464,11 +460,9 @@ public class StatusResultMatchers {
 	 * Match the expected response status to that of the HttpServletResponse
 	 */
     private ResultMatcher matcher(final HttpStatus status) {
-		return new ResultMatcherAdapter() {
-			
-			@Override
-			protected void matchResponse(MockHttpServletResponse response) {
-				assertEquals("Status", status.value(), response.getStatus());
+		return new ResultMatcher() {
+			public void match(MvcResult result) {
+				assertEquals("Status", status.value(), result.getResponse().getStatus());
 			}
 		};
 	}

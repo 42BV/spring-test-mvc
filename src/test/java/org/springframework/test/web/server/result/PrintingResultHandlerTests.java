@@ -29,6 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.server.StubMvcResult;
 import org.springframework.test.web.support.ValuePrinter;
 import org.springframework.util.Assert;
 import org.springframework.validation.BindException;
@@ -50,6 +51,7 @@ public class PrintingResultHandlerTests {
 	
 	private MockHttpServletRequest request;
 	private MockHttpServletResponse response;
+	private StubMvcResult mvcResult;
 	
 	@Before
 	public void setup() {
@@ -57,6 +59,7 @@ public class PrintingResultHandlerTests {
 		this.handler = new TestPrintingResultHandler(System.out, this.printer);
 		this.request = new MockHttpServletRequest("GET", "/");
 		this.response = new MockHttpServletResponse();
+		this.mvcResult = new StubMvcResult(this.request, null, null, null, null, null, this.response);
 	}
 
 	@Test
@@ -64,7 +67,7 @@ public class PrintingResultHandlerTests {
 		this.request.addParameter("param", "paramValue");
 		this.request.addHeader("header", "headerValue");
 		
-		this.handler.handle(this.request, this.response, null, null, null, null);
+		this.handler.handle(this.mvcResult);
 		
 		String heading = "MockHttpServletRequest";
 		assertValue(heading, "HTTP Method", this.request.getMethod());
@@ -83,7 +86,7 @@ public class PrintingResultHandlerTests {
 		this.response.sendRedirect("/redirectFoo");
 		this.response.addCookie(new Cookie("cookie", "cookieValue"));
 		
-		this.handler.handle(this.request, this.response, null, null, null, null);
+		this.handler.handle(this.mvcResult);
 		
 		String heading = "MockHttpServletResponse";
 		assertValue(heading, "Status", this.response.getStatus());
@@ -97,7 +100,8 @@ public class PrintingResultHandlerTests {
 
 	@Test
 	public void testPrintHandlerNull() throws Exception {
-		this.handler.handle(this.request, this.response, null, null, null, null);
+		StubMvcResult mvcResult = new StubMvcResult(this.request, null, null, null, null, null, this.response);
+		this.handler.handle(mvcResult);
 
 		String heading = "Handler";
 		assertValue(heading, "Type", null);
@@ -105,7 +109,8 @@ public class PrintingResultHandlerTests {
 	
 	@Test
 	public void testPrintHandler() throws Exception {
-		this.handler.handle(this.request, this.response, new Object(), null, null, null);
+		this.mvcResult.setHandler(new Object());
+		this.handler.handle(this.mvcResult);
 
 		String heading = "Handler";
 		assertValue(heading, "Type", Object.class.getName());
@@ -114,7 +119,8 @@ public class PrintingResultHandlerTests {
 	@Test
 	public void testPrintHandlerMethod() throws Exception {
 		HandlerMethod handlerMethod = new HandlerMethod(this, "handle");
-		this.handler.handle(this.request, this.response, handlerMethod, null, null, null);
+		this.mvcResult.setHandler(handlerMethod);
+		this.handler.handle(mvcResult);
 
 		String heading = "Handler";
 		assertValue(heading, "Type", this.getClass().getName());
@@ -123,7 +129,7 @@ public class PrintingResultHandlerTests {
 
 	@Test
 	public void testResolvedExceptionNull() throws Exception {
-		this.handler.handle(this.request, this.response, null, null, null, null);
+		this.handler.handle(this.mvcResult);
 
 		String heading = "Resolved Exception";
 		assertValue(heading, "Type", null);
@@ -131,7 +137,9 @@ public class PrintingResultHandlerTests {
 
 	@Test
 	public void testResolvedException() throws Exception {
-		this.handler.handle(this.request, this.response, null, null, null, new Exception());
+		this.mvcResult.setResolvedException(new Exception());
+		this.handler.handle(this.mvcResult);
+
 
 		String heading = "Resolved Exception";
 		assertValue(heading, "Type", Exception.class.getName());
@@ -139,7 +147,7 @@ public class PrintingResultHandlerTests {
 
 	@Test
 	public void testModelAndViewNull() throws Exception {
-		this.handler.handle(this.request, this.response, null, null, null, null);
+		this.handler.handle(this.mvcResult);
 
 		String heading = "ModelAndView";
 		assertValue(heading, "View name", null);
@@ -155,8 +163,9 @@ public class PrintingResultHandlerTests {
 		ModelAndView mav = new ModelAndView("viewName");
 		mav.addObject("attrName", "attrValue");
 		mav.addObject(BindingResult.MODEL_KEY_PREFIX + "attrName", bindException);
-		
-		this.handler.handle(this.request, this.response, null, null, mav, null);
+
+		this.mvcResult.setMav(mav);
+		this.handler.handle(this.mvcResult);
 
 		String heading = "ModelAndView";
 		assertValue(heading, "View name", "viewName");
@@ -168,7 +177,7 @@ public class PrintingResultHandlerTests {
 
 	@Test
 	public void testFlashMapNull() throws Exception {
-		this.handler.handle(this.request, this.response, null, null, null, null);
+		this.handler.handle(mvcResult);
 
 		String heading = "FlashMap";
 		assertValue(heading, "Type", null);
@@ -180,7 +189,7 @@ public class PrintingResultHandlerTests {
 		flashMap.put("attrName", "attrValue");
 		this.request.setAttribute(FlashMapManager.OUTPUT_FLASH_MAP_ATTRIBUTE, flashMap);
 		
-		this.handler.handle(this.request, this.response, null, null, null, null);
+		this.handler.handle(this.mvcResult);
 
 		String heading = "FlashMap";
 		assertValue(heading, "Attribute", "attrName");

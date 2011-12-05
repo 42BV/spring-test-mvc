@@ -27,7 +27,9 @@ import org.springframework.core.Conventions;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
+import org.springframework.test.web.server.StubMvcResult;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -53,7 +55,8 @@ public class StatusResultMatchersTests {
 			try {
 				ResultMatcher matcher = (ResultMatcher) ReflectionUtils.invokeMethod(method, resultMatchers);
 				try {
-					matcher.match(new MockHttpServletRequest(), response, null, null, null, null);
+					MvcResult mvcResult = new StubMvcResult(new MockHttpServletRequest(), null, null, null, null, null, response);
+					matcher.match(mvcResult);
 				}
 				catch (AssertionError error) {
 					failures.add(error);

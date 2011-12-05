@@ -62,4 +62,10 @@ public interface ResultActions {
 	 */
 	ResultActions andDo(ResultHandler handler) throws Exception;
 	
+	/**
+	 * TODO
+	 * @return TODO
+	 */
+	MvcResult andReturn();
+	
 }

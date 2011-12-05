@@ -21,6 +21,7 @@ import java.io.PrintStream;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultHandler;
 import org.springframework.test.web.support.SimpleValuePrinter;
 import org.springframework.test.web.support.ValuePrinter;
@@ -51,14 +52,9 @@ public class PrintingResultHandler implements ResultHandler {
 		this.out = out;
 	}
 
-	public final void handle(MockHttpServletRequest request, 
-							 MockHttpServletResponse response, 
-							 Object handler,
-							 HandlerInterceptor[] interceptors, 
-							 ModelAndView mav, 
-							 Exception resolvedException) throws Exception {
+	public final void handle(MvcResult mvcResult) throws Exception {
 
-		String encoding = response.getCharacterEncoding();
+		String encoding = mvcResult.getResponse().getCharacterEncoding();
 		
 		PrintStream printStream = new PrintStream(this.out, true, 
 				(encoding != null) ? encoding : WebUtils.DEFAULT_CHARACTER_ENCODING);
@@ -66,22 +62,22 @@ public class PrintingResultHandler implements ResultHandler {
 		ValuePrinter printer = createValuePrinter(printStream);
 
 		printer.printHeading("MockHttpServletRequest");
-		printRequest(request, printer);
+		printRequest(mvcResult.getRequest(), printer);
 
 		printer.printHeading("Handler");
-		printHandler(handler, interceptors, printer);
+		printHandler(mvcResult.getHandler(), mvcResult.getInterceptors(), printer);
 
 		printer.printHeading("Resolved Exception");
-		printResolvedException(resolvedException, printer);
+		printResolvedException(mvcResult.getResolvedException(), printer);
 
 		printer.printHeading("ModelAndView");
-		printModelAndView(mav, printer);
+		printModelAndView(mvcResult.getModelAndView(), printer);
 
 		printer.printHeading("FlashMap");
-		printFlashMap(RequestContextUtils.getOutputFlashMap(request), printer);
+		printFlashMap(RequestContextUtils.getOutputFlashMap(mvcResult.getRequest()), printer);
 
 		printer.printHeading("MockHttpServletResponse");
-		printResponse(response, printer);
+		printResponse(mvcResult.getResponse(), printer);
 	}
 
 	/**

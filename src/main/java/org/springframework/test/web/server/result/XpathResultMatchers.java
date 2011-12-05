@@ -22,7 +22,7 @@ import javax.xml.xpath.XPathExpressionException;
 
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
-import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 import org.springframework.test.web.support.XpathExpectationsHelper;
 import org.w3c.dom.Node;
@@ -46,11 +46,9 @@ public class XpathResultMatchers {
 	 * Apply the XPath and assert it with the given {@code Matcher<Node>}.
 	 */
 	public ResultMatcher node(final Matcher<? super Node> matcher) {
-		return new ResultMatcherAdapter() {
-			
-			@Override
-			public void matchResponse(MockHttpServletResponse response) throws Exception {
-				xpathHelper.assertNode(response.getContentAsString(), matcher);
+		return new ResultMatcher() {
+			public void match(MvcResult result) throws Exception {
+				xpathHelper.assertNode(result.getResponse().getContentAsString(), matcher);
 			}
 		};
 	}
@@ -73,11 +71,9 @@ public class XpathResultMatchers {
 	 * TODO
 	 */
 	public ResultMatcher nodeCount(final Matcher<Integer> matcher) {
-		return new ResultMatcherAdapter() {
-			
-			@Override
-			public void matchResponse(MockHttpServletResponse response) throws Exception {
-				xpathHelper.assertNodeCount(response.getContentAsString(), matcher);
+		return new ResultMatcher() {
+			public void match(MvcResult result) throws Exception {
+				xpathHelper.assertNodeCount(result.getResponse().getContentAsString(), matcher);
 			}
 		};
 	}
@@ -93,11 +89,9 @@ public class XpathResultMatchers {
 	 * TODO
 	 */
 	public ResultMatcher string(final Matcher<? super String> matcher) {
-		return new ResultMatcherAdapter() {
-			
-			@Override
-			public void matchResponse(MockHttpServletResponse response) throws Exception {
-				xpathHelper.assertString(response.getContentAsString(), matcher);
+		return new ResultMatcher() {
+			public void match(MvcResult result) throws Exception {
+				xpathHelper.assertString(result.getResponse().getContentAsString(), matcher);
 			}
 		};
 	}
@@ -113,11 +107,9 @@ public class XpathResultMatchers {
 	 * TODO
 	 */
 	public ResultMatcher number(final Matcher<? super Double> matcher) {
-		return new ResultMatcherAdapter() {
-			
-			@Override
-			public void matchResponse(MockHttpServletResponse response) throws Exception {
-				xpathHelper.assertNumber(response.getContentAsString(), matcher);
+		return new ResultMatcher() {
+			public void match(MvcResult result) throws Exception {
+				xpathHelper.assertNumber(result.getResponse().getContentAsString(), matcher);
 			}
 		};
 	}
@@ -133,11 +125,9 @@ public class XpathResultMatchers {
 	 * TODO
 	 */
 	public ResultMatcher booleanValue(final Boolean value) {
-		return new ResultMatcherAdapter() {
-			
-			@Override
-			public void matchResponse(MockHttpServletResponse response) throws Exception {
-				xpathHelper.assertBoolean(response.getContentAsString(), value);
+		return new ResultMatcher() {
+			public void match(MvcResult result) throws Exception {
+				xpathHelper.assertBoolean(result.getResponse().getContentAsString(), value);
 			}
 		};
 	}

@@ -23,7 +23,7 @@ import java.util.Map;
 import javax.xml.xpath.XPathExpressionException;
 
 import org.hamcrest.Matcher;
-import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 
 /**
@@ -75,11 +75,9 @@ public abstract class MockMvcResultMatchers {
 	 * Assert the request was forwarded to the given URL.
 	 */
 	public static ResultMatcher forwardedUrl(final String expectedUrl) {
-		return new ResultMatcherAdapter() {
-			
-			@Override
-			protected void matchResponse(MockHttpServletResponse response) {
-				assertEquals("Forwarded URL", expectedUrl, response.getForwardedUrl());
+		return new ResultMatcher() {
+			public void match(MvcResult result) {
+				assertEquals("Forwarded URL", expectedUrl, result.getResponse().getForwardedUrl());
 			}
 		};
 	}
@@ -88,11 +86,9 @@ public abstract class MockMvcResultMatchers {
 	 * Assert a redirect was issued to the given URL. 
 	 */
 	public static ResultMatcher redirectedUrl(final String expectedUrl) {
-		return new ResultMatcherAdapter() {
-			
-			@Override
-			protected void matchResponse(MockHttpServletResponse response) {
-				assertEquals("Redirected URL", expectedUrl, response.getRedirectedUrl());
+		return new ResultMatcher() {
+			public void match(MvcResult result) {
+				assertEquals("Redirected URL", expectedUrl, result.getResponse().getRedirectedUrl());
 			}
 		};
 	}

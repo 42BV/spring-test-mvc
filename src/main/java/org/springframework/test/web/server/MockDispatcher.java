@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.DispatcherServlet;
+import org.springframework.web.servlet.FlashMap;
 import org.springframework.web.servlet.HandlerAdapter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.HandlerExecutionChain;
@@ -38,6 +39,7 @@ import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.ViewResolver;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
 /**
  * Executes requests by driving Spring MVC infrastructure components, much like the
@@ -69,29 +71,13 @@ class MockDispatcher {
 	MockDispatcher(MvcSetup setup) {
 		this.mvcSetup = setup;
 	}
-	
-	public Object getHandler() {
-		return this.handler;
-	}
-
-	public HandlerInterceptor[] getInterceptors() {
-		return this.interceptors;
-	}
-
-	public ModelAndView getMav() {
-		return this.mav;
-	}
-
-	public Exception getResolvedException() {
-		return this.resolvedException;
-	}
 
 	/**
 	 * Execute the request invoking the same Spring MVC components the {@link DispatcherServlet} does.
 	 * 
 	 * @throws Exception if an exception occurs not handled by a HandlerExceptionResolver.
 	 */
-	public void execute(MockHttpServletRequest request, MockHttpServletResponse response) throws Exception {
+	public MvcResult execute(final MockHttpServletRequest request, final MockHttpServletResponse response) throws Exception {
 		try {
 			RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
 			request.setAttribute(DispatcherServlet.LOCALE_RESOLVER_ATTRIBUTE, this.mvcSetup.getLocaleResolver());
@@ -103,6 +89,37 @@ class MockDispatcher {
 			this.mvcSetup.getFlashMapManager().requestCompleted(request);
 			RequestContextHolder.resetRequestAttributes();
 		}
+		
+		return new MvcResult() {
+		
+			public MockHttpServletRequest getRequest() {
+				return request;
+			}
+
+			public Object getHandler() {
+				return handler;
+			}
+
+			public HandlerInterceptor[] getInterceptors() {
+				return interceptors;
+			}
+
+			public Exception getResolvedException() {
+				return resolvedException;
+			}
+
+			public ModelAndView getModelAndView() {
+				return mav;
+			}
+
+			public MockHttpServletResponse getResponse() {
+				return response;
+			}
+
+			public FlashMap getFlashMap() {
+				return RequestContextUtils.getOutputFlashMap(request);
+			}
+		};
 	}
 
 	private void doExecute(MockHttpServletRequest request, MockHttpServletResponse response) throws Exception {

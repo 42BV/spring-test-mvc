@@ -20,8 +20,6 @@ import javax.servlet.ServletContext;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
 
 /**
  * <strong>Main entry point for server-side Spring MVC test support.</strong> 
@@ -74,24 +72,22 @@ public class MockMvc {
     	final MockHttpServletRequest request = requestBuilder.buildRequest(this.servletContext);
         final MockHttpServletResponse response = new MockHttpServletResponse();
         
-        MockDispatcher dispatcher = new MockDispatcher(this.mvcSetup);
-        dispatcher.execute(request, response);
-
-		final Object handler = dispatcher.getHandler();
-		final HandlerInterceptor[] interceptors = dispatcher.getInterceptors();
-		final ModelAndView mav = dispatcher.getMav();
-		final Exception resolvedException = dispatcher.getResolvedException();
-
+        final MvcResult result = new MockDispatcher(this.mvcSetup).execute(request, response);
+        
         return new ResultActions() {
         	
 			public ResultActions andExpect(ResultMatcher matcher) throws Exception {
-				matcher.match(request, response, handler, interceptors, mav, resolvedException);
+				matcher.match(result);
 				return this;
 			}
 			
 			public ResultActions andDo(ResultHandler printer) throws Exception {
-				printer.handle(request, response, handler, interceptors, mav, resolvedException);
+				printer.handle(result);
 				return this;
+			}
+
+			public MvcResult andReturn() {
+				return result;
 			}
 		};
     }

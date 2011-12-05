@@ -16,10 +16,6 @@
 
 package org.springframework.test.web.server;
 
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
 
 /**
  * A contract to match the results of an executed request against some expectation.
@@ -42,21 +38,9 @@ public interface ResultMatcher {
 
 	/**
 	 * Match the result of an executed Spring MVC request to an expectation.
-	 * 
-	 * @param request the input request 
-	 * @param response the resulting response
-	 * @param handler the selected handler, or "null" if no matching handler found
-	 * @param interceptors the selected handler interceptors, or "null" if none selected
-	 * @param mav the result of the handler invocation, or "null" if view resolution was not required  
-	 * @param resolvedException a successfully resolved controller exception, or "null"
-	 * 
-	 * @throws Exception if a failure occurs while executing the expectation
+	 * @param mvcResult TODO
+	 * @throws Exception if a failure occurs while printing
 	 */
-	void match(MockHttpServletRequest request, 
-			   MockHttpServletResponse response, 
-			   Object handler,
-			   HandlerInterceptor[] interceptors, 
-			   ModelAndView mav, 
-			   Exception resolvedException) throws Exception;
+	void match(MvcResult mvcResult) throws Exception;
 
 }
