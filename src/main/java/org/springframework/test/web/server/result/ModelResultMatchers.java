@@ -64,7 +64,7 @@ public class ModelResultMatchers {
 			public void match(MvcResult result) throws Exception {
 				assertTrue("No ModelAndView found", result.getModelAndView() != null);
 				for (String name : names) {
-					attribute(name, Matchers.notNullValue());
+					attribute(name, Matchers.notNullValue()).match(result);
 				}
 			}
 		};
