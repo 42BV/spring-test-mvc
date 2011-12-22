@@ -16,7 +16,7 @@
 
 package org.springframework.test.web.server.result;
 
-import static org.springframework.test.web.AssertionErrors.assertEquals;
+import static org.springframework.test.web.AssertionErrors.*;
 
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
@@ -47,7 +47,7 @@ public class FlashAttributeResultMatchers {
 	public <T> ResultMatcher attribute(final String name, final Object value) {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
-				attribute(name, Matchers.equalTo(value));
+				attribute(name, Matchers.equalTo(value)).match(result);
 			}
 		};
 	}
@@ -62,7 +62,7 @@ public class FlashAttributeResultMatchers {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
 				for (String name : names) {
-					attribute(name, Matchers.notNullValue());
+					attribute(name, Matchers.notNullValue()).match(result);
 				}
 			}
 		};
