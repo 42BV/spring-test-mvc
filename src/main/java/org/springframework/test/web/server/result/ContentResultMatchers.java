@@ -100,10 +100,11 @@ public class ContentResultMatchers {
 	/**
 	 * TODO
 	 */
-	public ResultMatcher bytes(final byte[] content) {
+	public ResultMatcher bytes(final byte[] expectedContent) {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
-				MatcherAssert.assertThat("Response content", result.getResponse().getContentAsByteArray(), Matchers.equalTo(content));
+				byte[] content = result.getResponse().getContentAsByteArray();
+				MatcherAssert.assertThat("Response content", content, Matchers.equalTo(expectedContent));
 			}
 		};
 	}
@@ -121,7 +122,8 @@ public class ContentResultMatchers {
 	public ResultMatcher xml(final String xmlContent) {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
-				xmlHelper.assertXmlEqual(xmlContent, result.getResponse().getContentAsString());
+				String content = result.getResponse().getContentAsString();
+				ContentResultMatchers.this.xmlHelper.assertXmlEqual(xmlContent, content);
 			}
 		};
 	}
@@ -135,7 +137,8 @@ public class ContentResultMatchers {
 	public ResultMatcher node(final Matcher<? super Node> matcher) {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
-				xmlHelper.assertNode(result.getResponse().getContentAsString(), matcher);
+				String content = result.getResponse().getContentAsString();
+				ContentResultMatchers.this.xmlHelper.assertNode(content, matcher);
 			}
 		};
 	}
@@ -147,7 +150,8 @@ public class ContentResultMatchers {
 	public ResultMatcher source(final Matcher<? super Source> matcher) {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
-				xmlHelper.assertSource(result.getResponse().getContentAsString(), matcher);
+				String content = result.getResponse().getContentAsString();
+				ContentResultMatchers.this.xmlHelper.assertSource(content, matcher);
 			}
 		};
 	}

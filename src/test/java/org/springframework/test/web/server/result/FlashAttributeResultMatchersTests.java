@@ -23,7 +23,7 @@ import org.springframework.web.servlet.FlashMap;
 /**
  * @author Craig Walls
  */
-public class FlashAttributeResultMatchersTest {
+public class FlashAttributeResultMatchersTests {
 
 	@Test
 	public void attributeExists() throws Exception {

@@ -23,7 +23,7 @@ import org.springframework.web.servlet.ModelAndView;
 /**
  * @author Craig Walls
  */
-public class ModelResultMatchersTest {
+public class ModelResultMatchersTests {
 
 	@Test
 	public void attributeExists() throws Exception {

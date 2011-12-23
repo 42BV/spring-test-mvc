@@ -45,7 +45,8 @@ public class JsonPathResultMatchers {
 	public <T> ResultMatcher value(final Matcher<T> matcher) {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
-				jsonPathHelper.assertValue(result.getResponse().getContentAsString(), matcher);
+				String content = result.getResponse().getContentAsString();
+				JsonPathResultMatchers.this.jsonPathHelper.assertValue(content, matcher);
 			}
 		};
 	}
@@ -63,7 +64,8 @@ public class JsonPathResultMatchers {
 	public ResultMatcher exists() {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
-				jsonPathHelper.exists(result.getResponse().getContentAsString());
+				String content = result.getResponse().getContentAsString();
+				JsonPathResultMatchers.this.jsonPathHelper.exists(content);
 			}
 		};
 	}
@@ -74,7 +76,8 @@ public class JsonPathResultMatchers {
 	public ResultMatcher doesNotExist() {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
-				jsonPathHelper.doesNotExist(result.getResponse().getContentAsString());
+				String content = result.getResponse().getContentAsString();
+				JsonPathResultMatchers.this.jsonPathHelper.doesNotExist(content);
 			}
 		};
 	}

@@ -45,11 +45,7 @@ public class FlashAttributeResultMatchers {
 	 * </pre>
 	 */
 	public <T> ResultMatcher attribute(final String name, final Object value) {
-		return new ResultMatcher() {
-			public void match(MvcResult result) throws Exception {
-				attribute(name, Matchers.equalTo(value)).match(result);
-			}
-		};
+		return attribute(name, Matchers.equalTo(value));
 	}
 	
 	/**
