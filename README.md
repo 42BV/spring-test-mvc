@@ -47,6 +47,8 @@ The last example uses a Hamcrest matcher to check if the content contains specif
 Tips on Getting Started
 -----------------------
 
+See this [presentation](http://rstoyanchev.github.com/spring-31-and-mvc-test/#97).
+
 There are many more examples in the [org.springframework.test.web.server.samples](spring-test-mvc/tree/master/src/test/java/org/springframework/test/web/server/samples) package.
 
 The API is designed to be fluent and readable. Therefore to learn we recommend writing some tests and using code completion to discover what is available. 
