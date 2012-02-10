@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,19 @@ package org.springframework.test.web.server.setup;
 
 import javax.servlet.ServletContext;
 
-import org.springframework.test.web.server.MockMvc;
 import org.springframework.util.Assert;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * A {@link MockMvc} builder that expects a fully initialized {@link WebApplicationContext}
- * and looks up Spring MVC components in it.
- * 
+ * A MockMvcBuilder that discovers controllers and Spring MVC infrastructure
+ * components in a WebApplicationContext.
+ *
  * @author Rossen Stoyanchev
  */
-public class InitializedContextMockMvcBuilder extends ContextMockMvcBuilderSupport {
+public class InitializedContextMockMvcBuilder extends AbstractMockMvcBuilder {
 
 	private final WebApplicationContext applicationContext;
-	
+
 	/**
      * Protected constructor. Not intended for direct instantiation.
      * @see MockMvcBuilders#webApplicationContextSetup(WebApplicationContext)
@@ -45,7 +44,7 @@ public class InitializedContextMockMvcBuilder extends ContextMockMvcBuilderSuppo
 	@Override
 	protected ServletContext initServletContext() {
 		return this.applicationContext.getServletContext();
-	}	
+	}
 
 	@Override
 	protected WebApplicationContext initWebApplicationContext(ServletContext context) {

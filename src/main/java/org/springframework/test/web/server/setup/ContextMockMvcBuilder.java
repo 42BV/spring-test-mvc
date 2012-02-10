@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,28 +25,29 @@ import org.springframework.core.io.FileSystemResourceLoader;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.mock.web.MockRequestDispatcher;
 import org.springframework.mock.web.MockServletContext;
-import org.springframework.test.web.server.MockMvc;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * A {@link MockMvc} builder that helps to configure and initialize a WebApplicationContext
- * context before looking up Spring MVC components in it.
- * 
- * <p>The WebApplicationContext can be configured with the path to the web application root 
- * directory (classpath or file system relative), specific profiles can be activated, or 
- * {@link ApplicationContextInitializer}s applied.
- * 
+ * A MockMvcBuilder that discovers controllers and Spring MVC infrastructure
+ * components in a WebApplicationContext.
+ *
+ * <p>Unlike {@link InitializedContextMockMvcBuilder}, which expects a fully
+ * initialized WebApplicationContext, this MockMvcBuilder provides methods to
+ * initialize various aspects of the WebApplicationContext such activating
+ * profiles, configuring the root of the webapp directory (classpath or file
+ * system-relative), and others.
+ *
  * @author Rossen Stoyanchev
  */
-public class ContextMockMvcBuilder extends ContextMockMvcBuilderSupport {
+public class ContextMockMvcBuilder extends AbstractMockMvcBuilder {
 
 	private final ConfigurableWebApplicationContext applicationContext;
-	
+
 	private String webResourceBasePath = "";
 
 	private ResourceLoader webResourceLoader = new FileSystemResourceLoader();
-	
+
 	/**
      * Protected constructor. Not intended for direct instantiation.
      * @see MockMvcBuilders#annotationConfigSetup(Class...)
@@ -55,15 +56,15 @@ public class ContextMockMvcBuilder extends ContextMockMvcBuilderSupport {
 	public ContextMockMvcBuilder(ConfigurableWebApplicationContext applicationContext) {
 		this.applicationContext = applicationContext;
 	}
-	
+
 	/**
-	 * Specify the location of the web application root directory. 
-	 * <p>If {@code isClasspathRelative} is "false" the directory is interpreted either as being 
-	 * relative to the JVM working directory (e.g. "src/main/webapp") or as a fully qualified 
-	 * file system path (e.g. "file:///home/user/webapp"). 
-	 * <p>Otherwise if {@code isClasspathRelative} is "true" the directory should be relative 
-	 * to the classpath (e.g. "org/examples/myapp/config"). 
-	 *  
+	 * Specify the location of the web application root directory.
+	 * <p>If {@code isClasspathRelative} is "false" the directory is interpreted either as being
+	 * relative to the JVM working directory (e.g. "src/main/webapp") or as a fully qualified
+	 * file system path (e.g. "file:///home/user/webapp").
+	 * <p>Otherwise if {@code isClasspathRelative} is "true" the directory should be relative
+	 * to the classpath (e.g. "org/examples/myapp/config").
+	 *
 	 * @param warRootDir the Web application root directory (should not end with a slash)
 	 */
 	public ContextMockMvcBuilder configureWebAppRootDir(String warRootDir, boolean isClasspathRelative) {
@@ -71,7 +72,7 @@ public class ContextMockMvcBuilder extends ContextMockMvcBuilderSupport {
 		this.webResourceLoader = isClasspathRelative ? new DefaultResourceLoader() : new FileSystemResourceLoader();
 		return this;
 	}
-	
+
 	/**
 	 * Activate the given profiles before the application context is "refreshed".
 	 */
@@ -79,27 +80,27 @@ public class ContextMockMvcBuilder extends ContextMockMvcBuilderSupport {
 		this.applicationContext.getEnvironment().setActiveProfiles(profiles);
 		return this;
 	}
-	
+
 	/**
 	 * Apply the given {@link ApplicationContextInitializer}s before the application context is "refreshed".
 	 */
 	@SuppressWarnings("unchecked")
-	public <T extends ConfigurableWebApplicationContext> 
+	public <T extends ConfigurableWebApplicationContext>
 			ContextMockMvcBuilder applyInitializers(ApplicationContextInitializer<T>... initializers) {
-		
+
 		for (ApplicationContextInitializer<T> initializer : initializers) {
 			initializer.initialize((T) this.applicationContext);
 		}
 		return this;
 	}
-	
+
 	@Override
 	protected ServletContext initServletContext() {
 		return new MockServletContext(this.webResourceBasePath, this.webResourceLoader) {
 			// Required for DefaultServletHttpRequestHandler...
 			public RequestDispatcher getNamedDispatcher(String path) {
-				return (path.equals("default")) ? new MockRequestDispatcher(path) : super.getNamedDispatcher(path); 
-			}			
+				return (path.equals("default")) ? new MockRequestDispatcher(path) : super.getNamedDispatcher(path);
+			}
 		};
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,15 @@
 
 package org.springframework.test.web.server.setup;
 
-import java.util.Collections;
-import java.util.List;
-
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 
+import org.springframework.core.NestedRuntimeException;
+import org.springframework.mock.web.MockServletConfig;
 import org.springframework.test.web.server.MockMvc;
-import org.springframework.test.web.server.MvcSetup;
+import org.springframework.test.web.server.TestDispatcherServlet;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.servlet.FlashMapManager;
-import org.springframework.web.servlet.HandlerAdapter;
-import org.springframework.web.servlet.HandlerExceptionResolver;
-import org.springframework.web.servlet.HandlerMapping;
-import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.RequestToViewNameTranslator;
-import org.springframework.web.servlet.ViewResolver;
 
 /**
  * An abstract class for building {@link MockMvc} instances.
@@ -46,52 +40,18 @@ public abstract class AbstractMockMvcBuilder implements MockMvcBuilder {
 
 		ServletContext servletContext = initServletContext();
 		WebApplicationContext wac = initWebApplicationContext(servletContext);
-		if (wac != null) {
-			servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, wac);
+
+		ServletConfig config = new MockServletConfig(servletContext);
+		TestDispatcherServlet dispatcherServlet = new TestDispatcherServlet(wac);
+		try {
+			dispatcherServlet.init(config);
+		}
+		catch (ServletException ex) {
+			// should never happen..
+			throw new MockMvcBuildException("Failed to init DispatcherServlet", ex);
 		}
 
-		final List<HandlerMapping> handlerMappings = initHandlerMappings(wac);
-		final List<HandlerAdapter> handlerAdapters = initHandlerAdapters(wac);
-		final List<HandlerExceptionResolver> exceptionResolvers = initHandlerExceptionResolvers(wac);
-		final List<ViewResolver> viewResolvers = initViewResolvers(wac);
-		final RequestToViewNameTranslator viewNameTranslator = initViewNameTranslator(wac);
-		final LocaleResolver localeResolver = initLocaleResolver(wac);
-		final FlashMapManager flashMapManager = initFlashMapManager(wac);
-		
-		MvcSetup mvcSetup = new MvcSetup() {
-
-			public List<HandlerMapping> getHandlerMappings() {
-				return Collections.unmodifiableList(handlerMappings);
-			}
-
-			public List<HandlerAdapter> getHandlerAdapters() {
-				return Collections.unmodifiableList(handlerAdapters);
-			}
-
-			public List<ViewResolver> getViewResolvers() {
-				return Collections.unmodifiableList(viewResolvers);
-			}
-
-			public List<HandlerExceptionResolver> getExceptionResolvers() {
-				return Collections.unmodifiableList(exceptionResolvers);
-			}
-
-			public RequestToViewNameTranslator getViewNameTranslator() {
-				return viewNameTranslator;
-			}
-
-			public LocaleResolver getLocaleResolver() {
-				return localeResolver;
-			}
-
-			public FlashMapManager getFlashMapManager() {
-				return flashMapManager;
-			}
-		};
-
-		mvcSetupInitialized(mvcSetup, servletContext, wac);
-
-		return new MockMvc(servletContext, mvcSetup) {};
+		return new MockMvc(dispatcherServlet) {};
 	}
 
 	/**
@@ -101,65 +61,17 @@ public abstract class AbstractMockMvcBuilder implements MockMvcBuilder {
 
 	/**
 	 * Return the WebApplicationContext to use, possibly {@code null}.
-	 * @param servletContext the ServletContext returned 
+	 * @param servletContext the ServletContext returned
 	 * from {@link #initServletContext()}
 	 */
 	protected abstract WebApplicationContext initWebApplicationContext(ServletContext servletContext);
 
-	/**
-	 * Return the HandlerMappings to use to map requests.
-	 * @param wac the fully initialized Spring application context
-	 * @return a List of HandlerMapping types or an empty list.
-	 */
-	protected abstract List<HandlerMapping> initHandlerMappings(WebApplicationContext wac);
 
-	/**
-	 * Return the HandlerAdapters to use to invoke handlers.
-	 * @param wac the fully initialized Spring application context
-	 * @return a List of HandlerExceptionResolver types or an empty list.
-	 */
-	protected abstract List<HandlerAdapter> initHandlerAdapters(WebApplicationContext wac);
+	@SuppressWarnings("serial")
+	private static class MockMvcBuildException extends NestedRuntimeException {
 
-	/**
-	 * Return HandlerExceptionResolvers for resolving controller exceptions.
-	 * @param wac the fully initialized Spring application context
-	 * @return a List of HandlerExceptionResolver types or an empty list.
-	 */
-	protected abstract List<HandlerExceptionResolver> initHandlerExceptionResolvers(WebApplicationContext wac);
-
-	/**
-	 * Return the ViewResolvers to use to resolve view names.
-	 * @param wac the fully initialized Spring application context
-	 * @return a List of ViewResolver types or an empty list.
-	 */
-	protected abstract List<ViewResolver> initViewResolvers(WebApplicationContext wac);
-
-	/**
-	 * Return the RequestToViewNameTranslator to use to derive a view name
-	 * @param wac the fully initialized Spring application context
-	 * @return a RequestToViewNameTranslator, never {@code null}
-	 */
-	protected abstract RequestToViewNameTranslator initViewNameTranslator(WebApplicationContext wac);
-
-	/**
-	 * Return the LocaleResolver to use for locale resolution.
-	 * @param wac the fully initialized Spring application context
-	 * @return a LocaleResolver, never {@code null}
-	 */
-	protected abstract LocaleResolver initLocaleResolver(WebApplicationContext wac);
-
-	/**
-	 * Return the FlashMapManager to use for flash attribute support.
-	 * @param wac the fully initialized Spring application context
-	 * @return a FlashMapManager, never {@code null}
-	 */
-	protected abstract FlashMapManager initFlashMapManager(WebApplicationContext wac);
-
-	/**
-	 * A hook for sub-classes providing access to the initialized MvcSetup, 
-	 * ServletContext, and WebApplicationContext.
-	 */
-	protected void mvcSetupInitialized(MvcSetup mvcSetup, ServletContext servletContext, WebApplicationContext wac) {
+		public MockMvcBuildException(String msg, Throwable cause) {
+			super(msg, cause);
+		}
 	}
-
 }
