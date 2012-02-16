@@ -84,6 +84,13 @@ public class StatusResultMatchers {
     }
 
     /**
+     * Assert the response status is {@code HttpStatus.CHECKPOINT} (103)
+     */
+    public ResultMatcher isCheckpoint(){
+        return matcher(HttpStatus.valueOf(103));
+    }
+
+    /**
      * Assert the response status is {@code HttpStatus.OK} (200)
      */
     public ResultMatcher isOk(){
@@ -210,6 +217,13 @@ public class StatusResultMatchers {
     }
 
     /**
+     * Assert the response status is {@code HttpStatus.RESUME_INCOMPLETE} (308)
+     */
+    public ResultMatcher isResumeIncomplete(){
+        return matcher(HttpStatus.valueOf(308));
+    }
+
+    /**
      * Assert the response status is {@code HttpStatus.BAD_REQUEST} (400)
      */
     public ResultMatcher isBadRequest(){
@@ -330,11 +344,16 @@ public class StatusResultMatchers {
 
     /**
      * Assert the response status is {@code HttpStatus.EXPECTATION_FAILED} (417)
-     * Check if the HTTP is code is 417 or not.
-     * @return true if the is code is 417.
      */
     public ResultMatcher isExpectationFailed(){
         return matcher(HttpStatus.EXPECTATION_FAILED);
+    }
+
+    /**
+     * Assert the response status is {@code HttpStatus.I_AM_A_TEAPOT} (418)
+     */
+    public ResultMatcher isIAmATeapot(){
+        return matcher(HttpStatus.valueOf(418));
     }
 
     /**
@@ -384,6 +403,27 @@ public class StatusResultMatchers {
      */
     public ResultMatcher isUpgradeRequired(){
         return matcher(HttpStatus.UPGRADE_REQUIRED);
+    }
+
+    /**
+     * Assert the response status is {@code HttpStatus.PRECONDITION_REQUIRED} (428)
+     */
+    public ResultMatcher isPreconditionRequired(){
+        return matcher(HttpStatus.valueOf(428));
+    }
+
+    /**
+     * Assert the response status is {@code HttpStatus.TOO_MANY_REQUESTS} (429)
+     */
+    public ResultMatcher isTooManyRequests(){
+        return matcher(HttpStatus.valueOf(429));
+    }
+
+    /**
+     * Assert the response status is {@code HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE} (431)
+     */
+    public ResultMatcher isRequestHeaderFieldsTooLarge(){
+        return matcher(HttpStatus.valueOf(431));
     }
 
     /**
@@ -450,10 +490,24 @@ public class StatusResultMatchers {
     }
 
     /**
-     * Assert the response status is {@code HttpStatus.NOT_EXTENDED} (509)
+     * Assert the response status is {@code HttpStatus.BANDWIDTH_LIMIT_EXCEEDED} (509)
+     */
+    public ResultMatcher isBandwidthLimitExceeded(){
+        return matcher(HttpStatus.valueOf(509));
+    }
+
+    /**
+     * Assert the response status is {@code HttpStatus.NOT_EXTENDED} (510)
      */
     public ResultMatcher isNotExtended(){
         return matcher(HttpStatus.NOT_EXTENDED);
+    }
+
+    /**
+     * Assert the response status is {@code HttpStatus.NETWORK_AUTHENTICATION_REQUIRED} (511)
+     */
+    public ResultMatcher isNetworkAuthenticationRequired(){
+        return matcher(HttpStatus.valueOf(511));
     }
 
     /**

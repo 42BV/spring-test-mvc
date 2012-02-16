@@ -16,7 +16,8 @@
 
 package org.springframework.test.web.server.result;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -35,6 +36,7 @@ import org.springframework.util.Assert;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.FlashMap;
 import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.ModelAndView;
@@ -187,8 +189,11 @@ public class PrintingResultHandlerTests {
 	public void testFlashMap() throws Exception {
 		FlashMap flashMap = new FlashMap();
 		flashMap.put("attrName", "attrValue");
-		this.request.setAttribute(FlashMapManager.OUTPUT_FLASH_MAP_ATTRIBUTE, flashMap);
-		
+		this.request.setAttribute(DispatcherServlet.class.getName() + ".OUTPUT_FLASH_MAP", flashMap);
+
+		// TODO: remove after upgrade to 3.1.1
+		this.request.setAttribute(FlashMapManager.class.getName() + ".OUTPUT_FLASH_MAP", flashMap);
+
 		this.handler.handle(this.mvcResult);
 
 		String heading = "FlashMap";

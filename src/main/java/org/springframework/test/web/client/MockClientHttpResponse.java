@@ -69,6 +69,10 @@ public class MockClientHttpResponse implements ClientHttpResponse {
 		return statusText;
 	}
 
+	public int getRawStatusCode() throws IOException {
+		return statusCode.value();
+	}
+
 	public void close() {
 	}
 
@@ -79,4 +83,5 @@ public class MockClientHttpResponse implements ClientHttpResponse {
 			return null;
 		}
 	}
+
 }

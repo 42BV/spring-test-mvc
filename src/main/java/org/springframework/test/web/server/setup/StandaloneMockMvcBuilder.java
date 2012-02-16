@@ -24,6 +24,7 @@ import java.util.Locale;
 
 import javax.servlet.ServletContext;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.format.support.DefaultFormattingConversionService;
@@ -31,6 +32,7 @@ import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.mock.web.MockServletContext;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.validation.Validator;
 import org.springframework.web.context.WebApplicationContext;
@@ -51,7 +53,6 @@ import org.springframework.web.servlet.handler.MappedInterceptor;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import org.springframework.web.servlet.support.DefaultFlashMapManager;
 import org.springframework.web.servlet.theme.FixedThemeResolver;
 import org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
@@ -97,7 +98,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 
 	private LocaleResolver localeResolver = new AcceptHeaderLocaleResolver();
 
-	private FlashMapManager flashMapManager = new DefaultFlashMapManager();
+	private FlashMapManager flashMapManager = null;
 
 	/**
 	 * Protected constructor. Not intended for direct instantiation.
@@ -210,7 +211,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 
 	/**
 	 * Provide a custom FlashMapManager instance.
-	 * If not provided, {@link DefaultFlashMapManager} is used by default.
+	 * If not provided, {@code SessionFlashMapManager} is used by default.
 	 */
 	public StandaloneMockMvcBuilder setFlashMapManager(FlashMapManager flashMapManager) {
 		this.flashMapManager = flashMapManager;
@@ -257,7 +258,37 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 		wac.addBean(DispatcherServlet.LOCALE_RESOLVER_BEAN_NAME, this.localeResolver);
 		wac.addBean(DispatcherServlet.THEME_RESOLVER_BEAN_NAME, new FixedThemeResolver());
 		wac.addBean(DispatcherServlet.REQUEST_TO_VIEW_NAME_TRANSLATOR_BEAN_NAME, new DefaultRequestToViewNameTranslator());
+
+		if (this.flashMapManager == null) {
+			initFlashMapManager();
+		}
 		wac.addBean(DispatcherServlet.FLASH_MAP_MANAGER_BEAN_NAME, this.flashMapManager);
+	}
+
+	private void initFlashMapManager() {
+		String className = "org.springframework.web.servlet.support.DefaultFlashMapManager";
+		if (ClassUtils.isPresent(className, getClass().getClassLoader())) {
+			this.flashMapManager = instantiateClass(className);
+		}
+		else {
+			className = "org.springframework.web.servlet.support.SessionFlashMapManager";
+			this.flashMapManager = instantiateClass(className);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T> T instantiateClass(String className) {
+		Class<?> clazz;
+		try {
+			clazz = ClassUtils.forName(className, StandaloneMockMvcBuilder.class.getClassLoader());
+		}
+		catch (ClassNotFoundException e) {
+			throw new BeanInitializationException("Could not instantiate " + className, e);
+		}
+		catch (LinkageError e) {
+			throw new BeanInitializationException("Could not instantiate " + className, e);
+		}
+		return (T) BeanUtils.instantiate(clazz);
 	}
 
 	/**
