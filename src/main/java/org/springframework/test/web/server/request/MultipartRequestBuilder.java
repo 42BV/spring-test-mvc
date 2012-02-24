@@ -36,41 +36,41 @@ import org.springframework.mock.web.MockMultipartHttpServletRequest;
  */
 public class MultipartRequestBuilder extends DefaultRequestBuilder {
 
-    private final List<MockMultipartFile> files = new ArrayList<MockMultipartFile>();
+	private final List<MockMultipartFile> files = new ArrayList<MockMultipartFile>();
 
-    MultipartRequestBuilder(URI uri) {
-        super(uri, HttpMethod.POST);
-        super.contentType(MediaType.MULTIPART_FORM_DATA);
-    }
+	MultipartRequestBuilder(URI uri) {
+		super(uri, HttpMethod.POST);
+		super.contentType(MediaType.MULTIPART_FORM_DATA);
+	}
 
-    /**
-     * Create a new MockMultipartFile with the given content.
-     *
-     * @param name    the name of the file
-     * @param content the content of the file
-     */
-    public MultipartRequestBuilder file(String name, byte[] content) {
-        files.add(new MockMultipartFile(name, content));
-        return this;
-    }
+	/**
+	 * Create a new MockMultipartFile with the given content.
+	 *
+	 * @param name    the name of the file
+	 * @param content the content of the file
+	 */
+	public MultipartRequestBuilder file(String name, byte[] content) {
+		files.add(new MockMultipartFile(name, content));
+		return this;
+	}
 
-    /**
-     * Adds the given MockMultipartFile.
-     *
-     * @param file the multipart file
-     */
-    public MultipartRequestBuilder file(MockMultipartFile file) {
-        files.add(file);
-        return this;
-    }
+	/**
+	 * Adds the given MockMultipartFile.
+	 *
+	 * @param file the multipart file
+	 */
+	public MultipartRequestBuilder file(MockMultipartFile file) {
+		files.add(file);
+		return this;
+	}
 
-    @Override
-    protected final MockHttpServletRequest createServletRequest(ServletContext servletContext) {
-        MockMultipartHttpServletRequest request = new MockMultipartHttpServletRequest();
-        for (MockMultipartFile file : files) {
-            request.addFile(file);
-        }
-        return request;
-    }
+	@Override
+	protected final MockHttpServletRequest createServletRequest(ServletContext servletContext) {
+		MockMultipartHttpServletRequest request = new MockMultipartHttpServletRequest();
+		for (MockMultipartFile file : files) {
+			request.addFile(file);
+		}
+		return request;
+	}
 
 }
