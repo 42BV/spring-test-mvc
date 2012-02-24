@@ -84,8 +84,9 @@ public class DefaultRequestBuilder implements RequestBuilder {
         return this;
     }
 
-    public DefaultRequestBuilder accept(MediaType mediaType, MediaType... mediaTypes) {
-        addToMultiValueMap(headers, "Accept", mediaType, mediaTypes);
+    public DefaultRequestBuilder accept(MediaType... mediaTypes) {
+        Assert.notEmpty(mediaTypes, "No 'Accept' media types");
+        headers.set("Accept", MediaType.toString(Arrays.asList(mediaTypes)));
         return this;
     }
 
