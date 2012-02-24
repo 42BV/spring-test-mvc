@@ -57,9 +57,11 @@ public class DefaultMockHttpServletRequestBuilderTests {
         MockHttpServletRequest request = builder.buildRequest(servletContext);
 
         List<String> accept = Collections.list(request.getHeaders("Accept"));
-        assertEquals(2, accept.size());
-        assertEquals("text/html", accept.get(0));
-        assertEquals("application/xml", accept.get(1));
+        assertEquals(1, accept.size());
+
+        List<MediaType> result = MediaType.parseMediaTypes(accept.get(0));
+        assertEquals("text/html", result.get(0).toString());
+        assertEquals("application/xml", result.get(1).toString());
     }
 
     @Test
