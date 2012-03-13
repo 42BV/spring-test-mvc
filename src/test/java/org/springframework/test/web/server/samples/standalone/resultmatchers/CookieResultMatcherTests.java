@@ -22,6 +22,7 @@ import static org.springframework.test.web.server.request.MockMvcRequestBuilders
 import static org.springframework.test.web.server.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
 
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.stereotype.Controller;
@@ -41,10 +42,26 @@ public class CookieResultMatcherTests {
 	
 	@Before
 	public void setup() {
+
+		CookieLocaleResolver localeResolver = new CookieLocaleResolver();
+		localeResolver.setCookieDomain("domain");
+
 		this.mockMvc = standaloneSetup(new SimpleController())
 				.addInterceptors(new LocaleChangeInterceptor())
-				.setLocaleResolver(new CookieLocaleResolver())
+				.setLocaleResolver(localeResolver)
 				.build();
+	}
+
+	@Test
+	public void testExists() throws Exception {
+		this.mockMvc.perform(get("/").param("locale", "en_US"))
+				.andExpect(cookie().exists(CookieLocaleResolver.DEFAULT_COOKIE_NAME));
+	}
+
+	@Test
+	public void testNotExists() throws Exception {
+		this.mockMvc.perform(get("/").param("locale", "en_US"))
+				.andExpect(cookie().doesNotExist("unknowCookie"));
 	}
 
 	@Test
@@ -63,6 +80,35 @@ public class CookieResultMatcherTests {
 			.andExpect(cookie().value(CookieLocaleResolver.DEFAULT_COOKIE_NAME, startsWith("en")));
 	}
 	
+	@Test
+	public void testMaxAge() throws Exception {
+		this.mockMvc.perform(get("/").param("locale", "en_US"))
+				.andExpect(cookie().maxAge(CookieLocaleResolver.DEFAULT_COOKIE_NAME, -1));
+	}
+
+	@Test
+	public void testDomain() throws Exception {
+		this.mockMvc.perform(get("/").param("locale", "en_US"))
+				.andExpect(cookie().domain(CookieLocaleResolver.DEFAULT_COOKIE_NAME, "domain"));
+	}
+
+	@Test
+	public void testVersion() throws Exception {
+		this.mockMvc.perform(get("/").param("locale", "en_US"))
+				.andExpect(cookie().version(CookieLocaleResolver.DEFAULT_COOKIE_NAME, 0));
+	}
+
+	@Test
+	public void testPath() throws Exception {
+		this.mockMvc.perform(get("/").param("locale", "en_US"))
+				.andExpect(cookie().path(CookieLocaleResolver.DEFAULT_COOKIE_NAME, "/"));
+	}
+
+	@Test
+	public void testSecured() throws Exception {
+		this.mockMvc.perform(get("/").param("locale", "en_US"))
+				.andExpect(cookie().secure(CookieLocaleResolver.DEFAULT_COOKIE_NAME, false));
+	}
 
 	@Controller
 	@SuppressWarnings("unused")
