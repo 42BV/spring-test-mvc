@@ -29,8 +29,8 @@ import org.springframework.web.context.support.XmlWebApplicationContext;
 
 /**
  * The main class to import to access all available {@link MockMvcBuilder}s.
- * 
- * <p><strong>Eclipse users:</strong> you can add this class as a Java editor 
+ *
+ * <p><strong>Eclipse users:</strong> you can add this class as a Java editor
  * favorite. To navigate, open the Preferences and type "favorites".
  *
  * @author Rossen Stoyanchev
@@ -38,7 +38,7 @@ import org.springframework.web.context.support.XmlWebApplicationContext;
 public class MockMvcBuilders {
 
 	/**
-	 * Build a {@link MockMvc} from Java-based Spring configuration. 
+	 * Build a {@link MockMvc} from Java-based Spring configuration.
 	 * @param configClasses one or more @{@link Configuration} classes
 	 */
 	public static ContextMockMvcBuilder annotationConfigSetup(Class<?>... configClasses) {
@@ -73,8 +73,8 @@ public class MockMvcBuilders {
 	}
 
 	/**
-	 * Build a {@link MockMvc} by providing @{@link Controller} instances and configuring 
-	 * directly the required Spring MVC components rather than having them looked up in 
+	 * Build a {@link MockMvc} by providing @{@link Controller} instances and configuring
+	 * directly the required Spring MVC components rather than having them looked up in
 	 * a Spring ApplicationContext.
 	 * @param controllers one or more controllers with @{@link RequestMapping} methods
 	 */

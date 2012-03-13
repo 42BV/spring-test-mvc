@@ -19,6 +19,7 @@ package org.springframework.test.web.server.setup;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.FileSystemResourceLoader;
@@ -111,4 +112,16 @@ public class ContextMockMvcBuilder extends AbstractMockMvcBuilder {
 		return this.applicationContext;
 	}
 
+	/**
+	 * Set a parent context before the application context is "refreshed".
+	 *
+	 * <p>The parent context is expected to have be fully initialized.
+	 *
+	 * <p>Caution: this method is potentially subject to change depending
+	 * on the outcome of SPR-5243 and SPR-5613.
+	 */
+	public ContextMockMvcBuilder setParentContext(ApplicationContext parentContext) {
+		this.applicationContext.setParent(parentContext);
+		return this;
+	}
 }
