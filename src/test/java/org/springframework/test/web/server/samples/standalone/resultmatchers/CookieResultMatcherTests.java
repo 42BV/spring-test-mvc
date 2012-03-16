@@ -22,7 +22,6 @@ import static org.springframework.test.web.server.request.MockMvcRequestBuilders
 import static org.springframework.test.web.server.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
 
-import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.stereotype.Controller;
@@ -32,14 +31,14 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 
 /**
- * Examples of expectations on response cookies values. 
- * 
+ * Examples of expectations on response cookies values.
+ *
  * @author Rossen Stoyanchev
  */
 public class CookieResultMatcherTests {
 
 	private MockMvc mockMvc;
-	
+
 	@Before
 	public void setup() {
 
@@ -68,18 +67,18 @@ public class CookieResultMatcherTests {
 	public void testEqualTo() throws Exception {
 		this.mockMvc.perform(get("/").param("locale", "en_US"))
 			.andExpect(cookie().value(CookieLocaleResolver.DEFAULT_COOKIE_NAME, "en_US"));
-		
+
 		// Hamcrest matchers...
 		this.mockMvc.perform(get("/").param("locale", "en_US"))
 			.andExpect(cookie().value(CookieLocaleResolver.DEFAULT_COOKIE_NAME, equalTo("en_US")));
 	}
-	
+
 	@Test
 	public void testMatcher() throws Exception {
 		this.mockMvc.perform(get("/").param("locale", "en_US"))
 			.andExpect(cookie().value(CookieLocaleResolver.DEFAULT_COOKIE_NAME, startsWith("en")));
 	}
-	
+
 	@Test
 	public void testMaxAge() throws Exception {
 		this.mockMvc.perform(get("/").param("locale", "en_US"))
@@ -113,7 +112,7 @@ public class CookieResultMatcherTests {
 	@Controller
 	@SuppressWarnings("unused")
 	private static class SimpleController {
-		
+
 		@RequestMapping("/")
 		public String home() {
 			return "home";

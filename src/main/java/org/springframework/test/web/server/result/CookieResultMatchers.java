@@ -16,6 +16,7 @@
 
 package org.springframework.test.web.server.result;
 
+import static org.springframework.test.web.AssertionErrors.assertEquals;
 import static org.springframework.test.web.AssertionErrors.assertTrue;
 
 import javax.servlet.http.Cookie;
@@ -26,6 +27,12 @@ import org.hamcrest.Matchers;
 import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 
+/**
+ * Provides methods to define expectations on response cookies.
+ *
+ * @author Rossen Stoyanchev
+ * @author Thomas Bruyelle
+ */
 public class CookieResultMatchers {
 
 	/**
@@ -42,21 +49,20 @@ public class CookieResultMatchers {
 	}
 
 	/**
-	 * TODO
+	 * Assert a cookie's value.
 	 */
 	public ResultMatcher value(String name, String value) {
 		return value(name, Matchers.equalTo(value));
 	}
 
 	/**
-	 * Assert a cookie exists and its max age is not equals to 0 (expired cookie)
+	 * Assert a cookie exists and its max age is not 0, i.e. it's not expired.
 	 */
 	public ResultMatcher exists(final String name) {
 		return new ResultMatcher() {
 			public void match(MvcResult result) {
 				Cookie cookie = result.getResponse().getCookie(name);
-				MatcherAssert.assertThat("Response cookie not found: " + name,
-										 cookie != null && cookie.getMaxAge() != 0);
+				assertTrue("No cookie with name: " + name, cookie != null && cookie.getMaxAge() != 0);
 			}
 		};
 	}
@@ -68,25 +74,26 @@ public class CookieResultMatchers {
 		return new ResultMatcher() {
 			public void match(MvcResult result) {
 				Cookie cookie = result.getResponse().getCookie(name);
-				MatcherAssert.assertThat("Expected no response cookie but found one with name " + name,
-										 cookie == null || cookie.getMaxAge() == 0);
+				assertTrue("Unexpected cookie with name " + name, cookie == null || cookie.getMaxAge() == 0);
 			}
 		};
 	}
 
 	/**
-	 * Assert a cookie max age with a {@link Matcher}
+	 * Assert a cookie maxAge with a {@link Matcher}
 	 */
 	public ResultMatcher maxAge(final String name, final Matcher<? super Integer> matcher) {
 		return new ResultMatcher() {
-			public void match(MvcResult result)
-					throws Exception {
+			public void match(MvcResult result) {
 				Cookie cookie = result.getResponse().getCookie(name);
 				MatcherAssert.assertThat("Response cookie maxAge", cookie.getMaxAge(), matcher);
 			}
 		};
 	}
 
+	/**
+	 * Assert a cookie maxAge value.
+	 */
 	public ResultMatcher maxAge(String name, int maxAge) {
 		return maxAge(name, Matchers.equalTo(maxAge));
 	}
@@ -119,6 +126,9 @@ public class CookieResultMatchers {
 		};
 	}
 
+	/**
+	 * Assert a cookie domain value.
+	 */
 	public ResultMatcher domain(String name, String domain) {
 		return domain(name, Matchers.equalTo(domain));
 	}
@@ -135,6 +145,9 @@ public class CookieResultMatchers {
 		};
 	}
 
+	/**
+	 * Assert a cookie comment value.
+	 */
 	public ResultMatcher comment(String name, String comment) {
 		return comment(name, Matchers.equalTo(comment));
 	}
@@ -151,18 +164,21 @@ public class CookieResultMatchers {
 		};
 	}
 
+	/**
+	 * Assert a cookie version value.
+	 */
 	public ResultMatcher version(String name, int version) {
 		return version(name, Matchers.equalTo(version));
 	}
 
 	/**
-	 * Assert a cookie is secured
+	 * Assert whether the cookie must be sent over a secure protocol or not.
 	 */
-	public ResultMatcher secure(final String name, final boolean isSecure) {
+	public ResultMatcher secure(final String name, final boolean secure) {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
 				Cookie cookie = result.getResponse().getCookie(name);
-				MatcherAssert.assertThat("Response cookie secure", cookie.getSecure() == isSecure);
+				assertEquals("Response cookie secure", secure, cookie.getSecure());
 			}
 		};
 	}
