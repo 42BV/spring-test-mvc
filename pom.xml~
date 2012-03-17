@@ -16,7 +16,7 @@
             <extension>
                 <groupId>org.springframework.build.aws</groupId>
                 <artifactId>org.springframework.build.aws.maven</artifactId>
-                <version>3.1.0.RELEASE</version>
+                <version>4.1.0.RELEASE</version>
             </extension>
         </extensions>
         <plugins>
@@ -30,7 +30,7 @@
             </plugin>
         </plugins>
     </build>
-
+  
     <distributionManagement>
         <snapshotRepository>
             <id>spring-s3</id>
