@@ -22,6 +22,10 @@ import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 import org.springframework.test.web.support.JsonPathExpectationsHelper;
 
+import java.util.List;
+
+import static org.hamcrest.Matchers.*;
+
 
 /**
  * TODO ...
@@ -55,7 +59,7 @@ public class JsonPathResultMatchers {
 	 * TODO
 	 */
 	public ResultMatcher value(Object value) {
-		return value(Matchers.equalTo(value));
+		return value(equalTo(value));
 	}
 	
 	/**
@@ -82,4 +86,10 @@ public class JsonPathResultMatchers {
 		};
 	}
 
+	/**
+	 * Assert a json path is an array
+	 */
+	public ResultMatcher isArray() {
+		return value(isA(List.class));
+	}
 }
