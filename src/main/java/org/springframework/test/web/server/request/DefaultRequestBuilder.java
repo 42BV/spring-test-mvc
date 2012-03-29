@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+
 import javax.servlet.ServletContext;
 import javax.servlet.http.Cookie;
 
@@ -29,12 +30,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.test.web.server.RequestBuilder;
 import org.springframework.test.web.server.MockMvc;
+import org.springframework.test.web.server.RequestBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * The default builder for {@link MockHttpServletRequest}.
@@ -185,7 +187,12 @@ public class DefaultRequestBuilder implements RequestBuilder {
 		MockHttpServletRequest request = createServletRequest(servletContext);
 
 		request.setMethod(this.method.name());
-		request.setRequestURI(this.uri.toString());
+
+		String requestUri = UriComponentsBuilder.fromUri(this.uri).query(null).fragment(null).build().toString();
+		request.setRequestURI(requestUri);
+
+		String queryString = UriComponentsBuilder.fromUri(this.uri).build().getQuery();
+		request.setQueryString(queryString);
 
 		for (String name : this.parameters.keySet()) {
 			for (String value : this.parameters.get(name)) {

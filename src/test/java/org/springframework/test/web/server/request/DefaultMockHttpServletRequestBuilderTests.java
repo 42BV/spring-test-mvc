@@ -51,9 +51,43 @@ public class DefaultMockHttpServletRequestBuilderTests {
 		assertArrayEquals(new String[]{"bar", "baz"}, parameterMap.get("foo"));
 	}
 
+	public void uriEncoding() throws Exception {
+		builder = new DefaultRequestBuilder(new URI("/foo%20bar"), HttpMethod.GET);
+		MockHttpServletRequest request = builder.buildRequest(servletContext);
+		assertEquals("/foo%20bar", request.getRequestURI());
+	}
+
 	@Test
-	public void accept() throws Exception {
-		builder.accept(MediaType.TEXT_HTML, MediaType.APPLICATION_XML);
+	public void uriDoesNotIncludeQueryString() throws Exception {
+		builder = new DefaultRequestBuilder(new URI("/foo?bar"), HttpMethod.GET);
+		MockHttpServletRequest request = builder.buildRequest(servletContext);
+		assertEquals("/foo", request.getRequestURI());
+		assertEquals("bar", request.getQueryString());
+	}
+
+	@Test
+	public void parametersInQueryString() throws Exception {
+		builder = new DefaultRequestBuilder(new URI("/?foo=bar&foo=baz"), HttpMethod.GET);
+
+		MockHttpServletRequest request = builder.buildRequest(servletContext);
+		Map<String, String[]> parameterMap = request.getParameterMap();
+		assertArrayEquals(new String[]{"bar", "baz"}, parameterMap.get("foo"));
+		assertEquals("foo=bar&foo=baz", request.getQueryString());
+	}
+
+	@Test
+	public void parametersInQueryStringI18N() throws Exception {
+		builder = new DefaultRequestBuilder(new URI("/?foo=I%C3%B1t%C3%ABrn%C3%A2ti%C3%B4n%C3%A0liz%C3%A6ti%C3%B8n"), HttpMethod.GET);
+
+		MockHttpServletRequest request = builder.buildRequest(servletContext);
+		Map<String, String[]> parameterMap = request.getParameterMap();
+		assertArrayEquals(new String[]{"Iñtërnâtiônàlizætiøn"}, parameterMap.get("foo"));
+		assertEquals("foo=I%C3%B1t%C3%ABrn%C3%A2ti%C3%B4n%C3%A0liz%C3%A6ti%C3%B8n", request.getQueryString());
+	}
+
+    @Test
+    public void accept() throws Exception {
+        builder.accept(MediaType.TEXT_HTML, MediaType.APPLICATION_XML);
 
 		MockHttpServletRequest request = builder.buildRequest(servletContext);
 
