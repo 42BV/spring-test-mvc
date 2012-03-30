@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.test.web.server.samples.context;
-
-import javax.servlet.RequestDispatcher;
 
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotatedBeanDefinitionReader;
 import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.FileSystemResourceLoader;
@@ -31,11 +29,12 @@ import org.springframework.test.context.support.AbstractContextLoader;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 
-public class GenericWebXmlContextLoader extends AbstractContextLoader {
+import javax.servlet.RequestDispatcher;
 
-	private final MockServletContext servletContext;
-	
-	public GenericWebXmlContextLoader(String warRootDir, boolean isClasspathRelative) {
+public class GenericWebContextLoader extends AbstractContextLoader {
+	protected final MockServletContext servletContext;
+
+	public GenericWebContextLoader(String warRootDir, boolean isClasspathRelative) {
 		ResourceLoader resourceLoader = isClasspathRelative ? new DefaultResourceLoader() : new FileSystemResourceLoader();
 		this.servletContext = initServletContext(warRootDir, resourceLoader);
 	}
@@ -44,29 +43,23 @@ public class GenericWebXmlContextLoader extends AbstractContextLoader {
 		return new MockServletContext(warRootDir, resourceLoader) {
 			// Required for DefaultServletHttpRequestHandler...
 			public RequestDispatcher getNamedDispatcher(String path) {
-				return (path.equals("default")) ? new MockRequestDispatcher(path) : super.getNamedDispatcher(path); 
-			}			
+				return (path.equals("default")) ? new MockRequestDispatcher(path) : super.getNamedDispatcher(path);
+			}
 		};
 	}
-	
+
 	public ApplicationContext loadContext(MergedContextConfiguration mergedConfig) throws Exception {
 		GenericWebApplicationContext context = new GenericWebApplicationContext();
 		context.getEnvironment().setActiveProfiles(mergedConfig.getActiveProfiles());
 		prepareContext(context);
-		new XmlBeanDefinitionReader(context).loadBeanDefinitions(mergedConfig.getLocations());
-		AnnotationConfigUtils.registerAnnotationConfigProcessors(context);
-		context.refresh();
-		context.registerShutdownHook();
+		loadBeanDefinitions(context, mergedConfig);
 		return context;
 	}
 
 	public ApplicationContext loadContext(String... locations) throws Exception {
 		GenericWebApplicationContext context = new GenericWebApplicationContext();
 		prepareContext(context);
-		new XmlBeanDefinitionReader(context).loadBeanDefinitions(locations);
-		AnnotationConfigUtils.registerAnnotationConfigProcessors(context);
-		context.refresh();
-		context.registerShutdownHook();
+		loadBeanDefinitions(context, locations);
 		return context;
 	}
 
@@ -75,9 +68,20 @@ public class GenericWebXmlContextLoader extends AbstractContextLoader {
 		context.setServletContext(this.servletContext);
 	}
 
+	protected void loadBeanDefinitions(GenericWebApplicationContext context, String[] locations) {
+		new XmlBeanDefinitionReader(context).loadBeanDefinitions(locations);
+		AnnotationConfigUtils.registerAnnotationConfigProcessors(context);
+		context.refresh();
+		context.registerShutdownHook();
+	}
+
+	protected void loadBeanDefinitions(GenericWebApplicationContext context, MergedContextConfiguration mergedConfig) {
+		new AnnotatedBeanDefinitionReader(context).register(mergedConfig.getClasses());
+		loadBeanDefinitions(context, mergedConfig.getLocations());
+	}
+
 	@Override
 	protected String getResourceSuffix() {
 		return "-context.xml";
 	}
-
 }

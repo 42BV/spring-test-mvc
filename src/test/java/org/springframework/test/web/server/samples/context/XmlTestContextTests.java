@@ -41,20 +41,20 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(
-		loader=TestGenericWebXmlContextLoader.class,
+		loader=WebContextLoader.class,
 		locations={"/org/springframework/test/web/server/samples/servlet-context.xml"})
-public class TestContextTests {
+public class XmlTestContextTests {
 
 	@Autowired
 	private WebApplicationContext wac;
-	
+
 	private MockMvc mockMvc;
-	
+
 	@Before
 	public void setup() {
 		this.mockMvc = MockMvcBuilders.webApplicationContextSetup(this.wac).build();
 	}
-	
+
 	@Test
 	public void tilesDefinitions() throws Exception {
 		this.mockMvc.perform(get("/"))
@@ -62,13 +62,5 @@ public class TestContextTests {
 				.andExpect(forwardedUrl("/WEB-INF/layouts/standardLayout.jsp"));
 	}
 
-}
-
-class TestGenericWebXmlContextLoader extends GenericWebXmlContextLoader {
-
-	public TestGenericWebXmlContextLoader() {
-		super("src/test/resources/META-INF/web-resources", false);
-	}
-	
 }
 
