@@ -73,7 +73,7 @@ public class ModelResultMatchers {
 	/**
 	 * TODO
 	 */
-	public <T> ResultMatcher attributeHasErrors(final String... names) {
+	public ResultMatcher attributeHasErrors(final String... names) {
 		return new ResultMatcher() {
 			public void match(MvcResult mvcResult) throws Exception {
 				ModelAndView mav = mvcResult.getModelAndView();
@@ -83,6 +83,22 @@ public class ModelResultMatchers {
 					assertTrue("No BindingResult for attribute: " + name, result != null);
 					assertTrue("No errors for attribute: " + name, result.hasErrors());
 				}
+			}
+		};
+	}
+
+	/**
+	 * TODO
+	 */
+	public <T> ResultMatcher attributeErrors(final String name, final Matcher<T> matcher) {
+		return new ResultMatcher() {
+			public void match(MvcResult mvcResult) throws Exception {
+				ModelAndView mav = mvcResult.getModelAndView();
+				assertTrue("No ModelAndView found", mav != null);
+				BindingResult result = (BindingResult) mav.getModel().get(BindingResult.MODEL_KEY_PREFIX + name);
+				assertTrue("No BindingResult for attribute: " + name, result != null);
+				assertTrue("No errors for attribute: " + name, result.hasErrors());
+				MatcherAssert.assertThat("Model attribute error", (T) result.getAllErrors(), matcher);
 			}
 		};
 	}
