@@ -25,6 +25,7 @@ import java.util.Map;
 import javax.servlet.ServletContext;
 import javax.servlet.http.Cookie;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -49,6 +50,8 @@ public class DefaultRequestBuilder implements RequestBuilder {
 	private final MultiValueMap<String, String> parameters = new LinkedMultiValueMap<String, String>();
 
 	private final MultiValueMap<String, Object> headers = new LinkedMultiValueMap<String, Object>();
+
+	private final HttpHeaders httpHeaders = new HttpHeaders();
 
 	private String contentType;
 
@@ -103,6 +106,11 @@ public class DefaultRequestBuilder implements RequestBuilder {
 
 	public DefaultRequestBuilder header(String name, Object value, Object... values) {
 		addToMultiValueMap(headers, name, value, values);
+		return this;
+	}
+
+	public DefaultRequestBuilder headers(HttpHeaders httpHeaders) {
+		this.httpHeaders.putAll(httpHeaders);
 		return this;
 	}
 
@@ -181,6 +189,11 @@ public class DefaultRequestBuilder implements RequestBuilder {
 				request.addHeader(name, value);
 			}
 		}
+		for (String name : httpHeaders.keySet()) {
+			for (Object value : httpHeaders.get(name)) {
+				request.addHeader(name, value);
+			}
+		}
 		for (String name : attributes.keySet()) {
 			request.setAttribute(name, attributes.get(name));
 		}
@@ -223,5 +236,4 @@ public class DefaultRequestBuilder implements RequestBuilder {
 			map.get(name).addAll(Arrays.asList(values));
 		}
 	}
-
 }

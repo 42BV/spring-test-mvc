@@ -18,7 +18,9 @@ package org.springframework.test.web.client;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.test.web.AssertionErrors;
@@ -85,6 +87,23 @@ public abstract class RequestMatchers {
 	}
 
 	/**
+	 * Expects a request to a URI containing the given string.
+	 *
+	 * @param value the request URI
+	 * @return the request matcher
+	 */
+	public static RequestMatcher requestToContains(final String value) {
+		Assert.notNull(value, "'value' must not be null");
+		return new RequestMatcher() {
+			public void match(ClientHttpRequest request) throws AssertionError {
+				URI uri = request.getURI();
+				AssertionErrors.assertTrue("Expected URI <" + uri + "> to contain <" + value + ">",
+						uri.toString().contains(value));
+			}
+		};
+	}
+
+	/**
 	 * Expects the given request header
 	 * 
 	 * @param header the header name
@@ -97,8 +116,9 @@ public abstract class RequestMatchers {
 		return new RequestMatcher() {
 			public void match(ClientHttpRequest request) throws AssertionError {
 				List<String> actual = request.getHeaders().get(header);
-				AssertionErrors.assertTrue("Expected header in request: " + header, actual != null);
-				AssertionErrors.assertTrue("Unexpected header", actual.contains(value));
+				AssertionErrors.assertTrue("Expected header <" + header + "> in request", actual != null);
+				AssertionErrors.assertTrue("Expected value <" + value + "> in header <" + header + ">",
+						actual.contains(value));
 			}
 		};
 	}
@@ -116,7 +136,7 @@ public abstract class RequestMatchers {
 		return new RequestMatcher() {
 			public void match(ClientHttpRequest request) throws AssertionError {
 				List<String> actualHeaders = request.getHeaders().get(header);
-				AssertionErrors.assertTrue("Expected header in request: " + header, actualHeaders != null);
+				AssertionErrors.assertTrue("Expected header <" + header + "> in request", actualHeaders != null);
 
 				boolean foundMatch = false;
 				for (String headerValue : actualHeaders) {
@@ -126,8 +146,31 @@ public abstract class RequestMatchers {
 					}
 				}
 
-				AssertionErrors.assertTrue("Header \"" + header + "\" didn't contain expected text <" + substring + ">",
+				AssertionErrors.assertTrue("Expected value containing <" + substring + "> in header <" + header + ">",
 						foundMatch);
+			}
+		};
+	}
+
+	/**
+	 * Expects all of the given request headers
+	 *
+	 * @param headers the headers
+	 * @return the request matcher
+	 */
+	public static RequestMatcher headers(final HttpHeaders headers) {
+		Assert.notNull(headers, "'headers' must not be null");
+		return new RequestMatcher() {
+			public void match(ClientHttpRequest request) throws AssertionError {
+				for (Map.Entry<String,List<String>> entry : headers.entrySet()) {
+					String header = entry.getKey();
+					List<String> actual = request.getHeaders().get(header);
+					AssertionErrors.assertTrue("Expected header <" + header + "> in request", actual != null);
+					for (String value : entry.getValue()) {
+						AssertionErrors.assertTrue("Expected value <" + value + "> in header <" + header + ">",
+								actual.contains(value));
+					}
+				}
 			}
 		};
 	}
