@@ -27,41 +27,40 @@ import static org.springframework.test.web.server.setup.MockMvcBuilders.xmlConfi
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.server.MockMvc;
 import org.springframework.web.servlet.resource.DefaultServletHttpRequestHandler;
 
 /**
  * Tests that need to have the web application root configured to allow access
- * to web application resources -- e.g. serving .js and .css files, loading 
- * Tiles definitions, etc. 
- * 
+ * to web application resources -- e.g. serving .js and .css files, loading
+ * Tiles definitions, etc.
+ *
  * @author Rossen Stoyanchev
  */
 public class WarRootDirectoryTests {
-	
+
 	private static MockMvc mockMvc;
-	
-	@BeforeClass 
+
+	@BeforeClass
 	public static void setup() {
-		
+
 		// Indicate where the webapp root is located.
 		// That can be classpath or JVM-relative (e.g. "src/main/webapp").
-		
+
 		String warRootDir = "src/test/resources/META-INF/web-resources";
 		boolean isClasspathRelative = false;
 
 		// Use this flag to switch between Java and XML-based configuration
 		boolean useJavaConfig = true;
-		
+
 		if (useJavaConfig) {
 			mockMvc =
 				annotationConfigSetup(WebConfig.class)
 					.configureWebAppRootDir(warRootDir, isClasspathRelative)
-					.build();		
+					.build();
 		}
 		else {
-			mockMvc = 
+			mockMvc =
 				xmlConfigSetup("classpath:org/springframework/test/web/server/samples/servlet-context.xml")
 					.configureWebAppRootDir(warRootDir, isClasspathRelative)
 					.build();
@@ -69,7 +68,7 @@ public class WarRootDirectoryTests {
 	}
 
 	// Tiles definitions (i.e. TilesConfigurer -> "/WEB-INF/**/tiles.xml").
-	
+
 	@Test
 	public void tilesDefinitions() throws Exception {
 		mockMvc.perform(get("/"))
@@ -88,7 +87,7 @@ public class WarRootDirectoryTests {
 	}
 
 	// Resource request forwarded to the default servlet (i.e. <mvc:default-servlet-handler />).
-	
+
 	@Test
 	public void resourcesViaDefaultServlet() throws Exception {
 		mockMvc.perform(get("/unknown/resource"))

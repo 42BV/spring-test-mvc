@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,10 +33,10 @@ import org.springframework.web.context.WebApplicationContext;
 
 /**
  * TestContext framework tests.
- * 
- * The TestContext framework doesn't support WebApplicationContext yet: 
+ *
+ * The TestContext framework doesn't support WebApplicationContext yet:
  * https://jira.springsource.org/browse/SPR-5243
- * 
+ *
  * A custom {@link ContextLoader} loads a WebApplicationContext.
  */
 @RunWith(SpringJUnit4ClassRunner.class)
