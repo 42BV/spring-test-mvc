@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public class ModelResultMatchers {
 			}
 		};
 	}
-	
+
 	/**
 	 * Syntactic sugar, equivalent to:
 	 * <pre>
@@ -52,7 +52,7 @@ public class ModelResultMatchers {
 	public ResultMatcher attribute(String name, Object value) {
 		return attribute(name, Matchers.equalTo(value));
 	}
-	
+
 	/**
 	 * Syntactic sugar, equivalent to:
 	 * <pre>
@@ -90,22 +90,6 @@ public class ModelResultMatchers {
 	/**
 	 * TODO
 	 */
-	public <T> ResultMatcher attributeErrors(final String name, final Matcher<T> matcher) {
-		return new ResultMatcher() {
-			public void match(MvcResult mvcResult) throws Exception {
-				ModelAndView mav = mvcResult.getModelAndView();
-				assertTrue("No ModelAndView found", mav != null);
-				BindingResult result = (BindingResult) mav.getModel().get(BindingResult.MODEL_KEY_PREFIX + name);
-				assertTrue("No BindingResult for attribute: " + name, result != null);
-				assertTrue("No errors for attribute: " + name, result.hasErrors());
-				MatcherAssert.assertThat("Model attribute error", (T) result.getAllErrors(), matcher);
-			}
-		};
-	}
-
-	/**
-	 * TODO
-	 */
 	public <T> ResultMatcher hasNoErrors() {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
@@ -118,7 +102,7 @@ public class ModelResultMatchers {
 			}
 		};
 	}
-	
+
 	/**
 	 * Assert the number of attributes excluding BindingResult instances.
 	 */
