@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@ package org.springframework.test.web.client;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 
-import org.springframework.http.HttpHeaders;
+import org.hamcrest.Matcher;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.test.web.AssertionErrors;
@@ -29,7 +30,7 @@ import org.springframework.util.Assert;
 /**
  * Factory methods for {@link RequestMatcher} classes. Typically used to provide input for
  * {@link MockRestServiceServer#expect(RequestMatcher)}.
- * 
+ *
  * @author Arjen Poutsma
  * @author Craig Walls
  */
@@ -39,7 +40,7 @@ public abstract class RequestMatchers {
 
 	/**
 	 * Expects any request.
-	 * 
+	 *
 	 * @return the request matcher
 	 */
 	public static RequestMatcher anything() {
@@ -51,7 +52,7 @@ public abstract class RequestMatchers {
 
 	/**
 	 * Expects the given {@link HttpMethod}.
-	 * 
+	 *
 	 * @param method the HTTP method
 	 * @return the request matcher
 	 */
@@ -65,67 +66,71 @@ public abstract class RequestMatchers {
 	}
 
 	/**
+	 * Expects a request to a URI string verified with the given matcher.
+	 *
+	 * @param uri the request URI
+	 * @return the request matcher
+	 */
+	public static RequestMatcher requestTo(final Matcher<String> matcher) {
+		Assert.notNull(matcher, "'matcher' must not be null");
+		return new RequestMatcher() {
+			public void match(ClientHttpRequest request) throws IOException, AssertionError {
+				MatcherAssert.assertThat("Request URI", request.getURI().toString(), matcher);
+			}
+		};
+	}
+
+	/**
 	 * Expects a request to the given URI.
-	 * 
+	 *
 	 * @param uri the request URI
 	 * @return the request matcher
 	 */
 	public static RequestMatcher requestTo(String uri) {
 		Assert.notNull(uri, "'uri' must not be null");
-		return requestTo(URI.create(uri));
+		return requestTo(Matchers.equalTo(uri));
 	}
 
 	/**
 	 * Expects a request to the given URI.
-	 * 
+	 *
 	 * @param uri the request URI
 	 * @return the request matcher
 	 */
-	public static RequestMatcher requestTo(URI uri) {
+	public static RequestMatcher requestTo(final URI uri) {
 		Assert.notNull(uri, "'uri' must not be null");
-		return new UriMatcher(uri);
-	}
-
-	/**
-	 * Expects a request to a URI containing the given string.
-	 *
-	 * @param value the request URI
-	 * @return the request matcher
-	 */
-	public static RequestMatcher requestToContains(final String value) {
-		Assert.notNull(value, "'value' must not be null");
 		return new RequestMatcher() {
-			public void match(ClientHttpRequest request) throws AssertionError {
-				URI uri = request.getURI();
-				AssertionErrors.assertTrue("Expected URI <" + uri + "> to contain <" + value + ">",
-						uri.toString().contains(value));
+			public void match(ClientHttpRequest request) throws IOException, AssertionError {
+				AssertionErrors.assertEquals("Unexpected request", uri, request.getURI());
 			}
 		};
 	}
 
 	/**
 	 * Expects the given request header
-	 * 
+	 *
 	 * @param header the header name
 	 * @param value the header value
 	 * @return the request matcher
 	 */
-	public static RequestMatcher header(final String header, final String value) {
+	public static RequestMatcher header(final String header, final String... values) {
 		Assert.notNull(header, "'header' must not be null");
-		Assert.notNull(value, "'value' must not be null");
+		Assert.notEmpty(values, "'values' must not be empty");
 		return new RequestMatcher() {
 			public void match(ClientHttpRequest request) throws AssertionError {
 				List<String> actual = request.getHeaders().get(header);
 				AssertionErrors.assertTrue("Expected header <" + header + "> in request", actual != null);
-				AssertionErrors.assertTrue("Expected value <" + value + "> in header <" + header + ">",
-						actual.contains(value));
+				for (String value : values) {
+					AssertionErrors.assertTrue("Expected value <" + value + "> in header <" + header + ">",
+							actual.contains(value));
+				}
 			}
 		};
 	}
-	
+
 	/**
 	 * Expects that the specified request header contains a subtring
-	 * 
+	 *
 	 * @param header the header name
 	 * @param substring the substring that must appear in the header
 	 * @return the request matcher
@@ -153,31 +158,8 @@ public abstract class RequestMatchers {
 	}
 
 	/**
-	 * Expects all of the given request headers
-	 *
-	 * @param headers the headers
-	 * @return the request matcher
-	 */
-	public static RequestMatcher headers(final HttpHeaders headers) {
-		Assert.notNull(headers, "'headers' must not be null");
-		return new RequestMatcher() {
-			public void match(ClientHttpRequest request) throws AssertionError {
-				for (Map.Entry<String,List<String>> entry : headers.entrySet()) {
-					String header = entry.getKey();
-					List<String> actual = request.getHeaders().get(header);
-					AssertionErrors.assertTrue("Expected header <" + header + "> in request", actual != null);
-					for (String value : entry.getValue()) {
-						AssertionErrors.assertTrue("Expected value <" + value + "> in header <" + header + ">",
-								actual.contains(value));
-					}
-				}
-			}
-		};
-	}
-
-	/**
 	 * Expects the given request body content
-	 * 
+	 *
 	 * @param body the request body
 	 * @return the request matcher
 	 */
