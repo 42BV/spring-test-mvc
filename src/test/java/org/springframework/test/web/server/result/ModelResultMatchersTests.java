@@ -24,7 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.StubMvcResult;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -35,63 +35,103 @@ public class ModelResultMatchersTests {
 
 	private ModelResultMatchers matchers;
 
-	private ModelAndView mav;
-
-	private ModelAndView mavWithError;
+	private MvcResult mvcResult;
+	private MvcResult mvcResultWithError;
 
 	@Before
 	public void setUp() throws Exception {
 		this.matchers = new ModelResultMatchers();
 
-		this.mav = new ModelAndView("view", "good", "good");
+		ModelAndView mav = new ModelAndView("view", "good", "good");
+		BindingResult bindingResult = new BeanPropertyBindingResult("good", "good");
+		mav.addObject(BindingResult.MODEL_KEY_PREFIX + "good", bindingResult);
+
+		this.mvcResult = getMvcResult(mav);
 
 		Date date = new Date();
-		BindingResult bindingResult = new BindException(date, "date");
-		bindingResult.rejectValue("time", "error");
+		BindingResult bindingResultWithError = new BeanPropertyBindingResult(date, "date");
+		bindingResultWithError.rejectValue("time", "error");
 
-		this.mavWithError = new ModelAndView("view", "good", "good");
-		this.mavWithError.addObject("date", date);
-		this.mavWithError.addObject(BindingResult.MODEL_KEY_PREFIX + "date", bindingResult);
+		ModelAndView mavWithError = new ModelAndView("view", "good", "good");
+		mavWithError.addObject("date", date);
+		mavWithError.addObject(BindingResult.MODEL_KEY_PREFIX + "date", bindingResultWithError);
+
+		this.mvcResultWithError = getMvcResult(mavWithError);
 	}
 
 	@Test
 	public void attributeExists() throws Exception {
-		this.matchers.attributeExists("good").match(getMvcResult(this.mav));
+		this.matchers.attributeExists("good").match(this.mvcResult);
 	}
 
 	@Test(expected=AssertionError.class)
 	public void attributeExists_doesNotExist() throws Exception {
-		this.matchers.attributeExists("bad").match(getMvcResult(this.mav));
+		this.matchers.attributeExists("bad").match(this.mvcResult);
 	}
 
 	@Test
 	public void attribute_equal() throws Exception {
-		this.matchers.attribute("good", is("good")).match(getMvcResult(this.mav));
+		this.matchers.attribute("good", is("good")).match(this.mvcResult);
 	}
 
 	@Test(expected=AssertionError.class)
 	public void attribute_notEqual() throws Exception {
-		this.matchers.attribute("good", is("bad")).match(getMvcResult(this.mav));
+		this.matchers.attribute("good", is("bad")).match(this.mvcResult);
 	}
 
 	@Test
 	public void hasNoErrors() throws Exception {
-		this.matchers.hasNoErrors().match(getMvcResult(this.mav));
+		this.matchers.hasNoErrors().match(this.mvcResult);
 	}
 
 	@Test(expected=AssertionError.class)
 	public void hasNoErrors_withErrors() throws Exception {
-		this.matchers.hasNoErrors().match(getMvcResult(this.mavWithError));
+		this.matchers.hasNoErrors().match(this.mvcResultWithError);
 	}
 
 	@Test
 	public void attributeHasErrors() throws Exception {
-		this.matchers.attributeHasErrors("date").match(getMvcResult(this.mavWithError));
+		this.matchers.attributeHasErrors("date").match(this.mvcResultWithError);
 	}
 
 	@Test(expected=AssertionError.class)
 	public void attributeHasErrors_withoutErrors() throws Exception {
-		this.matchers.attributeHasErrors("good").match(getMvcResult(this.mavWithError));
+		this.matchers.attributeHasErrors("good").match(this.mvcResultWithError);
+	}
+
+	@Test
+	public void attributeHasNoErrors() throws Exception {
+		this.matchers.attributeHasNoErrors("good").match(this.mvcResult);
+	}
+
+	@Test(expected=AssertionError.class)
+	public void attributeHasNoErrors_withoutAttribute() throws Exception {
+		this.matchers.attributeHasNoErrors("missing").match(this.mvcResultWithError);
+	}
+
+	@Test(expected=AssertionError.class)
+	public void attributeHasNoErrors_withErrors() throws Exception {
+		this.matchers.attributeHasNoErrors("date").match(this.mvcResultWithError);
+	}
+
+	@Test
+	public void attributeHasFieldErrors() throws Exception {
+		this.matchers.attributeHasFieldErrors("date", "time").match(this.mvcResultWithError);
+	}
+
+	@Test(expected=AssertionError.class)
+	public void attributeHasFieldErrors_withoutAttribute() throws Exception {
+		this.matchers.attributeHasFieldErrors("missing", "bad").match(this.mvcResult);
+	}
+
+	@Test(expected=AssertionError.class)
+	public void attributeHasFieldErrors_withoutErrorsForAttribute() throws Exception {
+		this.matchers.attributeHasFieldErrors("date", "time").match(this.mvcResult);
+	}
+
+	@Test(expected=AssertionError.class)
+	public void attributeHasFieldErrors_withoutErrorsForField() throws Exception {
+		this.matchers.attributeHasFieldErrors("date", "good", "time").match(this.mvcResultWithError);
 	}
 
 	private MvcResult getMvcResult(ModelAndView modelAndView) {

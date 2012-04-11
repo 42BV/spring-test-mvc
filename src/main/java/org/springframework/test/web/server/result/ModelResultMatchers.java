@@ -22,7 +22,6 @@ import static org.springframework.test.web.AssertionErrors.assertTrue;
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.springframework.test.web.AssertionErrors;
 import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 import org.springframework.validation.BindingResult;
@@ -76,12 +75,42 @@ public class ModelResultMatchers {
 	public ResultMatcher attributeHasErrors(final String... names) {
 		return new ResultMatcher() {
 			public void match(MvcResult mvcResult) throws Exception {
-				ModelAndView mav = mvcResult.getModelAndView();
-				assertTrue("No ModelAndView found", mav != null);
+				ModelAndView mav = getModelAndView(mvcResult);
 				for (String name : names) {
-					BindingResult result = (BindingResult) mav.getModel().get(BindingResult.MODEL_KEY_PREFIX + name);
-					assertTrue("No BindingResult for attribute: " + name, result != null);
+					BindingResult result = getBindingResult(mav, name);
 					assertTrue("No errors for attribute: " + name, result.hasErrors());
+				}
+			}
+		};
+	}
+
+	/**
+	 * TODO
+	 */
+	public ResultMatcher attributeHasNoErrors(final String... names) {
+		return new ResultMatcher() {
+			public void match(MvcResult mvcResult) throws Exception {
+				ModelAndView mav = getModelAndView(mvcResult);
+				for (String name : names) {
+					BindingResult result = getBindingResult(mav, name);
+					assertTrue("No errors for attribute: " + name, !result.hasErrors());
+				}
+			}
+		};
+	}
+
+	/**
+	 * TODO
+	 */
+	public ResultMatcher attributeHasFieldErrors(final String name, final String... fieldNames) {
+		return new ResultMatcher() {
+			public void match(MvcResult mvcResult) throws Exception {
+				ModelAndView mav = getModelAndView(mvcResult);
+				BindingResult result = getBindingResult(mav, name);
+				assertTrue("No errors for attribute: " + name, result.hasErrors());
+				for (final String fieldName : fieldNames) {
+					assertTrue("No errors for field: " + fieldName + " of attribute: " + name,
+							result.hasFieldErrors(fieldName));
 				}
 			}
 		};
@@ -93,8 +122,8 @@ public class ModelResultMatchers {
 	public <T> ResultMatcher hasNoErrors() {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
-				assertTrue("No ModelAndView found", result.getModelAndView() != null);
-				for (Object value : result.getModelAndView().getModel().values()) {
+				ModelAndView mav = getModelAndView(result);
+				for (Object value : mav.getModel().values()) {
 					if (value instanceof BindingResult) {
 						assertTrue("Unexpected binding error(s): " + value, !((BindingResult) value).hasErrors());
 					}
@@ -109,9 +138,9 @@ public class ModelResultMatchers {
 	public <T> ResultMatcher size(final int size) {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
-				AssertionErrors.assertTrue("No ModelAndView found", result.getModelAndView() != null);
+				ModelAndView mav = getModelAndView(result);
 				int actual = 0;
-				for (String key : result.getModelAndView().getModel().keySet()) {
+				for (String key : mav.getModel().keySet()) {
 					if (!key.startsWith(BindingResult.MODEL_KEY_PREFIX)) {
 						actual++;
 					}
@@ -121,4 +150,15 @@ public class ModelResultMatchers {
 		};
 	}
 
+	private ModelAndView getModelAndView(MvcResult mvcResult) {
+		ModelAndView mav = mvcResult.getModelAndView();
+		assertTrue("No ModelAndView found", mav != null);
+		return mav;
+	}
+
+	private BindingResult getBindingResult(ModelAndView mav, String name) {
+		BindingResult result = (BindingResult) mav.getModel().get(BindingResult.MODEL_KEY_PREFIX + name);
+		assertTrue("No BindingResult for attribute: " + name, result != null);
+		return result;
+	}
 }

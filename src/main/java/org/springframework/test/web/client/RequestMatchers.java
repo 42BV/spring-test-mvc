@@ -68,7 +68,7 @@ public abstract class RequestMatchers {
 	/**
 	 * Expects a request to a URI string verified with the given matcher.
 	 *
-	 * @param uri the request URI
+	 * @param matcher the request URI matcher
 	 * @return the request matcher
 	 */
 	public static RequestMatcher requestTo(final Matcher<String> matcher) {
@@ -110,7 +110,7 @@ public abstract class RequestMatchers {
 	 * Expects the given request header
 	 *
 	 * @param header the header name
-	 * @param value the header value
+	 * @param values the header values
 	 * @return the request matcher
 	 */
 	public static RequestMatcher header(final String header, final String... values) {
