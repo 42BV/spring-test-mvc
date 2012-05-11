@@ -74,6 +74,8 @@ public class DefaultRequestBuilder implements RequestBuilder {
 	private String servletPath = "";
 
 	private String pathInfo;
+	
+	private boolean secure = false;
 
 	/** Use methods on {@link MockMvc} to obtain a new instance. */
 	DefaultRequestBuilder(URI uri, HttpMethod method) {
@@ -171,6 +173,11 @@ public class DefaultRequestBuilder implements RequestBuilder {
 		this.pathInfo = pathInfo;
 		return this;
 	}
+	
+	public DefaultRequestBuilder secure(boolean secure){
+		this.secure = secure;
+		return this;
+	}
 
 	public MockHttpServletRequest buildRequest(ServletContext servletContext) {
 
@@ -209,6 +216,7 @@ public class DefaultRequestBuilder implements RequestBuilder {
 		request.setContextPath(contextPath);
 		request.setServletPath(servletPath);
 		request.setPathInfo(pathInfo);
+		request.setSecure(secure);
 
 		if (locale != null) {
 			request.addPreferredLocale(locale);
