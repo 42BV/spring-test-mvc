@@ -43,42 +43,42 @@ import org.springframework.util.Assert;
  */
 public class MockMvc {
 
-    private final TestDispatcherServlet dispatcherServlet;
+	private final TestDispatcherServlet dispatcherServlet;
 
 	private final ServletContext servletContext;
 
-    /**
-     * Protected constructor not for direct instantiation.
-     * @see org.springframework.test.web.server.setup.MockMvcBuilders
-     */
+	/**
+	 * Protected constructor not for direct instantiation.
+	 * @see org.springframework.test.web.server.setup.MockMvcBuilders
+	 */
 	protected MockMvc(TestDispatcherServlet dispatcherServlet) {
 		this.dispatcherServlet = dispatcherServlet;
 		this.servletContext = this.dispatcherServlet.getServletContext();
 		Assert.notNull(this.servletContext, "A ServletContext is required");
 	}
 
-    /**
-     * Execute a request and return a {@link ResultActions} instance that wraps
-     * the results and enables further actions such as setting up expectations.
-     *
-     * @param requestBuilder used to prepare the request to execute;
-     * see static factory methods in
-     * {@link org.springframework.test.web.server.request.MockMvcRequestBuilders}
+	/**
+	 * Execute a request and return a {@link ResultActions} instance that wraps
+	 * the results and enables further actions such as setting up expectations.
+	 *
+	 * @param requestBuilder used to prepare the request to execute;
+	 * see static factory methods in
+	 * {@link org.springframework.test.web.server.request.MockMvcRequestBuilders}
 	 * @return A ResultActions instance; never {@code null}
 	 * @throws Exception any exception not handled by a HandlerExceptionResolver occurs
 	 * @see org.springframework.test.web.server.request.MockMvcRequestBuilders
 	 * @see org.springframework.test.web.server.result.MockMvcResultMatchers
-     */
-    public ResultActions perform(RequestBuilder requestBuilder) throws Exception {
+	 */
+	public ResultActions perform(RequestBuilder requestBuilder) throws Exception {
 
-    	final MockHttpServletRequest request = requestBuilder.buildRequest(this.servletContext);
-        final MockHttpServletResponse response = new MockHttpServletResponse();
+		MockHttpServletRequest request = requestBuilder.buildRequest(this.servletContext);
+		MockHttpServletResponse response = new MockHttpServletResponse();
 
-        this.dispatcherServlet.service(request, response);
+		this.dispatcherServlet.service(request, response);
 
 		final MvcResult result = this.dispatcherServlet.getMvcResult(request);
 
-        return new ResultActions() {
+		return new ResultActions() {
 
 			public ResultActions andExpect(ResultMatcher matcher) throws Exception {
 				matcher.match(result);
@@ -94,6 +94,6 @@ public class MockMvc {
 				return result;
 			}
 		};
-    }
+	}
 
 }
