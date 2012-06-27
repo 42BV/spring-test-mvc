@@ -34,13 +34,13 @@ public class PrintingResultHandlerTests {
 
 	@Test
 	public void testPrint() throws Exception {
-		
-		// Not testing anything, just to see the output
-		
-		standaloneSetup(new SimpleController()).build().perform(get("/")).andDo(print());
+
+		// Not testing anything, uncomment to see the output
+
+		// standaloneSetup(new SimpleController()).build().perform(get("/")).andDo(print());
 	}
 
-	
+
 	@Controller
 	@SuppressWarnings("unused")
 	private static class SimpleController {

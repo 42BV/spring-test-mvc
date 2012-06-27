@@ -40,8 +40,8 @@ import static org.springframework.test.web.server.setup.MockMvcBuilders.annotati
  * @author Thomas Bruyelle
  */
 @RunWith ( SpringJUnit4ClassRunner.class )
-@ContextConfiguration ( classes = ParentContextTest.MyServiceConfig.class, loader = AnnotationConfigContextLoader.class )
-public class ParentContextTest {
+@ContextConfiguration ( classes = ParentContextTests.MyServiceConfig.class, loader = AnnotationConfigContextLoader.class )
+public class ParentContextTests {
 
 	@Autowired
 	private ApplicationContext serviceContext;

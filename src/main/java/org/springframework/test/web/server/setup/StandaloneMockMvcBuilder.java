@@ -246,13 +246,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 		handlerAdapter.afterPropertiesSet();
 		wac.addBean("requestMappingHandlerAdapter", handlerAdapter);
 
-		try {
-			wac.addBean("handlerExceptionResolver", config.handlerExceptionResolver());
-		}
-		catch (Exception e) {
-			// TODO remove when throws is removed from underlying method
-			e.printStackTrace();
-		}
+		wac.addBean("handlerExceptionResolver", config.handlerExceptionResolver());
 
 		wac.addBeans(initViewResolvers(wac));
 		wac.addBean(DispatcherServlet.LOCALE_RESOLVER_BEAN_NAME, this.localeResolver);

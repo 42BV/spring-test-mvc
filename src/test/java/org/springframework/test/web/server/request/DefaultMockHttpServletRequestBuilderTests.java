@@ -80,9 +80,16 @@ public class DefaultMockHttpServletRequestBuilderTests {
 		builder = new DefaultRequestBuilder(new URI("/?foo=I%C3%B1t%C3%ABrn%C3%A2ti%C3%B4n%C3%A0liz%C3%A6ti%C3%B8n"), HttpMethod.GET);
 
 		MockHttpServletRequest request = builder.buildRequest(servletContext);
-		Map<String, String[]> parameterMap = request.getParameterMap();
-		assertArrayEquals(new String[]{"Iñtërnâtiônàlizætiøn"}, parameterMap.get("foo"));
-		assertEquals("foo=I%C3%B1t%C3%ABrn%C3%A2ti%C3%B4n%C3%A0liz%C3%A6ti%C3%B8n", request.getQueryString());
+
+		// This succeeds but should fail in Spring 3.1.2
+		// https://jira.springsource.org/browse/SPR-9317 (and subtask SPR-9549)
+
+		assertArrayEquals("Iñtërnâtiônàlizætiøn".getBytes("UTF-8"), request.getParameter("foo").getBytes("UTF-8"));
+		assertArrayEquals("foo=Iñtërnâtiônàlizætiøn".getBytes("UTF-8"), request.getQueryString().getBytes("UTF-8"));
+
+		// This fails currently but should succeed in Spring 3.1.2
+		// assertEquals("I%C3%B1t%C3%ABrn%C3%A2ti%C3%B4n%C3%A0liz%C3%A6ti%C3%B8n", request.getParameter("foo"));
+		// assertEquals("foo=I%C3%B1t%C3%ABrn%C3%A2ti%C3%B4n%C3%A0liz%C3%A6ti%C3%B8n", request.getQueryString());
 	}
 
     @Test

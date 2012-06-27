@@ -41,6 +41,21 @@
                     </execution>
                 </executions>
             </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.12</version>
+                <configuration>
+                    <includes>
+                        <include>**/*Tests.java</include>
+                    </includes>
+                    <excludes>
+                        <exclude>**/Abstract*.java</exclude>
+                    </excludes>
+                    <junitArtifactName>junit:junit</junitArtifactName>
+                    <argLine>-Xmx512m</argLine>
+                </configuration>
+			</plugin>
         </plugins>
     </build>
 
@@ -224,17 +239,8 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <includes>
-                        <include>**/*Tests.java</include>
-                    </includes>
-                    <excludes>
-                        <exclude>**/Abstract*.java</exclude>
-                    </excludes>
-                    <junitArtifactName>junit:junit</junitArtifactName>
-                    <argLine>-Xmx512m</argLine>
-                </configuration>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>2.12</version>
             </plugin>
         </plugins>
     </reporting>

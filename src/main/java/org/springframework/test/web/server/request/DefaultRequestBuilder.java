@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
+import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
@@ -191,8 +192,16 @@ public class DefaultRequestBuilder implements RequestBuilder {
 		String requestUri = UriComponentsBuilder.fromUri(this.uri).query(null).fragment(null).build().toString();
 		request.setRequestURI(requestUri);
 
-		String queryString = UriComponentsBuilder.fromUri(this.uri).build().getQuery();
+		UriComponents uriComponents = UriComponentsBuilder.fromUri(this.uri).build();
+		String queryString = uriComponents.getQuery();
 		request.setQueryString(queryString);
+
+		MultiValueMap<String, String> queryParams = uriComponents.getQueryParams();
+		for (String name : queryParams.keySet()) {
+			for (String value : queryParams.get(name)) {
+				request.addParameter(name, value);
+			}
+		}
 
 		for (String name : this.parameters.keySet()) {
 			for (String value : this.parameters.get(name)) {

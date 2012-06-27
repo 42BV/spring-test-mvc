@@ -32,8 +32,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Examples of expectations on the status and the status reason found in the response. 
- * 
+ * Examples of expectations on the status and the status reason found in the response.
+ *
  * @author Rossen Stoyanchev
  */
 public class StatusResultMatcherTests {
@@ -49,26 +49,26 @@ public class StatusResultMatcherTests {
 	public void testStatusInt() throws Exception {
 		this.mockMvc.perform(get("/created")).andExpect(status().is(201));
 		this.mockMvc.perform(get("/badRequest")).andExpect(status().is(400));
-	}	
+	}
 
 	@Test
 	public void testHttpStatus() throws Exception {
 		this.mockMvc.perform(get("/created")).andExpect(status().isCreated());
 		this.mockMvc.perform(get("/badRequest")).andExpect(status().isBadRequest());
-	}	
+	}
 
 // TODO: allOf() doesn't compile from the MVN CLI
-	
+
 //	@Test
 //	public void testMatcher() throws Exception {
 //		this.mockMvc.perform(get("/badRequest"))
 //			.andExpect(status().is(allOf(greaterThanOrEqualTo(400), lessThan(500))));
-//	}	
+//	}
 
 	@Test
 	public void testReasonEqualTo() throws Exception {
 		this.mockMvc.perform(get("/badRequest")).andExpect(status().reason("Expired token"));
-		
+
 		// Hamcrest matchers...
 		this.mockMvc.perform(get("/badRequest")).andExpect(status().reason(equalTo("Expired token")));
 	}
@@ -78,12 +78,12 @@ public class StatusResultMatcherTests {
 		this.mockMvc.perform(get("/badRequest"))
 			.andExpect(status().reason(endsWith("token")));
 	}
-	
-	
+
+
 	@Controller
 	@SuppressWarnings("unused")
 	private static class StatusController {
-		
+
 		@RequestMapping("/created")
 		@ResponseStatus(HttpStatus.CREATED)
 		public @ResponseBody void created(){

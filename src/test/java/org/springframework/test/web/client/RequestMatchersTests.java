@@ -24,7 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpMethod;
 
-public class RequestMatchersTest {
+public class RequestMatchersTests {
 
 	private MockClientHttpRequest request;
 
