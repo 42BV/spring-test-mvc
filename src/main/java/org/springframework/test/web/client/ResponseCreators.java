@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,89 +15,161 @@
  */
 package org.springframework.test.web.client;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.net.URI;
+import java.nio.charset.Charset;
 
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequest;
-import org.springframework.util.Assert;
 
 /**
- * Factory methods for {@link ResponseCreator} classes. Typically used to provide input for {@link
- * ResponseActions#andRespond(ResponseCreator)}.
+ * Provides static methods with different ways to prepare a {@link ResponseCreator} instance.
  *
- * @author Arjen Poutsma
- * @author Craig Walls
+ * @author Rossen Stoyanchev
  */
 public abstract class ResponseCreators {
+
 	private ResponseCreators() {
 	}
 
 	/**
-	 * Respond with a given response body, headers, status code, and status text.
-	 * 
-	 * @param responseBody the body of the response
+	 * Factory method for a 200 (OK) response without a body.
+	 */
+	public static DefaultResponseCreator withSuccess() {
+		return new DefaultResponseCreator(HttpStatus.OK);
+	}
+
+	/**
+	 * Factory method for a 200 (OK) response with content.
+	 * @param content the response content, a "UTF-8" string
+	 * @param mediaType the type of the content, may be {@code null}
+	 */
+	public static DefaultResponseCreator withSuccess(String content, MediaType mediaType) {
+		return new DefaultResponseCreator(HttpStatus.OK).body(content).contentType(mediaType);
+	}
+
+	/**
+	 * Factory method for a 200 (OK) response with content.
+	 * @param content the response content from a byte array
+	 * @param mediaType the type of the content, may be {@code null}
+	 */
+	public static DefaultResponseCreator withSuccess(byte[] content, MediaType contentType) {
+		return new DefaultResponseCreator(HttpStatus.OK).body(content).contentType(contentType);
+	}
+
+	/**
+	 * Factory method for a 200 (OK) response with content.
+	 * @param content the response content from a {@link Resource}
+	 * @param mediaType the type of the content, may be {@code null}
+	 */
+	public static DefaultResponseCreator withSuccess(Resource content, MediaType contentType) {
+		return new DefaultResponseCreator(HttpStatus.OK).body(content).contentType(contentType);
+	}
+
+	/**
+	 * Factory method for a 201 (CREATED) response with a {@code Location} header.
+	 * @param location the value for the {@code Location} header
+	 */
+	public static DefaultResponseCreator withCreatedEntity(URI location) {
+		return new DefaultResponseCreator(HttpStatus.CREATED).location(location);
+	}
+
+	/**
+	 * Factory method for a 204 (NO_CONTENT) response.
+	 */
+	public static DefaultResponseCreator withNoContent() {
+		return new DefaultResponseCreator(HttpStatus.NO_CONTENT);
+	}
+
+	/**
+	 * Factory method for a 400 (BAD_REQUEST) response.
+	 */
+	public static DefaultResponseCreator withBadRequest() {
+		return new DefaultResponseCreator(HttpStatus.BAD_REQUEST);
+	}
+
+	/**
+	 * Factory method for a 401 (UNAUTHORIZED) response.
+	 */
+	public static DefaultResponseCreator withUnauthorizedRequest() {
+		return new DefaultResponseCreator(HttpStatus.UNAUTHORIZED);
+	}
+
+	/**
+	 * Factory method for a 500 (SERVER_ERROR) response.
+	 */
+	public static DefaultResponseCreator withServerError() {
+		return new DefaultResponseCreator(HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
+	public static DefaultResponseCreator withStatus(HttpStatus status) {
+		return new DefaultResponseCreator(status);
+	}
+
+	/**
+	 * Respond with a given body, headers, status code, and status text.
+	 *
+	 * @param body the body of the response "UTF-8" encoded
 	 * @param headers the response headers
 	 * @param statusCode the response status code
 	 * @param statusText the response status text
-	 * @return a {@link ResponseCreator}
+	 *
+	 * @deprecated in favor of methods returning DefaultResponseCreator
 	 */
-	public static ResponseCreator withResponse(final String responseBody, final HttpHeaders headers,
+	public static ResponseCreator withResponse(final String body, final HttpHeaders headers,
 			final HttpStatus statusCode, final String statusText) {
-		Assert.notNull(responseBody, "'responseBody' must not be null");
+
 		return new ResponseCreator() {
-			public MockClientHttpResponse createResponse(ClientHttpRequest request) {
-				return new MockClientHttpResponse(responseBody, headers, statusCode, statusText);
+			public MockClientHttpResponse createResponse(ClientHttpRequest request) throws IOException {
+				return new MockClientHttpResponse(body.getBytes(Charset.forName("UTF-8")), headers, statusCode);
 			}
 		};
 	}
-	
+
 	/**
-	 * Response with a given response body and headers. The response status code is HTTP 200 (OK).
-	 * @param responseBody the body of the response
+	 * Respond with the given body, headers, and a status code of 200 (OK).
+	 *
+	 * @param body the body of the response "UTF-8" encoded
 	 * @param headers the response headers
-	 * @return a {@link ResponseCreator}
+	 *
+	 * @deprecated in favor of methods returning DefaultResponseCreator
 	 */
-	public static ResponseCreator withResponse(String responseBody, HttpHeaders headers) {
-		return withResponse(responseBody, headers, HttpStatus.OK, "");
+	public static ResponseCreator withResponse(String body, HttpHeaders headers) {
+		return withResponse(body, headers, HttpStatus.OK, "");
 	}
 
 	/**
-	 * Respond with a given response body (from a {@link Resource}) and headers. The response status code is HTTP 200 (OK).
-	 * 
-	 * @param responseBodyResource a {@link Resource} containing the body of the response
+	 * Respond with a given body, headers, status code, and text.
+	 *
+	 * @param body a {@link Resource} containing the body of the response
 	 * @param headers the response headers
 	 * @param statusCode the response status code
 	 * @param statusText the response status text
-	 * @return a {@link ResponseCreator}
+	 *
+	 * @deprecated in favor of methods returning DefaultResponseCreator
 	 */
-	public static ResponseCreator withResponse(final Resource responseBodyResource, final HttpHeaders headers,
-			final HttpStatus statusCode, final String statusText) {
-		return withResponse(readResource(responseBodyResource), headers, statusCode, statusText);
-	}
-	
-	/**
-	 * Response with a given response body and headers. The response status code is HTTP 200 (OK).
-	 * @param responseBody the body of the response
-	 * @param headers the response headers
-	 * @return a {@link ResponseCreator}
-	 */
-	public static ResponseCreator withResponse(Resource responseBody, HttpHeaders headers) {
-		return withResponse(responseBody, headers, HttpStatus.OK, "");
+	public static ResponseCreator withResponse(final Resource body, final HttpHeaders headers,
+			final HttpStatus statusCode, String statusText) {
+
+		return new ResponseCreator() {
+			public MockClientHttpResponse createResponse(ClientHttpRequest request) throws IOException {
+				return new MockClientHttpResponse(body.getInputStream(), headers, HttpStatus.OK);
+			}
+		};
 	}
 
-	private static String readResource(Resource resource) {
-		StringBuilder resourceText = new StringBuilder();
-		try {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()));
-			while (reader.ready()) {
-				resourceText.append(reader.readLine() + "\n");
-			}
-		} catch (IOException e) {
-		}
-		return resourceText.toString();
+	/**
+	 * Respond with the given body, headers, and a status code of 200 (OK).
+	 * @param body the body of the response
+	 * @param headers the response headers
+	 *
+	 * @deprecated in favor of methods returning DefaultResponseCreator
+	 */
+	public static ResponseCreator withResponse(final Resource body, final HttpHeaders headers) {
+		return withResponse(body, headers, HttpStatus.OK, "");
 	}
+
 }

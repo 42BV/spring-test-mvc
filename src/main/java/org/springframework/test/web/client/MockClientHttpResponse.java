@@ -18,70 +18,60 @@ package org.springframework.test.web.client;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.FileCopyUtils;
 
 /**
  * Mock implementation of {@link ClientHttpResponse}.
- * 
- * @author Arjen Poutsma
- * @author Lukas Krecan
+ *
  * @author Craig Walls
+ * @author Rossen Stoyanchev
  */
 public class MockClientHttpResponse implements ClientHttpResponse {
-	private InputStream bodyStream;
-	private byte[] body;
+
+	private InputStream body;
+
 	private final HttpHeaders headers;
-	private final HttpStatus statusCode;
-	private final String statusText;
 
-	public MockClientHttpResponse(String body, HttpHeaders headers, HttpStatus statusCode, String statusText) {
-		this(stringToInputStream(body), headers, statusCode, statusText);
+	private final HttpStatus status;
+
+	public MockClientHttpResponse(byte[] body, HttpHeaders headers, HttpStatus statusCode) {
+		this(bodyAsInputStream(body), headers, statusCode);
 	}
 
-	public MockClientHttpResponse(InputStream bodyStream, HttpHeaders headers, HttpStatus statusCode, String statusText) {
-		this.bodyStream = bodyStream;
+	private static InputStream bodyAsInputStream(byte[] body) {
+		return (body != null) ? new ByteArrayInputStream(body) : null;
+	}
+
+	public MockClientHttpResponse(InputStream body, HttpHeaders headers, HttpStatus statusCode) {
+		this.body = body;
 		this.headers = headers;
-		this.statusCode = statusCode;
-		this.statusText = statusText;
+		this.status = statusCode;
 	}
 
-	public InputStream getBody() throws IOException {
-		if (body == null) {
-			body = FileCopyUtils.copyToByteArray(bodyStream);
-		}
-		return new ByteArrayInputStream(body);
+	public InputStream getBody() {
+		return this.body;
 	}
 
 	public HttpHeaders getHeaders() {
-		return headers;
+		return this.headers;
 	}
 
 	public HttpStatus getStatusCode() throws IOException {
-		return statusCode;
+		return this.status;
 	}
 
 	public String getStatusText() throws IOException {
-		return statusText;
+		return this.status.getReasonPhrase();
 	}
 
 	public int getRawStatusCode() throws IOException {
-		return statusCode.value();
+		return this.status.value();
 	}
 
 	public void close() {
-	}
-
-	private static InputStream stringToInputStream(String in) {
-		try {
-			return new ByteArrayInputStream(in.getBytes("UTF-8"));
-		} catch (UnsupportedEncodingException shouldntHappen) {
-			return null;
-		}
 	}
 
 }

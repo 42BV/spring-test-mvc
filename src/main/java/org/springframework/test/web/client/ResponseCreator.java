@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,26 @@
  */
 package org.springframework.test.web.client;
 
+import java.io.IOException;
+
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 
 /**
- * Allows for creating up responses. Implementations of this interface are returned by {@link ResponseCreators}.
+ * Allows for creating responses. Implementations of this interface can be obtained
+ * through {@link ResponseCreators}.
  *
  * @author Arjen Poutsma
  * @author Lukas Krecan
  * @author Craig Walls
  */
 public interface ResponseCreator {
-	
+
 	/**
 	 * Create a response for the given request
 	 *
 	 * @param request the request
 	 */
-	ClientHttpResponse createResponse(ClientHttpRequest request);
+	ClientHttpResponse createResponse(ClientHttpRequest request) throws IOException;
+
 }
