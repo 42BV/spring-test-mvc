@@ -1,3 +1,4 @@
+
 Spring MVC Test Support
 =======================
 
@@ -56,7 +57,7 @@ The API is designed to be fluent and readable. Therefore to learn we recommend w
 Eclipse developers should add the following classes as "Favorites" under Preferences/Java/Editor/Content Assist: 
 _MockMvcBuilders.*_, _MockMvcRequestBuilders.*_, _MockMvcResultMatchers.*_, and _MockMvcResultHandlers.*_. 
 
-Now when you use _Ctrl+Space_, Eclipse will suggest matching static factory methods from those classes.  
+Now when you use _Ctrl+Space_, Eclipse will suggest matching static factory methods from those classes.
 
 Limitations
 -----------
@@ -65,8 +66,18 @@ Most rendering technologies should work as expected. For _Tiles_ and _JSP_, whil
 
 Maven
 =====
-You can get it from the Spring Maven Snapshot repository:
-http://maven.springframework.org/snapshot
+
+To get the first milestone release, use the SpringSource Artifactory `libs-milestone` repository:
+http://repo.springsource.org/libs-milestone
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test-mvc</artifactId>
+      <version>1.0.0.M1</version>
+    </dependency
+
+To get the latest snapshot (as well milestones), use the SpringSource Artifactory `libs-snapshot` repository:
+http://repo.springsource.org/libs-snapshot
 
     <dependency>
       <groupId>org.springframework</groupId>
