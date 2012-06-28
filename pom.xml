@@ -4,7 +4,7 @@
     <groupId>org.springframework</groupId>
     <artifactId>spring-test-mvc</artifactId>
     <description>Client and Server-Side Spring MVC Test Support</description>
-    <version>1.0.0.M1</version>
+    <version>1.0.0.BUILD-SNAPSHOT</version>
 
     <properties>
         <spring.framework.version>3.1.1.RELEASE</spring.framework.version>
