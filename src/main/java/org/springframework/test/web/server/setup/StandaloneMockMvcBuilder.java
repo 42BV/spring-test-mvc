@@ -100,6 +100,10 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 
 	private FlashMapManager flashMapManager = null;
 
+	private boolean useSuffixPatternMatch = true;
+
+	private boolean useTrailingSlashPatternMatch = true;
+
 	/**
 	 * Protected constructor. Not intended for direct instantiation.
 	 * @see MockMvcBuilders#standaloneSetup(Object...)
@@ -218,6 +222,24 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 		return this;
 	}
 
+	/**
+	 * Whether to use suffix pattern match (".*") when matching patterns to
+	 * requests. If enabled a method mapped to "/users" also matches to "/users.*".
+	 * <p>The default value is {@code true}.
+	 */
+	public void setUseSuffixPatternMatch(boolean useSuffixPatternMatch) {
+		this.useSuffixPatternMatch = useSuffixPatternMatch;
+	}
+
+	/**
+	 * Whether to match to URLs irrespective of the presence of a trailing slash.
+	 * If enabled a method mapped to "/users" also matches to "/users/".
+	 * <p>The default value is {@code true}.
+	 */
+	public void setUseTrailingSlashPatternMatch(boolean useTrailingSlashPatternMatch) {
+		this.useTrailingSlashPatternMatch = useTrailingSlashPatternMatch;
+	}
+
 	@Override
 	protected ServletContext initServletContext() {
 		return new MockServletContext();
@@ -320,6 +342,8 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 		@Override
 		public RequestMappingHandlerMapping requestMappingHandlerMapping() {
 			StaticRequestMappingHandlerMapping handlerMapping = new StaticRequestMappingHandlerMapping();
+			handlerMapping.setUseSuffixPatternMatch(useSuffixPatternMatch);
+			handlerMapping.setUseTrailingSlashMatch(useTrailingSlashPatternMatch);
 			handlerMapping.registerHandlers(StandaloneMockMvcBuilder.this.controllers);
 			handlerMapping.setOrder(0);
 			handlerMapping.setInterceptors(getInterceptors());
