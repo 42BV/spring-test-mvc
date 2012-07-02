@@ -90,7 +90,7 @@ Contributions
 
 If you see anything you'd like to change we encourage taking advantage of github's social coding features by making the change in a [fork of this repository](http://help.github.com/forking/) and sending a pull request. 
 
-To report an issue the Spring Framework forum or the Spring JIRA creating requests under the component _"SpringTEST"_.
+To report an issue, use this project's [issue tracking](https://github.com/SpringSource/spring-test-mvc/issues?sort=updated&state=open).
 
 Before we accept a non-trivial patch or pull request we will need you to sign the [contributor's agreement] (https://support.springsource.com/spring_committer_signup). Signing the contributor's agreement does not grant anyone commit rights to the main repository, but it does mean that we can accept your contributions, and you will get an author credit if we do. Active contributors might be asked to join the core team, and given the ability to merge pull requests.
 
