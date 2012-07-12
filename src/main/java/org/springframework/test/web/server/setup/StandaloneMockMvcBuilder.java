@@ -108,7 +108,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	 * Protected constructor. Not intended for direct instantiation.
 	 * @see MockMvcBuilders#standaloneSetup(Object...)
 	 */
-	protected StandaloneMockMvcBuilder(Object[] controllers) {
+	protected StandaloneMockMvcBuilder(Object... controllers) {
 		Assert.isTrue(!ObjectUtils.isEmpty(controllers), "At least one controller is required");
 		this.controllers = controllers;
 	}
