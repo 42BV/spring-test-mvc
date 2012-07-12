@@ -29,8 +29,19 @@ import org.springframework.test.context.support.AbstractContextLoader;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 
+import com.sun.xml.internal.ws.server.UnsupportedMediaException;
+
 import javax.servlet.RequestDispatcher;
 
+/**
+ * This class is here temporarily until the TestContext framework provides
+ * support for WebApplicationContext yet:
+ *
+ * https://jira.springsource.org/browse/SPR-5243
+ *
+ * <p>After that this class will no longer be needed. It's provided here as an example
+ * and to serve as a temporary solution.
+ */
 public class GenericWebContextLoader extends AbstractContextLoader {
 	protected final MockServletContext servletContext;
 
@@ -57,10 +68,8 @@ public class GenericWebContextLoader extends AbstractContextLoader {
 	}
 
 	public ApplicationContext loadContext(String... locations) throws Exception {
-		GenericWebApplicationContext context = new GenericWebApplicationContext();
-		prepareContext(context);
-		loadBeanDefinitions(context, locations);
-		return context;
+		// should never be called
+		throw new UnsupportedMediaException();
 	}
 
 	protected void prepareContext(GenericWebApplicationContext context) {
