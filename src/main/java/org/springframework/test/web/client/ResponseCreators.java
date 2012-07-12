@@ -17,7 +17,6 @@ package org.springframework.test.web.client;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.charset.Charset;
 
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -124,7 +123,7 @@ public abstract class ResponseCreators {
 
 		return new ResponseCreator() {
 			public MockClientHttpResponse createResponse(ClientHttpRequest request) throws IOException {
-				return new MockClientHttpResponse(body.getBytes(Charset.forName("UTF-8")), headers, statusCode);
+				return new MockClientHttpResponse(body.getBytes("UTF-8"), headers, statusCode);
 			}
 		};
 	}
