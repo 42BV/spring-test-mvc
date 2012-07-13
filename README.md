@@ -74,6 +74,7 @@ http://repo.springsource.org/libs-milestone
       <groupId>org.springframework</groupId>
       <artifactId>spring-test-mvc</artifactId>
       <version>1.0.0.M1</version>
+      <scope>test</scope>
     </dependency
 
 To get the latest snapshot (as well milestones), use the SpringSource Artifactory `libs-snapshot` repository:
@@ -83,6 +84,7 @@ http://repo.springsource.org/libs-snapshot
       <groupId>org.springframework</groupId>
       <artifactId>spring-test-mvc</artifactId>
       <version>1.0.0.BUILD-SNAPSHOT</version>
+      <scope>test</scope>
     </dependency
 
 Contributions
