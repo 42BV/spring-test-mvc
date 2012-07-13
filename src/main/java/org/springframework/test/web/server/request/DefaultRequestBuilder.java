@@ -30,7 +30,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.test.web.server.MockMvc;
 import org.springframework.test.web.server.RequestBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
@@ -79,7 +78,7 @@ public class DefaultRequestBuilder implements RequestBuilder {
 
 	private boolean secure = false;
 
-	/** Use methods on {@link MockMvc} to obtain a new instance. */
+	/** Use methods on {@link MockMvcRequestBuilders} to obtain a new instance. */
 	DefaultRequestBuilder(URI uri, HttpMethod method) {
 		this.uri = uri;
 		this.method = method;
