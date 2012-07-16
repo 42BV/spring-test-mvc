@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.server.RequestBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
@@ -69,6 +70,8 @@ public class DefaultRequestBuilder implements RequestBuilder {
 	private final Map<String, Object> attributes = new LinkedHashMap<String, Object>();
 
 	private final Map<String, Object> sessionAttributes = new LinkedHashMap<String, Object>();
+
+	private MockHttpSession session;
 
 	private Principal principal;
 
@@ -154,6 +157,23 @@ public class DefaultRequestBuilder implements RequestBuilder {
 		return this;
 	}
 
+	public DefaultRequestBuilder sessionAttrs(Map<String, Object> attrs) {
+		Assert.notNull(attrs, "'attrs' must not be null");
+		this.sessionAttributes.putAll(attrs);
+		return this;
+	}
+
+	/**
+	 * Provide an MockHttpSession instance to use, possibly for re-use across tests.
+	 * Attributes provided via {@link #sessionAttr(String, Object)} and
+	 * {@link #sessionAttrs(Map)} will override attributes in the provided session.
+	 */
+	public DefaultRequestBuilder session(MockHttpSession session) {
+		Assert.notNull(session, "'session' must not be null");
+		this.session = session;
+		return this;
+	}
+
 	public DefaultRequestBuilder principal(Principal principal) {
 		Assert.notNull(principal, "'principal' must not be null");
 		this.principal = principal;
@@ -219,6 +239,10 @@ public class DefaultRequestBuilder implements RequestBuilder {
 		}
 		for (String name : this.attributes.keySet()) {
 			request.setAttribute(name, this.attributes.get(name));
+		}
+
+		if (this.session != null) {
+			request.setSession(this.session);
 		}
 		for (String name : this.sessionAttributes.keySet()) {
 			request.getSession().setAttribute(name, this.sessionAttributes.get(name));
