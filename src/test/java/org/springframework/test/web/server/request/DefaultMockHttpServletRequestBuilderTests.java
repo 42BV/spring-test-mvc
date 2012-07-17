@@ -4,6 +4,7 @@ import java.net.URI;
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.mock.web.MockServletContext;
 import org.springframework.util.FileCopyUtils;
 
@@ -209,6 +211,30 @@ public class DefaultMockHttpServletRequestBuilderTests {
 
 		MockHttpServletRequest request = builder.buildRequest(servletContext);
 		assertEquals("bar", request.getSession().getAttribute("foo"));
+	}
+
+	@Test
+	public void sessionAttrs() throws Exception {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("foo", "bar");
+		builder.sessionAttrs(map);
+
+		MockHttpServletRequest request = builder.buildRequest(servletContext);
+		assertEquals("bar", request.getSession().getAttribute("foo"));
+	}
+
+	@Test
+	public void session() throws Exception {
+		MockHttpSession session = new MockHttpSession(servletContext);
+		session.setAttribute("foo", "bar");
+		builder.session(session);
+
+		builder.sessionAttr("baz", "qux");
+
+		MockHttpServletRequest request = builder.buildRequest(servletContext);
+		assertEquals(session, request.getSession());
+		assertEquals("bar", request.getSession().getAttribute("foo"));
+		assertEquals("qux", request.getSession().getAttribute("baz"));
 	}
 
 	@Test
