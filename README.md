@@ -87,8 +87,8 @@ http://repo.springsource.org/libs-snapshot
       <scope>test</scope>
     </dependency
 
-Contributions
-=============
+Contributing
+============
 
 If you see anything you'd like to change we encourage taking advantage of github's social coding features by making the change in a [fork of this repository](http://help.github.com/forking/) and sending a pull request. 
 
@@ -96,8 +96,16 @@ To report an issue, use this project's [issue tracking](https://github.com/Sprin
 
 Before we accept a non-trivial patch or pull request we will need you to sign the [contributor's agreement] (https://support.springsource.com/spring_committer_signup). Signing the contributor's agreement does not grant anyone commit rights to the main repository, but it does mean that we can accept your contributions, and you will get an author credit if we do. Active contributors might be asked to join the core team, and given the ability to merge pull requests.
 
+License
+=======
+
+The Spring Test MVC project is available under version 2.0 of the [Apache License](http://www.apache.org/licenses/LICENSE-2.0).
+
 Acknowledgements
 ================
 
 This project draws inspiration from similar [server-side](http://static.springsource.org/spring-ws/sites/2.0/reference/html/server.html#d4e1487) and [client-side](http://static.springsource.org/spring-ws/sites/2.0/reference/html/client.html#d4e1860) test support introduced in Spring Web Services 2.0.
+
+
+
 
