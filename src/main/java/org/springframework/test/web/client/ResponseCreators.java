@@ -155,7 +155,7 @@ public abstract class ResponseCreators {
 
 		return new ResponseCreator() {
 			public MockClientHttpResponse createResponse(ClientHttpRequest request) throws IOException {
-				return new MockClientHttpResponse(body.getInputStream(), headers, HttpStatus.OK);
+				return new MockClientHttpResponse(body.getInputStream(), headers, statusCode);
 			}
 		};
 	}
