@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
  *
  * @author Rossen Stoyanchev
  */
-class DefaultResponseCreator implements ResponseCreator {
+public class DefaultResponseCreator implements ResponseCreator {
 
 	private byte[] body;
 
