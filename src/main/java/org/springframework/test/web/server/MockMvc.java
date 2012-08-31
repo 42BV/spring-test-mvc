@@ -16,8 +16,12 @@
 
 package org.springframework.test.web.server;
 
-import javax.servlet.ServletContext;
+import java.io.IOException;
 
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+
+import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.util.Assert;
@@ -40,10 +44,13 @@ import org.springframework.util.Assert;
  * </pre>
  *
  * @author Rossen Stoyanchev
+ * @author Rob Winch
  */
 public class MockMvc {
 
-	private final TestDispatcherServlet dispatcherServlet;
+	static String MVC_RESULT_ATTRIBUTE = MockMvc.class.getName().concat(".MVC_RESULT_ATTRIBUTE");
+
+	private final MockFilterChain filterChain;
 
 	private final ServletContext servletContext;
 
@@ -51,10 +58,12 @@ public class MockMvc {
 	 * Protected constructor not for direct instantiation.
 	 * @see org.springframework.test.web.server.setup.MockMvcBuilders
 	 */
-	protected MockMvc(TestDispatcherServlet dispatcherServlet) {
-		this.dispatcherServlet = dispatcherServlet;
-		this.servletContext = this.dispatcherServlet.getServletContext();
-		Assert.notNull(this.servletContext, "A ServletContext is required");
+	protected MockMvc(MockFilterChain filterChain, ServletContext servletContext) {
+		Assert.notNull(servletContext, "A ServletContext is required");
+		Assert.notNull(filterChain, "A MockFilterChain is required");
+
+		this.filterChain = filterChain;
+		this.servletContext = servletContext;
 	}
 
 	/**
@@ -69,29 +78,31 @@ public class MockMvc {
 	 * @see org.springframework.test.web.server.request.MockMvcRequestBuilders
 	 * @see org.springframework.test.web.server.result.MockMvcResultMatchers
 	 */
-	public ResultActions perform(RequestBuilder requestBuilder) throws Exception {
+	public ResultActions perform(RequestBuilder requestBuilder) throws IOException, ServletException {
 
 		MockHttpServletRequest request = requestBuilder.buildRequest(this.servletContext);
 		MockHttpServletResponse response = new MockHttpServletResponse();
 
-		this.dispatcherServlet.service(request, response);
+		final MvcResult mvcResult = new DefaultMvcResult(request, response);
+		request.setAttribute(MVC_RESULT_ATTRIBUTE, mvcResult);
 
-		final MvcResult result = this.dispatcherServlet.getMvcResult(request);
+		this.filterChain.reset();
+		this.filterChain.doFilter(request, response);
 
 		return new ResultActions() {
 
 			public ResultActions andExpect(ResultMatcher matcher) throws Exception {
-				matcher.match(result);
+				matcher.match(mvcResult);
 				return this;
 			}
 
 			public ResultActions andDo(ResultHandler printer) throws Exception {
-				printer.handle(result);
+				printer.handle(mvcResult);
 				return this;
 			}
 
 			public MvcResult andReturn() {
-				return result;
+				return mvcResult;
 			}
 		};
 	}
