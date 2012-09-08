@@ -20,19 +20,17 @@ import java.io.IOException;
 import org.springframework.http.client.ClientHttpRequest;
 
 /**
- * Defines the contract for matching requests to expectations.
- * 
- * @author Arjen Poutsma
- * @author Lukas Krecan
+ * A contract for matching requests to expectations.
+ *
  * @author Craig Walls
  */
 public interface RequestMatcher {
 
 	/**
-	 * Matches the given request message against the expectations.
+	 * Match the given request against some expectations.
 	 *
 	 * @param request the request to make assertions on
-	 * @throws IOException    in case of I/O errors
+	 * @throws IOException in case of I/O errors
 	 * @throws AssertionError if expectations are not met
 	 */
 	void match(ClientHttpRequest request) throws IOException, AssertionError;

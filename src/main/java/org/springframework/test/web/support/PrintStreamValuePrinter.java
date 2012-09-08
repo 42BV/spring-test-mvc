@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,28 +21,28 @@ import java.io.PrintStream;
 import org.springframework.util.CollectionUtils;
 
 /**
- * TODO ...
+ * A {@code ValuePrinter} that writes to a {@link PrintStream}.
  *
  * @author Rossen Stoyanchev
  */
-public class SimpleValuePrinter implements ValuePrinter {
+public class PrintStreamValuePrinter implements ValuePrinter {
 
 	private final PrintStream printStream;
-	
-	public SimpleValuePrinter(PrintStream printStream) {
+
+	public PrintStreamValuePrinter(PrintStream printStream) {
 		this.printStream = printStream;
 	}
 
 	public void printHeading(String heading) {
-		printStream.println();
-		printStream.println(String.format("%20s:", heading));
+		this.printStream.println();
+		this.printStream.println(String.format("%20s:", heading));
 	}
-	
+
 	public void printValue(String label, Object value) {
 		if (value != null && value.getClass().isArray()) {
 			value = CollectionUtils.arrayToList(value);
 		}
-		printStream.println(String.format("%20s = %s", label, value));
+		this.printStream.println(String.format("%20s = %s", label, value));
 	}
 
 }

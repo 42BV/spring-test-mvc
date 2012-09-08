@@ -1,5 +1,5 @@
 /*
- * Copyright 2005-2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  */
 
 /**
- * Contains built-in {@link org.springframework.test.web.server.RequestBuilder} classes.
- * 
- * <p>{@link org.springframework.test.web.server.request.MockMvcRequestBuilders} is 
- * the main class to import to get access to all such implementations.
+ * Contains built-in {@link org.springframework.test.web.server.RequestBuilder}
+ * implementations. Use
+ * {@link org.springframework.test.web.server.request.MockMvcRequestBuilders}
+ * to gain access to instances of those implementations.
  */
 package org.springframework.test.web.server.request;

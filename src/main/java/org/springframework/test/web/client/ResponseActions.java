@@ -16,24 +16,23 @@
 package org.springframework.test.web.client;
 
 /**
- * Allows for setting up responses and additional expectations. Implementations of this interface are returned by
- * {@link MockRestServiceServer#expect(RequestMatcher)}.
- * 
- * @author Arjen Poutsma
- * @author Lukas Krecan
+ * A contract for setting up request expectations and defining a response.
+ * Implementations can be obtained through {@link MockRestServiceServer#expect(RequestMatcher)}.
+ *
  * @author Craig Walls
  */
 public interface ResponseActions {
-	
+
 	/**
-	 * Allows for further expectations to be set on the request.
-	 * @return the request expectations
+	 * Add a request expectation.
+	 * @return the expectation
 	 */
 	ResponseActions andExpect(RequestMatcher requestMatcher);
 
 	/**
-	 * Sets the {@link ResponseCreator} for this mock.
-	 * @param responseCreator the response creator
+	 * Define the response.
+	 * @param responseCreator the creator of the response
 	 */
 	void andRespond(ResponseCreator responseCreator);
+
 }

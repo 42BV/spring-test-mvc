@@ -1,5 +1,5 @@
 /*
- * Copyright 2005-2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,9 @@
  */
 
 /**
- * Contains {@link org.springframework.test.web.server.ResultMatcher}
- * implementations for setting up expectations on the results of an executed
- * request. Most of the implementations are anonymous classes available
- * through static methods via 
- * {@link org.springframework.test.web.server.result.MockMvcResultMatchers}.
- * 
- * <p>Also contains 
- * {@link org.springframework.test.web.server.result.MockMvcResultHandlers}
- * implementations with for general actions on the results of of an executed
- * request. Implementations are available thorugh static methods in
- * {@link org.springframework.test.web.server.result.MockMvcResultHandlers}. 
+ * Contains built-in {@code ResultMatcher} and {@code ResultHandler} implementations.
+ * Use {@link org.springframework.test.web.server.result.MockMvcResultMatchers}
+ * and {@link org.springframework.test.web.server.result.MockMvcResultHandlers}
+ * to access to instances of those implementations.
  */
 package org.springframework.test.web.server.result;

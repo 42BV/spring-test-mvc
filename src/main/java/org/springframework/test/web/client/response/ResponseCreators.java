@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.test.web.client;
+package org.springframework.test.web.client.response;
 
 import java.io.IOException;
 import java.net.URI;
@@ -23,53 +23,60 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.test.web.client.ResponseCreator;
 
 /**
- * Provides static methods with different ways to prepare a {@link ResponseCreator} instance.
+ * Static factory methods for obtaining a {@link ResponseCreator} instance.
+ *
+ * <p><strong>Eclipse users:</strong> consider adding this class as a Java editor
+ * favorite. To navigate, open the Preferences and type "favorites".
  *
  * @author Rossen Stoyanchev
  */
 public abstract class ResponseCreators {
 
+	/**
+	 * Private class constructor.
+	 */
 	private ResponseCreators() {
 	}
 
 	/**
-	 * Factory method for a 200 (OK) response without a body.
+	 * {@code ResponseCreator} for a 200 response (OK).
 	 */
 	public static DefaultResponseCreator withSuccess() {
 		return new DefaultResponseCreator(HttpStatus.OK);
 	}
 
 	/**
-	 * Factory method for a 200 (OK) response with content.
-	 * @param content the response content, a "UTF-8" string
+	 * {@code ResponseCreator} for a 200 response (OK) with String body.
+	 * @param body the response body, a "UTF-8" string
 	 * @param mediaType the type of the content, may be {@code null}
 	 */
-	public static DefaultResponseCreator withSuccess(String content, MediaType mediaType) {
-		return new DefaultResponseCreator(HttpStatus.OK).body(content).contentType(mediaType);
+	public static DefaultResponseCreator withSuccess(String body, MediaType mediaType) {
+		return new DefaultResponseCreator(HttpStatus.OK).body(body).contentType(mediaType);
 	}
 
 	/**
-	 * Factory method for a 200 (OK) response with content.
-	 * @param content the response content from a byte array
+	 * {@code ResponseCreator} for a 200 response (OK) with byte[] body.
+	 * @param body the response body
 	 * @param mediaType the type of the content, may be {@code null}
 	 */
-	public static DefaultResponseCreator withSuccess(byte[] content, MediaType contentType) {
-		return new DefaultResponseCreator(HttpStatus.OK).body(content).contentType(contentType);
+	public static DefaultResponseCreator withSuccess(byte[] body, MediaType contentType) {
+		return new DefaultResponseCreator(HttpStatus.OK).body(body).contentType(contentType);
 	}
 
 	/**
-	 * Factory method for a 200 (OK) response with content.
-	 * @param content the response content from a {@link Resource}
+	 * {@code ResponseCreator} for a 200 response (OK) content with {@link Resource}-based body.
+	 * @param body the response body
 	 * @param mediaType the type of the content, may be {@code null}
 	 */
-	public static DefaultResponseCreator withSuccess(Resource content, MediaType contentType) {
-		return new DefaultResponseCreator(HttpStatus.OK).body(content).contentType(contentType);
+	public static DefaultResponseCreator withSuccess(Resource body, MediaType contentType) {
+		return new DefaultResponseCreator(HttpStatus.OK).body(body).contentType(contentType);
 	}
 
 	/**
-	 * Factory method for a 201 (CREATED) response with a {@code Location} header.
+	 * {@code ResponseCreator} for a 201 response (CREATED) with a 'Location' header.
 	 * @param location the value for the {@code Location} header
 	 */
 	public static DefaultResponseCreator withCreatedEntity(URI location) {
@@ -77,33 +84,37 @@ public abstract class ResponseCreators {
 	}
 
 	/**
-	 * Factory method for a 204 (NO_CONTENT) response.
+	 * {@code ResponseCreator} for a 204 response (NO_CONTENT).
 	 */
 	public static DefaultResponseCreator withNoContent() {
 		return new DefaultResponseCreator(HttpStatus.NO_CONTENT);
 	}
 
 	/**
-	 * Factory method for a 400 (BAD_REQUEST) response.
+	 * {@code ResponseCreator} for a 400 response (BAD_REQUEST).
 	 */
 	public static DefaultResponseCreator withBadRequest() {
 		return new DefaultResponseCreator(HttpStatus.BAD_REQUEST);
 	}
 
 	/**
-	 * Factory method for a 401 (UNAUTHORIZED) response.
+	 * {@code ResponseCreator} for a 401 response (UNAUTHORIZED).
 	 */
 	public static DefaultResponseCreator withUnauthorizedRequest() {
 		return new DefaultResponseCreator(HttpStatus.UNAUTHORIZED);
 	}
 
 	/**
-	 * Factory method for a 500 (SERVER_ERROR) response.
+	 * {@code ResponseCreator} for a 500 response (SERVER_ERROR).
 	 */
 	public static DefaultResponseCreator withServerError() {
 		return new DefaultResponseCreator(HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
+	/**
+	 * {@code ResponseCreator} with a specific HTTP status.
+	 * @param status the response status
+	 */
 	public static DefaultResponseCreator withStatus(HttpStatus status) {
 		return new DefaultResponseCreator(status);
 	}
@@ -134,7 +145,7 @@ public abstract class ResponseCreators {
 	 * @param body the body of the response "UTF-8" encoded
 	 * @param headers the response headers
 	 *
-	 * @deprecated in favor of methods returning DefaultResponseCreator
+	 * @deprecated in favor of methods 'withXyz' in this class returning DefaultResponseCreator
 	 */
 	public static ResponseCreator withResponse(String body, HttpHeaders headers) {
 		return withResponse(body, headers, HttpStatus.OK, "");
@@ -148,7 +159,7 @@ public abstract class ResponseCreators {
 	 * @param statusCode the response status code
 	 * @param statusText the response status text
 	 *
-	 * @deprecated in favor of methods returning DefaultResponseCreator
+	 * @deprecated in favor of methods 'withXyz' in this class returning DefaultResponseCreator
 	 */
 	public static ResponseCreator withResponse(final Resource body, final HttpHeaders headers,
 			final HttpStatus statusCode, String statusText) {
@@ -165,7 +176,7 @@ public abstract class ResponseCreators {
 	 * @param body the body of the response
 	 * @param headers the response headers
 	 *
-	 * @deprecated in favor of methods returning DefaultResponseCreator
+	 * @deprecated in favor of methods 'withXyz' in this class returning DefaultResponseCreator
 	 */
 	public static ResponseCreator withResponse(final Resource body, final HttpHeaders headers) {
 		return withResponse(body, headers, HttpStatus.OK, "");

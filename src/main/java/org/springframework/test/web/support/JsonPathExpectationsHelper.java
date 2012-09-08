@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,48 +28,51 @@ import org.hamcrest.Matchers;
 import com.jayway.jsonpath.JsonPath;
 
 /**
- * TODO ...
+ * A helper class for applying assertions using JSONPath expressions.
  *
  * @author Rossen Stoyanchev
  */
 public class JsonPathExpectationsHelper {
 
 	private final String expression;
-	
+
 	private final JsonPath jsonPath;
 
+
+	/**
+	 * Class constructor.
+	 *
+	 * @param expression the JSONPath expression
+	 * @param args arguments to parameterize the JSONPath expression with using the
+	 * formatting specifiers defined in {@link String#format(String, Object...)}
+	 */
 	public JsonPathExpectationsHelper(String expression, Object ... args) {
 		this.expression = String.format(expression, args);
 		this.jsonPath = JsonPath.compile(this.expression);
 	}
 
 	/**
-	 * TODO
-	 * @throws ParseException 
+	 * Evaluate the JSONPath and assert the resulting value with the given {@code Matcher}.
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> void assertValue(String content, Matcher<T> matcher) throws ParseException {
 		T value = (T) evaluateJsonPath(content);
 		MatcherAssert.assertThat("JSON path: " + expression, value, matcher);
 	}
-	
-	/**
-	 * Evaluate the JSON path against the given content.
-	 * @throws ParseException 
-	 */
+
 	private Object evaluateJsonPath(String content) throws ParseException  {
 		return this.jsonPath.read(content);
 	}
 
 	/**
-	 * TODO
+	 * Apply the JSONPath and assert the resulting value.
 	 */
 	public void assertValue(Object value) throws ParseException {
 		assertValue(Matchers.equalTo(value));
 	}
-	
+
 	/**
-	 * TODO
+	 * Evaluate the JSON path and assert the resulting content exists.
 	 */
 	public void exists(String content) throws ParseException {
 		Object value = evaluateJsonPath(content);
@@ -81,7 +84,7 @@ public class JsonPathExpectationsHelper {
 	}
 
 	/**
-	 * TODO
+	 * Evaluate the JSON path and assert it doesn't point to any content.
 	 */
 	public void doesNotExist(String content) throws ParseException {
 		Object value = evaluateJsonPath(content);
@@ -93,5 +96,5 @@ public class JsonPathExpectationsHelper {
 			assertTrue(reason, value == null);
 		}
 	}
-	
+
 }

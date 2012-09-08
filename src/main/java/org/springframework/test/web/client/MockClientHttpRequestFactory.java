@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,58 +17,88 @@ package org.springframework.test.web.client;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.springframework.http.HttpMethod;
+import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.util.Assert;
 
 /**
- * Mock implementation of {@link ClientHttpRequestFactory}. Contains a list of expected {@link MockClientHttpRequest}s,
- * and iterates over those.
- * 
- * @author Arjen Poutsma
- * @author Lukas Krecan
+ * Mock implementation of {@code ClientHttpRequestFactory} that maintains a list
+ * of expected requests and returns each expected request whenever
+ * {@link #createRequest(URI, HttpMethod)} is called.
+ *
  * @author Craig Walls
+ * @author Rossen Stoyanchev
  */
 public class MockClientHttpRequestFactory implements ClientHttpRequestFactory {
 
-	private final List<MockClientHttpRequest> expectedRequests = new LinkedList<MockClientHttpRequest>();
+	private final List<MockClientHttpRequest> expected = new LinkedList<MockClientHttpRequest>();
 
-	private Iterator<MockClientHttpRequest> requestIterator;
+	private final List<MockClientHttpRequest> executed = new ArrayList<MockClientHttpRequest>();
 
-	public MockClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) throws IOException {
+	private Iterator<MockClientHttpRequest> iterator;
+
+
+	public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) throws IOException {
 		Assert.notNull(uri, "'uri' must not be null");
 		Assert.notNull(httpMethod, "'httpMethod' must not be null");
 
-		if (requestIterator == null) {
-			requestIterator = expectedRequests.iterator();
-		}
-		if (!requestIterator.hasNext()) {
-			throw new AssertionError("No further requests expected");
-		}
+		initializeIterator();
 
-		MockClientHttpRequest currentRequest = requestIterator.next();
-		currentRequest.setUri(uri);
-		currentRequest.setHttpMethod(httpMethod);
-		return currentRequest;
+		MockClientHttpRequest request = this.iterator.next();
+		request.setUri(uri);
+		request.setMethod(httpMethod);
+
+		this.executed.add(request);
+
+		return request;
 	}
 
-	MockClientHttpRequest expectNewRequest() {
-		Assert.state(requestIterator == null, "Can not expect another request, the test is already underway");
-		MockClientHttpRequest request = new MockClientHttpRequest();
-		expectedRequests.add(request);
+	private void initializeIterator() throws AssertionError {
+		if (this.iterator == null) {
+			this.iterator = this.expected.iterator();
+		}
+		if (!this.iterator.hasNext()) {
+			throw new AssertionError("No further requests expected");
+		}
+	}
+
+	MockClientHttpRequest expectRequest(RequestMatcher requestMatcher) {
+		Assert.state(this.iterator == null, "Can't add more expectations when test is already underway");
+		MockClientHttpRequest request = new MockClientHttpRequest(requestMatcher);
+		this.expected.add(request);
 		return request;
 	}
 
 	void verifyRequests() {
-		if (expectedRequests.isEmpty()) {
+		if (this.expected.isEmpty() || this.expected.equals(this.executed)) {
 			return;
 		}
-		if (requestIterator == null || requestIterator.hasNext()) {
-			throw new AssertionError("Further request(s) expected");
-		}
+		throw new AssertionError(getVerifyMessage());
 	}
+
+	private String getVerifyMessage() {
+		StringBuilder sb = new StringBuilder("Further request(s) expected\n");
+
+		if (this.executed.size() > 0) {
+			sb.append("The following ");
+		}
+		sb.append(this.executed.size()).append(" out of ");
+		sb.append(this.expected.size()).append(" were executed");
+
+		if (this.executed.size() > 0) {
+			sb.append(":\n");
+			for (MockClientHttpRequest request : this.executed) {
+				sb.append(request.toString()).append("\n");
+			}
+		}
+
+		return sb.toString();
+	}
+
 }

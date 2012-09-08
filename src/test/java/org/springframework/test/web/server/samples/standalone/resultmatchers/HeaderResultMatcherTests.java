@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,22 +27,22 @@ import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.stereotype.Controller;
+import org.springframework.test.web.Person;
 import org.springframework.test.web.server.MockMvc;
-import org.springframework.test.web.server.samples.standalone.Person;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.WebRequest;
 
 /**
- * Examples of expectations on response header values. 
- * 
+ * Examples of expectations on response header values.
+ *
  * @author Rossen Stoyanchev
  */
 public class HeaderResultMatcherTests {
 
 	private MockMvc mockMvc;
-	
+
 	private PersonController personController;
 
 	@Before
@@ -66,7 +66,7 @@ public class HeaderResultMatcherTests {
 		this.mockMvc.perform(get("/persons/1").header("If-Modified-Since", currentTime - (1000 * 60)))
 			.andExpect(header().longValue("Last-Modified", currentTime));
 	}
-	
+
 	@Test
 	public void testMatcher() throws Exception {
 		long currentTime = new Date().getTime();
@@ -78,9 +78,8 @@ public class HeaderResultMatcherTests {
 
 
 	@Controller
-	@SuppressWarnings("unused")
 	private static class PersonController {
-		
+
 		private long timestamp;
 
 		public void setStubTimestamp(long timestamp) {
@@ -95,7 +94,7 @@ public class HeaderResultMatcherTests {
 			}
 			return new Person("Jason");
 		}
-		
+
 		private long calculateLastModified(long id) {
 			return this.timestamp;
 		}

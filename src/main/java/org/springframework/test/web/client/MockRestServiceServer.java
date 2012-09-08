@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,89 +15,125 @@
  */
 package org.springframework.test.web.client;
 
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.test.web.client.match.RequestMatchers;
+import org.springframework.test.web.client.response.ResponseCreators;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.support.RestGatewaySupport;
 
 /**
- * <strong>Main entry point for client-side REST testing</strong>. Typically used to test a {@link RestTemplate}, set up
- * expectations on request messages, and create response messages.
- * <p/>
- * The typical usage of this class is:
- * <ol>
- * <li>Create a {@code MockRestServiceServer} instance by calling {@link #createServer(RestTemplate)}.
- * <li>Set up request expectations by calling {@link #expect(RequestMatcher)}, possibly by using the default
- * {@link RequestMatcher} implementations provided in {@link RequestMatchers} (which can be statically imported).
- * Multiple expectations can be set up by chaining {@link ResponseActions#andExpect(RequestMatcher)} calls.</li>
- * <li>Create an appropriate response message by calling {@link ResponseActions#andRespond(ResponseCreator)
- * andRespond(ResponseCreator)}, possibly by using the default {@link ResponseCreator} implementations provided in
- * {@link ResponseCreators} (which can be statically imported).</li>
- * <li>Use the {@code RestTemplate} as normal, either directly of through client code.</li>
- * <li>Call {@link #verify()}.
- * </ol>
- * Note that because of the 'fluent' API offered by this class (and related classes), you can typically use the Code
- * Completion features (i.e. ctrl-space) in your IDE to set up the mocks.
- * 
- * @author Arjen Poutsma
- * @author Lukas Krecan
+ * <strong>Main entry point for client-side REST testing</strong>. Used for tests
+ * that involve direct or indirect (through client code) use of the
+ * {@link RestTemplate}. Provides a way to set up fine-grained expectations
+ * on the requests that will be performed through the {@code RestTemplate} and
+ * a way to define the responses to send back removing the need for an
+ * actual running server.
+ *
+ * <p>Below is an example:
+ * <pre>
+ * RestTemplate restTemplate = new RestTemplate()
+ * MockRestServiceServer mockServer = MockRestServiceServer.createServer(restTemplate);
+ *
+ * mockServer.expect(requestTo("/hotels/42")).andExpect(method(HttpMethod.GET))
+ *     .andRespond(withSuccess("{ \"id\" : \"42\", \"name\" : \"Holiday Inn\"}", MediaType.APPLICATION_JSON));
+ *
+ * Hotel hotel = restTemplate.getForObject("/hotels/{id}", Hotel.class, 42);
+ * &#47;&#47; Use the hotel instance...
+ *
+ * mockServer.verify();
+ * </pre>
+ *
+ * <p>To create an instance of this class, use {@link #createServer(RestTemplate)}
+ * and provide the {@code RestTemplate} to set up for the mock testing.
+ *
+ * <p>After that use {@link #expect(RequestMatcher)} and fluent API methods
+ * {@link ResponseActions#andExpect(RequestMatcher) andExpect(RequestMatcher)} and
+ * {@link ResponseActions#andRespond(ResponseCreator) andRespond(ResponseCreator)}
+ * to set up request expectations and responses, most likely relying on the default
+ * {@code RequestMatcher} implementations provided in {@link RequestMatchers}
+ * and the {@code ResponseCreator} implementations provided in
+ * {@link ResponseCreators} both of which can be statically imported.
+ *
+ * <p>At the end of the test use {@link #verify()} to ensure all expected
+ * requests were actually performed.
+ *
+ * <p>Note that because of the fluent API offered by this class (and related
+ * classes), you can typically use the Code Completion features (i.e.
+ * ctrl-space) in your IDE to set up the mocks.
+ *
+ * <p><strong>Credits:</strong> The client-side REST testing support was
+ * inspired by and initially based on similar code in the Spring WS project for
+ * client-side tests involving the {@code WebServiceTemplate}.
+ *
  * @author Craig Walls
+ * @author Rossen Stoyanchev
  */
 public class MockRestServiceServer {
+
 	private final MockClientHttpRequestFactory mockRequestFactory;
 
+
+	/**
+	 * Private constructor.
+	 * @see #createServer(RestTemplate)
+	 * @see #createServer(RestGatewaySupport)
+	 */
 	private MockRestServiceServer(MockClientHttpRequestFactory mockRequestFactory) {
-		Assert.notNull(mockRequestFactory, "'mockRequestFactory' must not be null");
 		this.mockRequestFactory = mockRequestFactory;
 	}
 
 	/**
-	 * Creates a {@code MockRestServiceServer} instance based on the given {@link RestTemplate}.
-	 * 
-	 * @param restTemplate
-	 *            the RestTemplate
-	 * @return the created server
+	 * Create a {@code MockRestServiceServer} and set up the given
+	 * {@code RestTemplate} with a mock {@link ClientHttpRequestFactory}.
+	 *
+	 * @param restTemplate the RestTemplate to set up for mock testing
+	 * @return the created mock server
 	 */
 	public static MockRestServiceServer createServer(RestTemplate restTemplate) {
 		Assert.notNull(restTemplate, "'restTemplate' must not be null");
 
-		MockClientHttpRequestFactory mockRequestFactory = new MockClientHttpRequestFactory();
-		restTemplate.setRequestFactory(mockRequestFactory);
+		MockClientHttpRequestFactory requestFactory = new MockClientHttpRequestFactory();
+		restTemplate.setRequestFactory(requestFactory);
 
-		return new MockRestServiceServer(mockRequestFactory);
-	}
-
-    /**
-     * Creates a {@code MockRestServiceServer} instance based on the given {@link RestGatewaySupport}.
-     *
-     * @param gatewaySupport the client class
-     * @return the created server
-     */
-	public static MockRestServiceServer createServer(RestGatewaySupport gatewaySupport) {
-		Assert.notNull(gatewaySupport, "'gatewaySupport' must not be null");
-		return createServer(gatewaySupport.getRestTemplate());
+		return new MockRestServiceServer(requestFactory);
 	}
 
 	/**
-	 * Records an expectation specified by the given {@link RequestMatcher}. Returns a {@link ResponseActions} object
-	 * that allows for creating the response, or to set up more expectations.
-	 * 
-	 * @param requestMatcher
-	 *            the request matcher expected
-	 * @return the response actions
+	 * Create a {@code MockRestServiceServer} and set up the given
+	 * {@code RestGatewaySupport} with a mock {@link ClientHttpRequestFactory}.
+	 *
+	 * @param restGateway the REST gateway to set up for mock testing
+	 * @return the created mock server
+	 */
+	public static MockRestServiceServer createServer(RestGatewaySupport restGateway) {
+		Assert.notNull(restGateway, "'gatewaySupport' must not be null");
+		return createServer(restGateway.getRestTemplate());
+	}
+
+	/**
+	 * Set up a new HTTP request expectation. The returned {@link ResponseActions}
+	 * is used to set up further expectations and to define the response.
+	 *
+	 * <p>This method may be invoked multiple times before starting the test, i.e.
+	 * before using the {@code RestTemplate}, to set up expectations for multiple
+	 * requests.
+	 *
+	 * @param requestMatcher a request expectation, see {@link RequestMatchers}
+	 * @return used to set up further expectations or to define a response
 	 */
 	public ResponseActions expect(RequestMatcher requestMatcher) {
-		MockClientHttpRequest request = mockRequestFactory.expectNewRequest();
-		request.addRequestMatcher(requestMatcher);
-		return request;
+		return this.mockRequestFactory.expectRequest(requestMatcher);
 	}
 
 	/**
-	 * Verifies that all expectations were met.
-	 * 
-	 * @throws AssertionError
-	 *             in case of unmet expectations
+	 * Verify that all expected requests set up via
+	 * {@link #expect(RequestMatcher)} were indeed performed.
+	 *
+	 * @throws AssertionError when some expectations were not met
 	 */
 	public void verify() {
-		mockRequestFactory.verifyRequests();
+		this.mockRequestFactory.verifyRequests();
 	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,11 @@ public class MultipartRequestBuilder extends DefaultRequestBuilder {
 
 	private final List<MockMultipartFile> files = new ArrayList<MockMultipartFile>();
 
+
+	/**
+	 * Use {@link MockMvcRequestBuilders#fileUpload(String, Object...)} to
+	 * obtain a new instance.
+	 */
 	MultipartRequestBuilder(URI uri) {
 		super(uri, HttpMethod.POST);
 		super.contentType(MediaType.MULTIPART_FORM_DATA);
@@ -55,7 +60,7 @@ public class MultipartRequestBuilder extends DefaultRequestBuilder {
 	}
 
 	/**
-	 * Adds the given MockMultipartFile.
+	 * Add the given MockMultipartFile.
 	 *
 	 * @param file the multipart file
 	 */

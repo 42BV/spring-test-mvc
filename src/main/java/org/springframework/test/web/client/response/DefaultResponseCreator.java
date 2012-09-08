@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.test.web.client;
+package org.springframework.test.web.client.response;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,10 +26,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.test.web.client.ResponseCreator;
 import org.springframework.util.Assert;
 
 /**
- * A default implementation of ResponseCreator with builder-style methods.
+ * A {@code ResponseCreator} with builder-style methods for adding response details.
  *
  * @author Rossen Stoyanchev
  */
@@ -45,13 +46,27 @@ public class DefaultResponseCreator implements ResponseCreator {
 
 
 	/**
-	 * Create an instance with the given status code.
+	 * Protected constructor.
+	 * Use static factory methods in {@link ResponseCreators}.
 	 */
-	public DefaultResponseCreator(HttpStatus statusCode) {
+	protected DefaultResponseCreator(HttpStatus statusCode) {
 		Assert.notNull(statusCode);
 		this.statusCode = statusCode;
 	}
 
+	public ClientHttpResponse createResponse(ClientHttpRequest request) throws IOException {
+		if (this.bodyResource != null ){
+			InputStream stream = this.bodyResource.getInputStream();
+			return new MockClientHttpResponse(stream, this.headers, this.statusCode);
+		}
+		else {
+			return new MockClientHttpResponse(this.body, this.headers, this.statusCode);
+		}
+	}
+
+	/**
+	 * Set the body as a UTF-8 String.
+	 */
 	public DefaultResponseCreator body(String body) {
 		try {
 			this.body = body.getBytes("UTF-8");
@@ -63,11 +78,17 @@ public class DefaultResponseCreator implements ResponseCreator {
 		return this;
 	}
 
+	/**
+	 * Set the body as a byte array.
+	 */
 	public DefaultResponseCreator body(byte[] body) {
 		this.body = body;
 		return this;
 	}
 
+	/**
+	 * Set the body as a {@link Resource}.
+	 */
 	public DefaultResponseCreator body(Resource bodyResource) {
 		this.bodyResource = bodyResource;
 		return this;
@@ -101,16 +122,6 @@ public class DefaultResponseCreator implements ResponseCreator {
 			}
 		}
 		return this;
-	}
-
-	public ClientHttpResponse createResponse(ClientHttpRequest request) throws IOException {
-		if (this.bodyResource != null ){
-			InputStream stream = this.bodyResource.getInputStream();
-			return new MockClientHttpResponse(stream, this.headers, this.statusCode);
-		}
-		else {
-			return new MockClientHttpResponse(this.body, this.headers, this.statusCode);
-		}
 	}
 
 }

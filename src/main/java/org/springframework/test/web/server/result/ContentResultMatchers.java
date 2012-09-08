@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,10 +34,17 @@ import org.springframework.test.web.server.ResultMatcher;
 import org.springframework.test.web.support.XmlExpectationsHelper;
 import org.w3c.dom.Node;
 
+/**
+ * Factory for response content {@code ResultMatcher}'s. An instance of this
+ * class is typically accessed via {@link MockMvcResultMatchers#content()}.
+ *
+ * @author Rossen Stoyanchev
+ * @since 3.2
+ */
 public class ContentResultMatchers {
-	
+
 	private final XmlExpectationsHelper xmlHelper;
-	
+
 	public ContentResultMatchers() {
 		this.xmlHelper = new XmlExpectationsHelper();
 	}
@@ -45,12 +52,12 @@ public class ContentResultMatchers {
 	/**
 	 * Assert the ServletResponse content type.
 	 */
-	public ResultMatcher type(final String contentType) {
+	public ResultMatcher type(String contentType) {
 		return type(MediaType.parseMediaType(contentType));
 	}
-	
+
 	/**
-	 * Assert the ServletResponse content type after parsing it as a MediaType. 
+	 * Assert the ServletResponse content type after parsing it as a MediaType.
 	 */
 	public ResultMatcher type(final MediaType contentType) {
 		return new ResultMatcher() {
@@ -110,10 +117,10 @@ public class ContentResultMatchers {
 	}
 
 	/**
-	 * Parse the response content and the given string as XML and assert the 
+	 * Parse the response content and the given string as XML and assert the
 	 * two are "similar" - i.e. they contain the same elements and attributes
 	 * regardless of order.
-	 * <p>Use of this matcher requires the 
+	 * <p>Use of this matcher requires the
 	 * <a href="http://xmlunit.sourceforge.net/">XMLUnit<a/> library.
 	 * @param xmlContent the expected XML content
 	 * @see MockMvcResultMatchers#xpath(String, Object...)
@@ -123,35 +130,35 @@ public class ContentResultMatchers {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
 				String content = result.getResponse().getContentAsString();
-				ContentResultMatchers.this.xmlHelper.assertXmlEqual(xmlContent, content);
+				xmlHelper.assertXmlEqual(xmlContent, content);
 			}
 		};
 	}
 
 	// TODO: XML validation
-	
+
 	/**
-	 * Parse the content as {@link Node} and apply a {@link Matcher}.
+	 * Parse the response content as {@link Node} and apply the given {@link Matcher}.
 	 * @see org.hamcrest.Matchers#hasXPath
 	 */
 	public ResultMatcher node(final Matcher<? super Node> matcher) {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
 				String content = result.getResponse().getContentAsString();
-				ContentResultMatchers.this.xmlHelper.assertNode(content, matcher);
+				xmlHelper.assertNode(content, matcher);
 			}
 		};
 	}
 
 	/**
-	 * Parse the content as {@link DOMSource} and apply a {@link Matcher}.
-	 * @see <a href="http://code.google.com/p/xml-matchers/">xml-matchers</a> 
+	 * Parse the response content as {@link DOMSource} and apply the given {@link Matcher}.
+	 * @see <a href="http://code.google.com/p/xml-matchers/">xml-matchers</a>
 	 */
 	public ResultMatcher source(final Matcher<? super Source> matcher) {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
 				String content = result.getResponse().getContentAsString();
-				ContentResultMatchers.this.xmlHelper.assertSource(content, matcher);
+				xmlHelper.assertSource(content, matcher);
 			}
 		};
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultHandler;
-import org.springframework.test.web.support.SimpleValuePrinter;
+import org.springframework.test.web.support.PrintStreamValuePrinter;
 import org.springframework.test.web.support.ValuePrinter;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
@@ -35,30 +35,32 @@ import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.util.WebUtils;
 
 /**
- * A convenient base class for ResultHandler implementations that allows sub-classes
- * to match one thing at a time -- the request, the response, etc.
+ * A {@code ResultHandler} that writes request and response details to an
+ * {@link OutputStream}. Use {@link MockMvcResultHandlers#print()} to get access
+ * to an instance that writes to {@code System#out}.
  *
  * @author Rossen Stoyanchev
  */
 public class PrintingResultHandler implements ResultHandler {
 
 	private final OutputStream out;
-	
+
+
 	/**
-	 * Class constructor
-	 * @param out an OutputStream to print to
+	 * Protected class constructor.
+	 * @see MockMvcResultHandlers#print()
 	 */
-	public PrintingResultHandler(OutputStream out) {
+	protected PrintingResultHandler(OutputStream out) {
 		this.out = out;
 	}
 
 	public final void handle(MvcResult mvcResult) throws Exception {
 
 		String encoding = mvcResult.getResponse().getCharacterEncoding();
-		
-		PrintStream printStream = new PrintStream(this.out, true, 
+
+		PrintStream printStream = new PrintStream(this.out, true,
 				(encoding != null) ? encoding : WebUtils.DEFAULT_CHARACTER_ENCODING);
-		
+
 		ValuePrinter printer = createValuePrinter(printStream);
 
 		printer.printHeading("MockHttpServletRequest");
@@ -84,13 +86,11 @@ public class PrintingResultHandler implements ResultHandler {
 	 * Create the ValuePrinter instance to use for printing.
 	 */
 	protected ValuePrinter createValuePrinter(PrintStream printStream) {
-		return new SimpleValuePrinter(printStream);
+		return new PrintStreamValuePrinter(printStream);
 	}
-	
+
 	/**
-	 * Prints the request.
-	 * @param request the request
-	 * @param printer a PrintStream matching the character encoding of the response.a PrintStream matching the character encoding of the response. 
+	 * Print the request.
 	 */
 	protected void printRequest(MockHttpServletRequest request, ValuePrinter printer) throws Exception {
 		printer.printValue("HTTP Method", request.getMethod());
@@ -100,10 +100,7 @@ public class PrintingResultHandler implements ResultHandler {
 	}
 
 	/**
-	 * Prints the handler.
-	 * @param handler the selected handler
-	 * @param interceptors the selected interceptors
-	 * @param printer a ResponsePrinter matching the character encoding of the response.
+	 * Print the handler.
 	 */
 	protected void printHandler(Object handler, HandlerInterceptor[] interceptors, ValuePrinter printer) throws Exception {
 		if (handler == null) {
@@ -122,9 +119,7 @@ public class PrintingResultHandler implements ResultHandler {
 	}
 
 	/**
-	 * Prints exceptions resolved through a HandlerExceptionResolver. 
-	 * @param resolvedException the resolved exception
-	 * @param printer a ResponsePrinter matching the character encoding of the response.
+	 * Print exceptions resolved through a HandlerExceptionResolver.
 	 */
 	protected void printResolvedException(Exception resolvedException, ValuePrinter printer) throws Exception {
 		if (resolvedException == null) {
@@ -136,9 +131,7 @@ public class PrintingResultHandler implements ResultHandler {
 	}
 
 	/**
-	 * Prints the model and the view.
-	 * @param mav the model and view produced
-	 * @param printer a ResponsePrinter matching the character encoding of the response.
+	 * Print the ModelAndView.
 	 */
 	protected void printModelAndView(ModelAndView mav, ValuePrinter printer) throws Exception {
 		printer.printValue("View name", (mav != null) ? mav.getViewName() : null);
@@ -162,9 +155,7 @@ public class PrintingResultHandler implements ResultHandler {
 	}
 
 	/**
-	 * Prints output flash attributes.
-	 * @param flashMap the output FlashMap
-	 * @param printer a ResponsePrinter matching the character encoding of the response.
+	 * Print output flash attributes.
 	 */
 	protected void printFlashMap(FlashMap flashMap, ValuePrinter printer) throws Exception {
 		if (flashMap == null) {
@@ -177,11 +168,9 @@ public class PrintingResultHandler implements ResultHandler {
 			}
 		}
 	}
-	
+
 	/**
-	 * Prints the response.
-	 * @param response the response
-	 * @param printer a ResponsePrinter matching the character encoding of the response.
+	 * Print the response.
 	 */
 	protected void printResponse(MockHttpServletResponse response, ValuePrinter printer) throws Exception {
 		printer.printValue("Status", response.getStatus());
@@ -193,5 +182,5 @@ public class PrintingResultHandler implements ResultHandler {
 		printer.printValue("Redirected URL", response.getRedirectedUrl());
 		printer.printValue("Cookies", response.getCookies());
 	}
-	
+
 }

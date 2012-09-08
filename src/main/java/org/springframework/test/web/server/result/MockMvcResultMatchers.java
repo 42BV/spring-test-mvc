@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,52 +27,52 @@ import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 
 /**
- * The main class to import to access all available {@link ResultMatcher}s.
- * 
- * <p><strong>Eclipse users:</strong> you can add this class as a Java editor 
+ * Contains factory methods for built-in {@link ResultMatcher} implementations.
+ *
+ * <p><strong>Eclipse users:</strong> consider adding this class as a Java editor
  * favorite. To navigate, open the Preferences and type "favorites".
- * 
+ *
  * @author Rossen Stoyanchev
  */
 public abstract class MockMvcResultMatchers {
 
 	/**
-	 * TODO
+	 * Access to request-related matchers.
 	 */
 	public static RequestResultMatchers request() {
 		return new RequestResultMatchers();
 	}
 
 	/**
-	 * TODO
+	 * Access to matchers for the handler that handled the request.
 	 */
 	public static HandlerResultMatchers handler() {
 		return new HandlerResultMatchers();
 	}
 
 	/**
-	 * TODO
+	 * Access to model-related matchers.
 	 */
 	public static ModelResultMatchers model() {
 		return new ModelResultMatchers();
 	}
 
 	/**
-	 * TODO
+	 * Access to matchers for the selected view.
 	 */
 	public static ViewResultMatchers view() {
 		return new ViewResultMatchers();
 	}
-	
+
 	/**
-	 * TODO
+	 * Access to flash attribute matchers.
 	 */
 	public static FlashAttributeResultMatchers flash() {
 		return new FlashAttributeResultMatchers();
 	}
-	
+
 	/**
-	 * Assert the request was forwarded to the given URL.
+	 * Asserts the request was forwarded to the given URL.
 	 */
 	public static ResultMatcher forwardedUrl(final String expectedUrl) {
 		return new ResultMatcher() {
@@ -81,9 +81,9 @@ public abstract class MockMvcResultMatchers {
 			}
 		};
 	}
-	
+
 	/**
-	 * Assert a redirect was issued to the given URL. 
+	 * Asserts the request was redirected to the given URL.
 	 */
 	public static ResultMatcher redirectedUrl(final String expectedUrl) {
 		return new ResultMatcher() {
@@ -92,64 +92,89 @@ public abstract class MockMvcResultMatchers {
 			}
 		};
 	}
-	
+
 	/**
-	 * TODO
+	 * Access to response status matchers.
 	 */
 	public static StatusResultMatchers status() {
 		return new StatusResultMatchers();
 	}
 
 	/**
-	 * TODO
+	 * Access to response header matchers.
 	 */
 	public static HeaderResultMatchers header() {
 		return new HeaderResultMatchers();
 	}
-	
+
 	/**
-	 * TODO
+	 * Access to response body matchers.
 	 */
 	public static ContentResultMatchers content() {
 		return new ContentResultMatchers();
 	}
-	
+
 	/**
-	 * TODO
+	 * Access to response body matchers using a <a
+	 * href="http://goessner.net/articles/JsonPath/">JSONPath</a> expression to
+	 * inspect a specific subset of the body. The JSON path expression can be a
+	 * parameterized string using formatting specifiers as defined in
+	 * {@link String#format(String, Object...)}.
+	 *
+	 * @param expression the JSON path optionally parameterized with arguments
+	 * @param args arguments to parameterize the JSON path expression with
 	 */
 	public static JsonPathResultMatchers jsonPath(String expression, Object ... args) {
 		return new JsonPathResultMatchers(expression, args);
 	}
 
 	/**
-	 * TODO
+	 * Access to response body matchers using a <a
+	 * href="http://goessner.net/articles/JsonPath/">JSONPath</a> expression to
+	 * inspect a specific subset of the body and a Hamcrest match for asserting
+	 * the value found at the JSON path.
+	 *
+	 * @param expression the JSON path expression
+	 * @param matcher a matcher for the value expected at the JSON path
 	 */
 	public static <T> ResultMatcher jsonPath(String expression, Matcher<T> matcher) {
 		return new JsonPathResultMatchers(expression).value(matcher);
 	}
 
 	/**
-	 * TODO
-	 * @throws XPathExpressionException 
+	 * Access to response body matchers using an XPath to inspect a specific
+	 * subset of the body. The XPath expression can be a parameterized string
+	 * using formatting specifiers as defined in
+	 * {@link String#format(String, Object...)}.
+	 *
+	 * @param expression the XPath optionally parameterized with arguments
+	 * @param args arguments to parameterize the XPath expression with
 	 */
 	public static XpathResultMatchers xpath(String expression, Object... args) throws XPathExpressionException {
 		return new XpathResultMatchers(expression, null, args);
 	}
 
 	/**
-	 * TODO
-	 * @throws XPathExpressionException 
+	 * Access to response body matchers using an XPath to inspect a specific
+	 * subset of the body. The XPath expression can be a parameterized string
+	 * using formatting specifiers as defined in
+	 * {@link String#format(String, Object...)}.
+	 *
+	 * @param expression the XPath optionally parameterized with arguments
+	 * @param namespaces namespaces referenced in the XPath expression
+	 * @param args arguments to parameterize the XPath expression with
 	 */
 	public static XpathResultMatchers xpath(String expression, Map<String, String> namespaces, Object... args)
 			throws XPathExpressionException {
+
 		return new XpathResultMatchers(expression, namespaces, args);
 	}
-	
+
 	/**
-	 * TODO
+	 * Access to response cookie result matchers.
 	 */
 	public static CookieResultMatchers cookie() {
 		return new CookieResultMatchers();
 	}
-	
+
 }

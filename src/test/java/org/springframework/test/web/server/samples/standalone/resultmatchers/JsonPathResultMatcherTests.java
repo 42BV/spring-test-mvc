@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,21 +34,23 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.test.web.Person;
 import org.springframework.test.web.server.MockMvc;
-import org.springframework.test.web.server.samples.standalone.Person;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- * Examples of expectations on the content of the response with 
- * <a href="http://goessner.net/articles/JsonPath/">JSONPath</a> expressions. 
- * 
+ * Examples of defining expectations on JSON response content with
+ * <a href="http://goessner.net/articles/JsonPath/">JSONPath</a> expressions.
+ *
  * @author Rossen Stoyanchev
+ *
+ * @see ContentResultMatcherTests
  */
 public class JsonPathResultMatcherTests {
-	
+
 	private MockMvc mockMvc;
 
 	@Before
@@ -58,10 +60,10 @@ public class JsonPathResultMatcherTests {
 
 	@Test
 	public void testExists() throws Exception {
-		
+
 		String composerByName = "$.composers[?(@.name = '%s')]";
 		String performerByName = "$.performers[?(@.name = '%s')]";
-		
+
 		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_JSON))
 			.andExpect(jsonPath(composerByName, "Johann Sebastian Bach").exists())
 			.andExpect(jsonPath(composerByName, "Johannes Brahms").exists())
@@ -73,7 +75,7 @@ public class JsonPathResultMatcherTests {
 			.andExpect(jsonPath("$.composers[1]").exists())
 			.andExpect(jsonPath("$.composers[2]").exists())
 			.andExpect(jsonPath("$.composers[3]").exists());
-			
+
 	}
 
 	@Test
@@ -82,7 +84,7 @@ public class JsonPathResultMatcherTests {
 			.andExpect(jsonPath("$.composers[?(@.name = 'Edvard Grieeeeeeg')]").doesNotExist())
 			.andExpect(jsonPath("$.composers[?(@.name = 'Robert Schuuuuuuman')]").doesNotExist())
 			.andExpect(jsonPath("$.composers[-1]").doesNotExist())
-			.andExpect(jsonPath("$.composers[4]").doesNotExist());			
+			.andExpect(jsonPath("$.composers[4]").doesNotExist());
 	}
 
 	@Test
@@ -98,21 +100,7 @@ public class JsonPathResultMatcherTests {
 	}
 
 	@Test
-	public void testMatcher() throws Exception {
-		
-		String composerName = "$.composers[%s].name";
-		String performerName = "$.performers[%s].name";
-		
-		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath(composerName, 0).value(startsWith("Johann")))
-			.andExpect(jsonPath(performerName, 0).value(endsWith("Ashkenazy")))
-			.andExpect(jsonPath(performerName, 1).value(containsString("di Me")))
-			.andExpect(jsonPath(performerName, "*").value(containsInAnyOrder("Yehudi Menuhin", "Vladimir Ashkenazy")))
-			.andExpect(jsonPath(composerName, 1).value(isIn(Arrays.asList("Johann Sebastian Bach", "Johannes Brahms"))));
-	}
-
-	@Test
-	public void testMatcherInline() throws Exception {
+	public void testHamcrestMatcher() throws Exception {
 		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_JSON))
 			.andExpect(jsonPath("$.composers", hasSize(4)))
 			.andExpect(jsonPath("$.performers", hasSize(equalTo(2))))
@@ -123,10 +111,23 @@ public class JsonPathResultMatcherTests {
 			.andExpect(jsonPath("$.performers[*].name", containsInAnyOrder("Yehudi Menuhin", "Vladimir Ashkenazy")))
 			.andExpect(jsonPath("$.composers[1].name", isIn(Arrays.asList("Johann Sebastian Bach", "Johannes Brahms"))));
 	}
-	
-	
+
+	@Test
+	public void testHamcrestMatcherWithParameterizedJsonPath() throws Exception {
+
+		String composerName = "$.composers[%s].name";
+		String performerName = "$.performers[%s].name";
+
+		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath(composerName, 0).value(startsWith("Johann")))
+			.andExpect(jsonPath(performerName, 0).value(endsWith("Ashkenazy")))
+			.andExpect(jsonPath(performerName, 1).value(containsString("di Me")))
+			.andExpect(jsonPath(performerName, "*").value(containsInAnyOrder("Yehudi Menuhin", "Vladimir Ashkenazy")))
+			.andExpect(jsonPath(composerName, 1).value(isIn(Arrays.asList("Johann Sebastian Bach", "Johannes Brahms"))));
+	}
+
+
 	@Controller
-	@SuppressWarnings("unused")
 	private class MusicController {
 
 		@RequestMapping(value="/music/people")
@@ -137,10 +138,10 @@ public class JsonPathResultMatcherTests {
 			map.add("composers", new Person("Johannes Brahms"));
 			map.add("composers", new Person("Edvard Grieg"));
 			map.add("composers", new Person("Robert Schumann"));
-			
+
 			map.add("performers", new Person("Vladimir Ashkenazy"));
 			map.add("performers", new Person("Yehudi Menuhin"));
-			
+
 			return map;
 		}
 	}

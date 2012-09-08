@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,22 @@ package org.springframework.test.web.server.result;
 
 import org.springframework.test.web.server.ResultHandler;
 
+/**
+ * Contains factory methods for built-in {@link ResultHandler} classes.
+ *
+ * <p><strong>Eclipse users:</strong> consider adding this class as a Java editor
+ * favorite. To navigate, open the Preferences and type "favorites".
+ *
+ * @author Rossen Stoyanchev
+ */
 public abstract class MockMvcResultHandlers {
 
 	/**
-	 * Print the results of an executed request to {@code System.out} using 
+	 * Print the results of an executed request to {@code System.out} using
 	 * the encoding the response.
 	 */
 	public static ResultHandler print() {
 		return new PrintingResultHandler(System.out);
-	}	
+	}
 
 }

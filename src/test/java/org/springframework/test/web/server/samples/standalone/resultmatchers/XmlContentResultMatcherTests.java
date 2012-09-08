@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,31 +36,32 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.test.web.Person;
 import org.springframework.test.web.server.MockMvc;
-import org.springframework.test.web.server.samples.standalone.Person;
 import org.springframework.util.xml.SimpleNamespaceContext;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- * Examples of expectations on XML response content. 
- * 
+ * Examples of defining expectations on XML response content with XMLUnit.
+ *
  * @author Rossen Stoyanchev
- * 
+ *
+ * @see ContentResultMatcherTests
  * @see XpathResultMatcherTests
  */
 public class XmlContentResultMatcherTests {
 
-	private static final String PEOPLE_XML = 
-		"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" + 
+	private static final String PEOPLE_XML =
+		"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
 		"<ns2:people xmlns:ns2=\"http://example.org/music/people\"><composers>" +
 		"<composer><name>Johann Sebastian Bach</name><someBoolean>false</someBoolean><someDouble>21.0</someDouble></composer>" +
-		"<composer><name>Johannes Brahms</name><someBoolean>false</someBoolean><someDouble>0.0025</someDouble></composer>" + 
-		"<composer><name>Edvard Grieg</name><someBoolean>false</someBoolean><someDouble>1.6035</someDouble></composer>" + 
-		"<composer><name>Robert Schumann</name><someBoolean>false</someBoolean><someDouble>NaN</someDouble></composer>" + 
+		"<composer><name>Johannes Brahms</name><someBoolean>false</someBoolean><someDouble>0.0025</someDouble></composer>" +
+		"<composer><name>Edvard Grieg</name><someBoolean>false</someBoolean><someDouble>1.6035</someDouble></composer>" +
+		"<composer><name>Robert Schumann</name><someBoolean>false</someBoolean><someDouble>NaN</someDouble></composer>" +
 		"</composers></ns2:people>";
 
-	private static final Map<String, String> NAMESPACES = 
+	private static final Map<String, String> NAMESPACES =
 			Collections.singletonMap("ns", "http://example.org/music/people");
 
 	private MockMvc mockMvc;
@@ -69,7 +70,7 @@ public class XmlContentResultMatcherTests {
 	public void setup() {
 		this.mockMvc = standaloneSetup(new MusicController()).build();
 	}
-	
+
 	@Test
 	public void testXmlEqualTo() throws Exception {
 		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_XML))
@@ -77,33 +78,32 @@ public class XmlContentResultMatcherTests {
 	}
 
 	@Test
-	public void testNodeMatcher() throws Exception {
-		
+	public void testNodeHamcrestMatcher() throws Exception {
+
 		SimpleNamespaceContext nsContext = new SimpleNamespaceContext();
 		nsContext.setBindings(NAMESPACES);
-		
+
 		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_XML))
 			.andExpect(content().node(hasXPath("/ns:people/composers/composer[1]", nsContext)));
 	}
-	
-	
+
+
 	@Controller
-	@SuppressWarnings("unused")
 	private static class MusicController {
 
 		@RequestMapping(value="/music/people")
 		public @ResponseBody PeopleWrapper getPeople() {
-			
+
 			List<Person> composers = Arrays.asList(
-					new Person("Johann Sebastian Bach").setSomeDouble(21), 
-					new Person("Johannes Brahms").setSomeDouble(.0025), 
-					new Person("Edvard Grieg").setSomeDouble(1.6035), 
+					new Person("Johann Sebastian Bach").setSomeDouble(21),
+					new Person("Johannes Brahms").setSomeDouble(.0025),
+					new Person("Edvard Grieg").setSomeDouble(1.6035),
 					new Person("Robert Schumann").setSomeDouble(Double.NaN));
-			
+
 			return new PeopleWrapper(composers);
 		}
 	}
-	
+
 	@SuppressWarnings("unused")
 	@XmlRootElement(name="people", namespace="http://example.org/music/people")
 	@XmlAccessorType(XmlAccessType.FIELD)
@@ -112,7 +112,7 @@ public class XmlContentResultMatcherTests {
 		@XmlElementWrapper(name="composers")
 		@XmlElement(name="composer")
 		private List<Person> composers;
-	
+
 		public PeopleWrapper() {
 		}
 

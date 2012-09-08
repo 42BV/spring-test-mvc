@@ -1,5 +1,5 @@
 /*
- * Copyright 2005-2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,8 @@
  */
 
 /**
- * Contains built-in {@link org.springframework.test.web.server.MockMvc} builder classes.
- * 
- * <p>{@link org.springframework.test.web.server.setup.MockMvcBuilders} is 
- * the main class to import to get access to all such implementations.
+ * Contains built-in {@code MockMvcBuilder} implementations.
+ * Use {@link org.springframework.test.web.server.setup.MockMvcBuilders}
+ * to access to instances of those implementations.
  */
 package org.springframework.test.web.server.setup;

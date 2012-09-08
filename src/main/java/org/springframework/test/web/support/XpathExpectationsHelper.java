@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,41 +41,45 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 /**
- * 
- * TODO ...
+ * A helper class for applying assertions using XPath expressions.
  *
  * @author Rossen Stoyanchev
  */
 public class XpathExpectationsHelper {
 
 	private final String expression;
-	
+
 	private final XPathExpression xpathExpression;
 
+
+	/**
+	 * Class constructor.
+	 *
+	 * @param expression the XPath expression
+	 * @param namespaces XML namespaces referenced in the XPath expression, or {@code null}
+	 * @param args arguments to parameterize the XPath expression with using the
+	 * formatting specifiers defined in {@link String#format(String, Object...)}
+	 * @throws XPathExpressionException
+	 */
 	public XpathExpectationsHelper(String expression, Map<String, String> namespaces, Object... args)
 			throws XPathExpressionException {
+
 		this.expression = String.format(expression, args);
 		this.xpathExpression = compileXpathExpression(this.expression, namespaces);
 	}
 
-	/**
-	 * TODO
-	 * @param expression
-	 * @param namespaces
-	 * @return
-	 * @throws XPathExpressionException
-	 */
-	protected XPathExpression compileXpathExpression(String expression, Map<String, String> namespaces)
+	private XPathExpression compileXpathExpression(String expression, Map<String, String> namespaces)
 			throws XPathExpressionException {
+
 		SimpleNamespaceContext namespaceContext = new SimpleNamespaceContext();
 		namespaceContext.setBindings((namespaces != null) ? namespaces : Collections.<String, String> emptyMap());
 		XPath xpath = XPathFactory.newInstance().newXPath();
 		xpath.setNamespaceContext(namespaceContext);
 		return xpath.compile(expression);
 	}
-	
+
 	/**
-	 * Parse the content, evaluate the XPath expression as a {@link Node}, and 
+	 * Parse the content, evaluate the XPath expression as a {@link Node}, and
 	 * assert it with the given {@code Matcher<Node>}.
 	 */
 	public void assertNode(String content, final Matcher<? super Node> matcher) throws Exception {
@@ -98,17 +102,17 @@ public class XpathExpectationsHelper {
 		Document document = documentBuilder.parse(inputSource);
 		return document;
 	}
-	
+
 	/**
 	 * TODO
-	 * @throws XPathExpressionException 
+	 * @throws XPathExpressionException
 	 */
 	@SuppressWarnings("unchecked")
 	protected <T> T evaluateXpath(Document document, QName evaluationType, Class<T> expectedClass)
 			throws XPathExpressionException {
 		return (T) this.xpathExpression.evaluate(document, evaluationType);
 	}
-	
+
 	/**
 	 * TODO
 	 * @throws Exception if content parsing or XPath expression evaluation fails
@@ -123,7 +127,7 @@ public class XpathExpectationsHelper {
 	public void doesNotExist(String content) throws Exception {
 		assertNode(content, Matchers.nullValue());
 	}
-	
+
 	/**
 	 * TODO
 	 * @throws Exception if content parsing or XPath expression evaluation fails
@@ -142,7 +146,7 @@ public class XpathExpectationsHelper {
 	public void assertNodeCount(String content, int expectedCount) throws Exception {
 		assertNodeCount(content, Matchers.equalTo(expectedCount));
 	}
-	
+
 	/**
 	 * TODO
 	 * @throws Exception if content parsing or XPath expression evaluation fails

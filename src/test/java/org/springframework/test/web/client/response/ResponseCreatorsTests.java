@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.test.web.client;
+package org.springframework.test.web.client.response;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -25,9 +25,14 @@ import java.net.URI;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.client.response.DefaultResponseCreator;
+import org.springframework.test.web.client.response.MockClientHttpResponse;
+import org.springframework.test.web.client.response.ResponseCreators;
 import org.springframework.util.FileCopyUtils;
 
 /**
+ * Tests for the {@link ResponseCreators} static factory methods.
+ *
  * @author Rossen Stoyanchev
  */
 public class ResponseCreatorsTests {

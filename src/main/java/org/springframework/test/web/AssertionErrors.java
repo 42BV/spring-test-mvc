@@ -17,7 +17,7 @@ package org.springframework.test.web;
 
 /**
  * JUnit independent assertion class.
- * 
+ *
  * @author Lukas Krecan
  * @author Arjen Poutsma
  */
@@ -37,7 +37,7 @@ public abstract class AssertionErrors {
 
 	/**
 	 * Fails a test with the given message passing along expected and actual values to be added to the message.
-	 * 
+	 *
 	 * @param message the message
 	 * @param expected the expected value
 	 * @param actual   the actual value
@@ -74,5 +74,5 @@ public abstract class AssertionErrors {
         }
         fail(message, expected, actual);
     }
-    
+
 }

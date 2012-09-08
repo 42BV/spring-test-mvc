@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.server.StubMvcResult;
 
 /**
+ * Tests for {@link JsonPathResultMatchers}.
+ *
  * @author Rossen Stoyanchev
  */
 public class JsonPathResultMatchersTests {
@@ -30,7 +32,7 @@ public class JsonPathResultMatchersTests {
 	public void value() throws Exception {
 		new JsonPathResultMatchers("$.foo").value("bar").match(getStubMvcResult());
 	}
-	
+
 	@Test(expected=AssertionError.class)
 	public void valueNoMatch() throws Exception {
 		new JsonPathResultMatchers("$.foo").value("bogus").match(getStubMvcResult());
@@ -40,7 +42,7 @@ public class JsonPathResultMatchersTests {
 	public void valueMatcher() throws Exception {
 		new JsonPathResultMatchers("$.foo").value(Matchers.equalTo("bar")).match(getStubMvcResult());
 	}
-	
+
 	@Test(expected=AssertionError.class)
 	public void valueMatcherNoMatch() throws Exception {
 		new JsonPathResultMatchers("$.foo").value(Matchers.equalTo("bogus")).match(getStubMvcResult());
@@ -50,7 +52,7 @@ public class JsonPathResultMatchersTests {
 	public void exists() throws Exception {
 		new JsonPathResultMatchers("$.foo").exists().match(getStubMvcResult());
 	}
-	
+
 	@Test(expected=AssertionError.class)
 	public void existsNoMatch() throws Exception {
 		new JsonPathResultMatchers("$.bogus").exists().match(getStubMvcResult());
@@ -60,7 +62,7 @@ public class JsonPathResultMatchersTests {
 	public void doesNotExist() throws Exception {
 		new JsonPathResultMatchers("$.bogus").doesNotExist().match(getStubMvcResult());
 	}
-	
+
 	@Test(expected=AssertionError.class)
 	public void doesNotExistNoMatch() throws Exception {
 		new JsonPathResultMatchers("$.foo").doesNotExist().match(getStubMvcResult());
@@ -75,13 +77,14 @@ public class JsonPathResultMatchersTests {
 	public void isArrayNoMatch() throws Exception {
 		new JsonPathResultMatchers("$.bar").isArray().match(getStubMvcResult());
 	}
-	
-	private static final String CONTENT = "{\"foo\":\"bar\", \"qux\":[\"baz1\",\"baz2\"]}";
+
+
+	private static final String RESPONSE_CONTENT = "{\"foo\":\"bar\", \"qux\":[\"baz1\",\"baz2\"]}";
 
 	private StubMvcResult getStubMvcResult() throws Exception {
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		response.addHeader("Content-Type", "application/json");
-		response.getWriter().print(new String(CONTENT.getBytes("ISO-8859-1")));
+		response.getWriter().print(new String(RESPONSE_CONTENT.getBytes("ISO-8859-1")));
 		return new StubMvcResult(null, null, null, null, null, null, response);
 	}
 

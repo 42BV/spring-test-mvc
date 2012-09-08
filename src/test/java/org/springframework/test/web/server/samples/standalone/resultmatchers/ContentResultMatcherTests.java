@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,13 +31,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- * Examples of expectations on the content, content type, and the character encoding of the response. 
- * 
+ * Examples of defining expectations on the response content, content type, and
+ * the character encoding.
+ *
  * @author Rossen Stoyanchev
- * 
+ *
  * @see JsonPathResultMatcherTests
- * @see XpathResultMatcherTests
  * @see XmlContentResultMatcherTests
+ * @see XpathResultMatcherTests
  */
 public class ContentResultMatcherTests {
 
@@ -47,28 +48,28 @@ public class ContentResultMatcherTests {
 	public void setup() {
 		this.mockMvc = standaloneSetup(new SimpleController()).build();
 	}
-	
+
 	@Test
 	public void testContentType() throws Exception {
 		this.mockMvc.perform(get("/handle"))
 			.andExpect(content().type(MediaType.TEXT_PLAIN))
 			.andExpect(content().type("text/plain"));
-		
+
 		this.mockMvc.perform(get("/handleUtf8"))
 			.andExpect(content().type(MediaType.valueOf("text/plain;charset=UTF-8")))
 			.andExpect(content().type("text/plain;charset=UTF-8"));
 	}
-	
+
 	@Test
 	public void testContentAsString() throws Exception {
 		this.mockMvc.perform(get("/handle")).andExpect(content().string("Hello world!"));
 		this.mockMvc.perform(get("/handleUtf8")).andExpect(content().string("\u3053\u3093\u306b\u3061\u306f\u4e16\u754c\uff01"));
-		
+
 		// Hamcrest matchers...
 		this.mockMvc.perform(get("/handle")).andExpect(content().string(equalTo("Hello world!")));
 		this.mockMvc.perform(get("/handleUtf8")).andExpect(content().string(equalTo("\u3053\u3093\u306b\u3061\u306f\u4e16\u754c\uff01")));
 	}
-	
+
 	@Test
 	public void testContentAsBytes() throws Exception {
 		this.mockMvc.perform(get("/handle")).andExpect(content().bytes("Hello world!".getBytes("ISO-8859-1")));
@@ -85,8 +86,8 @@ public class ContentResultMatcherTests {
 		this.mockMvc.perform(get("/handle")).andExpect(content().encoding("ISO-8859-1"));
 		this.mockMvc.perform(get("/handleUtf8")).andExpect(content().encoding("UTF-8"));
 	}
-	
-	
+
+
 	@Controller
 	@SuppressWarnings("unused")
 	private static class SimpleController {

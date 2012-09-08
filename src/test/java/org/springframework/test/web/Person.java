@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.test.web.server.samples.standalone;
+package org.springframework.test.web;
 
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -24,11 +24,11 @@ public class Person {
 
 	@NotNull
 	private String name;
-	
+
 	private double someDouble;
-	
+
 	private boolean someBoolean;
-	
+
 	public Person() {
 	}
 

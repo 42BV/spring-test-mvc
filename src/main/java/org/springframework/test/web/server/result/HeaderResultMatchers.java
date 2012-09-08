@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,12 @@ import org.hamcrest.Matchers;
 import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 
+/**
+ * Factory for response header {@code ResultMatcher}'s. An instance of this
+ * class is usually accessed via {@link MockMvcResultMatchers#header()}.
+ *
+ * @author Rossen Stoyanchev
+ */
 public class HeaderResultMatchers {
 
 	/**
@@ -36,16 +42,16 @@ public class HeaderResultMatchers {
 			}
 		};
 	}
-	
+
 	/**
-	 * TODO
+	 * Assert the primary value of a response header.
 	 */
 	public ResultMatcher string(final String name, final String value) {
 		return string(name, Matchers.equalTo(value));
 	}
 
 	/**
-	 * TODO
+	 * Assert the primary value of a response header as a long.
 	 */
 	public ResultMatcher longValue(final String name, final long value) {
 		return new ResultMatcher() {

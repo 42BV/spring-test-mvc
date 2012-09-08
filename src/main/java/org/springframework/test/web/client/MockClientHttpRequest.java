@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,17 +29,19 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.Assert;
 
 /**
- * Mock implementation of {@link ClientHttpRequest}. Implements {@link ResponseActions} to form a fluent API.
- * 
- * @author Arjen Poutsma
- * @author Lukas Krecan
+ * Mock implementation of {@code ClientHttpRequest} that maintains a list of
+ * request expectations, in the form of {@link RequestMatcher}'s, as well as one
+ * {@link ResponseCreator}. When {@link #execute()} is invoked, each request
+ * matcher is invoked to verify the expectations. If all expectations are met,
+ * a response is created with {@code ResponseCreator} and is then returned.
+ *
+ * <p>This class is also an implementation of {@link ResponseActions} to form a
+ * fluent API for adding {@link RequestMatcher}'s and a {@code ResponseCreator}.
+ *
  * @author Craig Walls
+ * @author Rossen Stoyanchev
  */
 public class MockClientHttpRequest implements ClientHttpRequest, ResponseActions {
-
-	private final List<RequestMatcher> requestMatchers = new LinkedList<RequestMatcher>();
-
-	private ResponseCreator responseCreator;
 
 	private URI uri;
 
@@ -49,65 +51,95 @@ public class MockClientHttpRequest implements ClientHttpRequest, ResponseActions
 
 	private ByteArrayOutputStream bodyStream = new ByteArrayOutputStream();
 
+	private final List<RequestMatcher> requestMatchers = new LinkedList<RequestMatcher>();
+
+	private ResponseCreator responseCreator;
+
+
+	public MockClientHttpRequest(RequestMatcher requestMatcher) {
+		Assert.notNull(requestMatcher, "RequestMatcher is required");
+		this.requestMatchers.add(requestMatcher);
+	}
+
 	public void setUri(URI uri) {
 		this.uri = uri;
 	}
 
-	public void setHttpMethod(HttpMethod httpMethod) {
+	public URI getURI() {
+		return this.uri;
+	}
+
+	public void setMethod(HttpMethod httpMethod) {
 		this.httpMethod = httpMethod;
 	}
 
-	void addRequestMatcher(RequestMatcher requestMatcher) {
-		Assert.notNull(requestMatcher, "'requestMatcher' must not be null");
-		requestMatchers.add(requestMatcher);
+	public HttpMethod getMethod() {
+		return this.httpMethod;
+	}
+
+	public HttpHeaders getHeaders() {
+		return this.httpHeaders;
+	}
+
+	public OutputStream getBody() throws IOException {
+		return this.bodyStream;
+	}
+
+	public String getBodyAsString() throws IOException {
+		return this.bodyStream.toString("UTF-8");
+	}
+
+	public byte[] getBodyAsByteArray() throws IOException {
+		return this.bodyStream.toByteArray();
+	}
+
+	public ClientHttpResponse execute() throws IOException {
+
+		if (this.requestMatchers.isEmpty()) {
+			throw new AssertionError("No request expectations to execute");
+		}
+
+		if (this.responseCreator == null) {
+			throw new AssertionError("No ResponseCreator was set up. Add it after request expectations, "
+					+ "e.g. MockRestServiceServer.expect(requestTo(\"/foo\")).andRespond(withSuccess())");
+		}
+
+		for (RequestMatcher requestMatcher : this.requestMatchers) {
+			requestMatcher.match(this);
+		}
+
+		return this.responseCreator.createResponse(this);
 	}
 
 	// ResponseActions implementation
 
 	public ResponseActions andExpect(RequestMatcher requestMatcher) {
-		addRequestMatcher(requestMatcher);
+		Assert.notNull(requestMatcher, "RequestMatcher is required");
+		this.requestMatchers.add(requestMatcher);
 		return this;
 	}
 
 	public void andRespond(ResponseCreator responseCreator) {
-		Assert.notNull(responseCreator, "'responseCreator' must not be null");
+		Assert.notNull(responseCreator, "ResponseCreator is required");
 		this.responseCreator = responseCreator;
 	}
 
-	public HttpMethod getMethod() {
-		return httpMethod;
-	}
-
-	public URI getURI() {
-		return uri;
-	}
-
-	public HttpHeaders getHeaders() {
-		return httpHeaders;
-	}
-
-	public OutputStream getBody() throws IOException {
-		return bodyStream;
-	}
-
-	public String getBodyContent() throws IOException {
-		return bodyStream.toString("UTF-8");
-	}
-
-	public ClientHttpResponse execute() throws IOException {
-		if (!requestMatchers.isEmpty()) {
-			for (RequestMatcher requestMatcher : requestMatchers) {
-				requestMatcher.match(this);
-			}
-		} else {
-			throw new AssertionError("Unexpected execute()");
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		if (this.httpMethod != null) {
+			sb.append(this.httpMethod);
 		}
-
-		if (responseCreator != null) {
-			return responseCreator.createResponse(this);
-		} else {
-			return null;
+		if (this.uri != null) {
+			sb.append(" ").append(this.uri);
 		}
+		if (!this.httpHeaders.isEmpty()) {
+			sb.append(", headers : ").append(this.httpHeaders);
+		}
+		if (sb.length() == 0) {
+			sb.append("Not yet initialized");
+		}
+		return sb.toString();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,9 @@ import org.springframework.test.web.support.XpathExpectationsHelper;
 import org.w3c.dom.Node;
 
 /**
- * 
- * TODO ...
+ * Factory for response content {@code ResultMatcher}'s using an XPath
+ * expression. An instance of this class is typically accessed via
+ * {@code MockMvcResultMatchers.xpath(..)}.
  *
  * @author Rossen Stoyanchev
  */
@@ -37,8 +38,22 @@ public class XpathResultMatchers {
 
 	private final XpathExpectationsHelper xpathHelper;
 
-	public XpathResultMatchers(String expression, Map<String, String> namespaces, Object ... args) 
+
+	/**
+	 * Class constructor, not for direct instantiation. Use
+	 * {@link MockMvcResultMatchers#xpath(String, Object...)} or
+	 * {@link MockMvcResultMatchers#xpath(String, Map, Object...)}.
+	 *
+	 * @param expression the XPath expression
+	 * @param namespaces XML namespaces referenced in the XPath expression, or {@code null}
+	 * @param args arguments to parameterize the XPath expression with using the
+	 * formatting specifiers defined in {@link String#format(String, Object...)}
+	 *
+	 * @throws XPathExpressionException
+	 */
+	protected XpathResultMatchers(String expression, Map<String, String> namespaces, Object ... args)
 			throws XPathExpressionException {
+
 		this.xpathHelper = new XpathExpectationsHelper(expression, namespaces, args);
 	}
 
@@ -49,90 +64,91 @@ public class XpathResultMatchers {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
 				String content = result.getResponse().getContentAsString();
-				XpathResultMatchers.this.xpathHelper.assertNode(content, matcher);
+				xpathHelper.assertNode(content, matcher);
 			}
 		};
 	}
 
 	/**
-	 * TODO
+	 * Assert that content exists at the given XPath.
 	 */
 	public ResultMatcher exists() {
 		return node(Matchers.notNullValue());
 	}
 
 	/**
-	 * TODO
+	 * Assert that content does not exist at the given XPath.
 	 */
 	public ResultMatcher doesNotExist() {
 		return node(Matchers.nullValue());
 	}
-	
+
 	/**
-	 * TODO
+	 * Apply the XPath and assert the number of nodes found with the given
+	 * {@code Matcher<Integer>}.
 	 */
 	public ResultMatcher nodeCount(final Matcher<Integer> matcher) {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
 				String content = result.getResponse().getContentAsString();
-				XpathResultMatchers.this.xpathHelper.assertNodeCount(content, matcher);
-			}
-		};
-	}
-	
-	/**
-	 * TODO
-	 */
-	public ResultMatcher nodeCount(int count) {
-		return nodeCount(Matchers.equalTo(count));
-	}
-	
-	/**
-	 * TODO
-	 */
-	public ResultMatcher string(final Matcher<? super String> matcher) {
-		return new ResultMatcher() {
-			public void match(MvcResult result) throws Exception {
-				String content = result.getResponse().getContentAsString();
-				XpathResultMatchers.this.xpathHelper.assertString(content, matcher);
+				xpathHelper.assertNodeCount(content, matcher);
 			}
 		};
 	}
 
 	/**
-	 * TODO
+	 * Apply the XPath and assert the number of nodes found.
+	 */
+	public ResultMatcher nodeCount(int count) {
+		return nodeCount(Matchers.equalTo(count));
+	}
+
+	/**
+	 * Apply the XPath and assert the String content found with the given matcher.
+	 */
+	public ResultMatcher string(final Matcher<? super String> matcher) {
+		return new ResultMatcher() {
+			public void match(MvcResult result) throws Exception {
+				String content = result.getResponse().getContentAsString();
+				xpathHelper.assertString(content, matcher);
+			}
+		};
+	}
+
+	/**
+	 * Apply the XPath and assert the String content found.
 	 */
 	public ResultMatcher string(String value) {
 		return string(Matchers.equalTo(value));
 	}
 
 	/**
-	 * TODO
+	 * Apply the XPath and assert the number of nodes found with the given matcher.
 	 */
 	public ResultMatcher number(final Matcher<? super Double> matcher) {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
 				String content = result.getResponse().getContentAsString();
-				XpathResultMatchers.this.xpathHelper.assertNumber(content, matcher);
+				xpathHelper.assertNumber(content, matcher);
 			}
 		};
 	}
 
 	/**
-	 * TODO
+	 * Apply the XPath and assert the number of nodes found.
 	 */
 	public ResultMatcher number(Double value) {
 		return number(Matchers.equalTo(value));
 	}
 
 	/**
-	 * TODO
+	 * Apply the XPath and assert the boolean value found.
 	 */
 	public ResultMatcher booleanValue(final Boolean value) {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
 				String content = result.getResponse().getContentAsString();
-				XpathResultMatchers.this.xpathHelper.assertBoolean(content, value);
+				xpathHelper.assertBoolean(content, value);
 			}
 		};
 	}

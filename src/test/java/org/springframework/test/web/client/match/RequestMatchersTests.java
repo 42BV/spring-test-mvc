@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.test.web.client;
+package org.springframework.test.web.client.match;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.client.match.RequestMatchers.anything;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -23,121 +24,115 @@ import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpMethod;
+import org.springframework.test.web.client.MockClientHttpRequest;
 
+/**
+ * Tests for {@link RequestMatchers}.
+ *
+ * @author Craig Walls
+ */
 public class RequestMatchersTests {
 
 	private MockClientHttpRequest request;
 
 	@Before
 	public void setUp() {
-		request = new MockClientHttpRequest();
+		this.request = new MockClientHttpRequest(anything());
 	}
 
 	@Test
 	public void requestTo() throws Exception {
-		request.setUri(new URI("http://foo.com/bar"));
+		this.request.setUri(new URI("http://foo.com/bar"));
 
 		RequestMatchers.requestTo("http://foo.com/bar").match(this.request);
 	}
 
 	@Test(expected=AssertionError.class)
-	public void requestTo_doesNotMatch() throws Exception {
-		request.setUri(new URI("http://foo.com/bar"));
+	public void requestToNoMatch() throws Exception {
+		this.request.setUri(new URI("http://foo.com/bar"));
 
 		RequestMatchers.requestTo("http://foo.com/wrong").match(this.request);
 	}
 
 	@Test
 	public void requestToContains() throws Exception {
-		request.setUri(new URI("http://foo.com/bar"));
+		this.request.setUri(new URI("http://foo.com/bar"));
 
 		RequestMatchers.requestTo(containsString("bar")).match(this.request);
 	}
 
 	@Test
 	public void method() throws Exception {
-		request.setHttpMethod(HttpMethod.GET);
+		this.request.setMethod(HttpMethod.GET);
 
 		RequestMatchers.method(HttpMethod.GET).match(this.request);
 	}
 
 	@Test(expected=AssertionError.class)
-	public void method_doesNotMatch() throws Exception {
-		request.setHttpMethod(HttpMethod.POST);
+	public void methodNoMatch() throws Exception {
+		this.request.setMethod(HttpMethod.POST);
 
 		RequestMatchers.method(HttpMethod.GET).match(this.request);
 	}
 
 	@Test
 	public void header() throws Exception {
-		request.getHeaders().put("foo", Arrays.asList("bar", "baz"));
+		this.request.getHeaders().put("foo", Arrays.asList("bar", "baz"));
 
-		RequestMatchers.header("foo", "bar").match(this.request);
-		RequestMatchers.header("foo", "baz").match(this.request);
+		RequestMatchers.header("foo", "bar", "baz").match(this.request);
 	}
 
 	@Test(expected=AssertionError.class)
-	public void header_withMissingHeader() throws Exception {
+	public void headerMissing() throws Exception {
 		RequestMatchers.header("foo", "bar").match(this.request);
 	}
 
 	@Test(expected=AssertionError.class)
-	public void header_withMissingValue() throws Exception {
-		request.getHeaders().put("foo", Arrays.asList("bar", "baz"));
+	public void headerMissingValue() throws Exception {
+		this.request.getHeaders().put("foo", Arrays.asList("bar", "baz"));
 
 		RequestMatchers.header("foo", "bad").match(this.request);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void headerContains() throws Exception {
-		request.getHeaders().put("foo", Arrays.asList("bar", "baz"));
+		this.request.getHeaders().put("foo", Arrays.asList("bar", "baz"));
 
-		RequestMatchers.headerContains("foo", "ba").match(this.request);
+		RequestMatchers.header("foo", containsString("ba")).match(this.request);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test(expected=AssertionError.class)
-	public void headerContains_withMissingHeader() throws Exception {
-		RequestMatchers.headerContains("foo", "baz").match(this.request);
+	public void headerContainsWithMissingHeader() throws Exception {
+		RequestMatchers.header("foo", containsString("baz")).match(this.request);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test(expected=AssertionError.class)
-	public void headerContains_withMissingValue() throws Exception {
-		request.getHeaders().put("foo", Arrays.asList("bar", "baz"));
+	public void headerContainsWithMissingValue() throws Exception {
+		this.request.getHeaders().put("foo", Arrays.asList("bar", "baz"));
 
-		RequestMatchers.headerContains("foo", "bx").match(this.request);
+		RequestMatchers.header("foo", containsString("bx")).match(this.request);
 	}
 
 	@Test
 	public void headers() throws Exception {
-		request.getHeaders().put("foo", Arrays.asList("bar", "baz"));
+		this.request.getHeaders().put("foo", Arrays.asList("bar", "baz"));
 
 		RequestMatchers.header("foo", "bar", "baz").match(this.request);
 	}
 
 	@Test(expected=AssertionError.class)
-	public void headers_withMissingHeader() throws Exception {
+	public void headersWithMissingHeader() throws Exception {
 		RequestMatchers.header("foo", "bar").match(this.request);
 	}
 
 	@Test(expected=AssertionError.class)
-	public void headers_withMissingValue() throws Exception {
-		request.getHeaders().put("foo", Arrays.asList("bar"));
+	public void headersWithMissingValue() throws Exception {
+		this.request.getHeaders().put("foo", Arrays.asList("bar"));
 
 		RequestMatchers.header("foo", "bar", "baz").match(this.request);
-	}
-
-	@Test
-	public void body() throws Exception {
-		request.getBody().write("test".getBytes());
-
-		RequestMatchers.body("test").match(this.request);
-	}
-
-	@Test(expected=AssertionError.class)
-	public void body_notEqual() throws Exception {
-		request.getBody().write("test".getBytes());
-
-		RequestMatchers.body("Test").match(this.request);
 	}
 
 }
