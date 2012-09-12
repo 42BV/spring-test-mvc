@@ -15,15 +15,9 @@
  */
 package org.springframework.test.web.server.result;
 
-import static org.springframework.test.web.client.match.RequestMatchers.anything;
-
-import java.io.IOException;
-
 import org.hamcrest.Matchers;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.web.client.MockClientHttpRequest;
 import org.springframework.test.web.server.StubMvcResult;
 
 /**
@@ -32,14 +26,6 @@ import org.springframework.test.web.server.StubMvcResult;
  * @author Rossen Stoyanchev
  */
 public class XpathResultMatchersTests {
-
-	private MockClientHttpRequest request;
-
-	@Before
-	public void setUp() throws IOException {
-		this.request = new MockClientHttpRequest(anything());
-		this.request.getBody().write(RESPONSE_CONTENT.getBytes());
-	}
 
 	@Test
 	public void testNodeMatcher() throws Exception {

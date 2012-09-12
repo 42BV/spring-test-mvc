@@ -25,9 +25,7 @@ import java.net.URI;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.client.response.DefaultResponseCreator;
-import org.springframework.test.web.client.response.MockClientHttpResponse;
-import org.springframework.test.web.client.response.ResponseCreators;
+import org.springframework.mock.http.client.MockClientHttpResponse;
 import org.springframework.util.FileCopyUtils;
 
 /**

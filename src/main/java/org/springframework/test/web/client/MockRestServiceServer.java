@@ -15,6 +15,14 @@
  */
 package org.springframework.test.web.client;
 
+import java.io.IOException;
+import java.net.URI;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.springframework.http.HttpMethod;
+import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.test.web.client.match.RequestMatchers;
 import org.springframework.test.web.client.response.ResponseCreators;
@@ -42,7 +50,6 @@ import org.springframework.web.client.support.RestGatewaySupport;
  * &#47;&#47; Use the hotel instance...
  *
  * mockServer.verify();
- * </pre>
  *
  * <p>To create an instance of this class, use {@link #createServer(RestTemplate)}
  * and provide the {@code RestTemplate} to set up for the mock testing.
@@ -71,7 +78,11 @@ import org.springframework.web.client.support.RestGatewaySupport;
  */
 public class MockRestServiceServer {
 
-	private final MockClientHttpRequestFactory mockRequestFactory;
+	private final List<RequestMatcherClientHttpRequest> expectedRequests =
+			new LinkedList<RequestMatcherClientHttpRequest>();
+
+	private final List<RequestMatcherClientHttpRequest> actualRequests =
+			new LinkedList<RequestMatcherClientHttpRequest>();
 
 
 	/**
@@ -79,8 +90,7 @@ public class MockRestServiceServer {
 	 * @see #createServer(RestTemplate)
 	 * @see #createServer(RestGatewaySupport)
 	 */
-	private MockRestServiceServer(MockClientHttpRequestFactory mockRequestFactory) {
-		this.mockRequestFactory = mockRequestFactory;
+	private MockRestServiceServer() {
 	}
 
 	/**
@@ -93,10 +103,12 @@ public class MockRestServiceServer {
 	public static MockRestServiceServer createServer(RestTemplate restTemplate) {
 		Assert.notNull(restTemplate, "'restTemplate' must not be null");
 
-		MockClientHttpRequestFactory requestFactory = new MockClientHttpRequestFactory();
-		restTemplate.setRequestFactory(requestFactory);
+		MockRestServiceServer mockServer = new MockRestServiceServer();
+		RequestMatcherClientHttpRequestFactory factory = mockServer.new RequestMatcherClientHttpRequestFactory();
 
-		return new MockRestServiceServer(requestFactory);
+		restTemplate.setRequestFactory(factory);
+
+		return mockServer;
 	}
 
 	/**
@@ -123,7 +135,10 @@ public class MockRestServiceServer {
 	 * @return used to set up further expectations or to define a response
 	 */
 	public ResponseActions expect(RequestMatcher requestMatcher) {
-		return this.mockRequestFactory.expectRequest(requestMatcher);
+		Assert.state(this.actualRequests.isEmpty(), "Can't add more expected requests with test already underway");
+		RequestMatcherClientHttpRequest request = new RequestMatcherClientHttpRequest(requestMatcher);
+		this.expectedRequests.add(request);
+		return request;
 	}
 
 	/**
@@ -133,7 +148,59 @@ public class MockRestServiceServer {
 	 * @throws AssertionError when some expectations were not met
 	 */
 	public void verify() {
-		this.mockRequestFactory.verifyRequests();
+		if (this.expectedRequests.isEmpty() || this.expectedRequests.equals(this.actualRequests)) {
+			return;
+		}
+		throw new AssertionError(getVerifyMessage());
+	}
+
+	private String getVerifyMessage() {
+		StringBuilder sb = new StringBuilder("Further request(s) expected\n");
+
+		if (this.actualRequests.size() > 0) {
+			sb.append("The following ");
+		}
+		sb.append(this.actualRequests.size()).append(" out of ");
+		sb.append(this.expectedRequests.size()).append(" were executed");
+
+		if (this.actualRequests.size() > 0) {
+			sb.append(":\n");
+			for (RequestMatcherClientHttpRequest request : this.actualRequests) {
+				sb.append(request.toString()).append("\n");
+			}
+		}
+
+		return sb.toString();
+	}
+
+
+	/**
+	 * Mock ClientHttpRequestFactory that creates requests by iterating
+	 * over the list of expected {@link RequestMatcherClientHttpRequest}'s.
+	 */
+	private class RequestMatcherClientHttpRequestFactory implements ClientHttpRequestFactory {
+
+		private Iterator<RequestMatcherClientHttpRequest> requestIterator;
+
+		public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) throws IOException {
+			Assert.notNull(uri, "'uri' must not be null");
+			Assert.notNull(httpMethod, "'httpMethod' must not be null");
+
+			if (this.requestIterator == null) {
+				this.requestIterator = MockRestServiceServer.this.expectedRequests.iterator();
+			}
+			if (!this.requestIterator.hasNext()) {
+				throw new AssertionError("No further requests expected");
+			}
+
+			RequestMatcherClientHttpRequest request = this.requestIterator.next();
+			request.setURI(uri);
+			request.setMethod(httpMethod);
+
+			MockRestServiceServer.this.actualRequests.add(request);
+
+			return request;
+		}
 	}
 
 }

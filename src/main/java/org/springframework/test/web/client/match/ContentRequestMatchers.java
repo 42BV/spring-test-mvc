@@ -28,7 +28,7 @@ import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequest;
-import org.springframework.test.web.client.MockClientHttpRequest;
+import org.springframework.mock.http.client.MockClientHttpRequest;
 import org.springframework.test.web.client.RequestMatcher;
 import org.springframework.test.web.support.XmlExpectationsHelper;
 import org.w3c.dom.Node;
@@ -98,7 +98,7 @@ public class ContentRequestMatchers {
 		return new RequestMatcher() {
 			public void match(ClientHttpRequest request) throws IOException, AssertionError {
 				MockClientHttpRequest mockRequest = (MockClientHttpRequest) request;
-				byte[] content = mockRequest.getBodyAsByteArray();
+				byte[] content = mockRequest.getBodyAsBytes();
 				MatcherAssert.assertThat("Request content", content, Matchers.equalTo(expectedContent));
 			}
 		};

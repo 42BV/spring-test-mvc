@@ -24,7 +24,7 @@ import java.util.List;
 
 import org.hamcrest.Matcher;
 import org.springframework.http.client.ClientHttpRequest;
-import org.springframework.test.web.client.MockClientHttpRequest;
+import org.springframework.mock.http.client.MockClientHttpRequest;
 import org.springframework.test.web.client.RequestMatcher;
 import org.springframework.test.web.support.JsonPathExpectationsHelper;
 

@@ -23,6 +23,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.mock.http.client.MockClientHttpResponse;
 import org.springframework.test.web.client.ResponseCreator;
 
 /**
@@ -134,7 +135,9 @@ public abstract class ResponseCreators {
 
 		return new ResponseCreator() {
 			public MockClientHttpResponse createResponse(ClientHttpRequest request) throws IOException {
-				return new MockClientHttpResponse(body.getBytes("UTF-8"), headers, statusCode);
+				MockClientHttpResponse response = new MockClientHttpResponse(body.getBytes("UTF-8"), statusCode);
+				response.getHeaders().putAll(headers);
+				return response;
 			}
 		};
 	}
@@ -166,7 +169,9 @@ public abstract class ResponseCreators {
 
 		return new ResponseCreator() {
 			public MockClientHttpResponse createResponse(ClientHttpRequest request) throws IOException {
-				return new MockClientHttpResponse(body.getInputStream(), headers, statusCode);
+				MockClientHttpResponse response = new MockClientHttpResponse(body.getInputStream(), statusCode);
+				response.getHeaders().putAll(headers);
+				return response;
 			}
 		};
 	}

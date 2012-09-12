@@ -16,7 +16,6 @@
 package org.springframework.test.web.client.match;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.springframework.test.web.client.match.RequestMatchers.anything;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -24,12 +23,13 @@ import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpMethod;
-import org.springframework.test.web.client.MockClientHttpRequest;
+import org.springframework.mock.http.client.MockClientHttpRequest;
 
 /**
  * Tests for {@link RequestMatchers}.
  *
  * @author Craig Walls
+ * @author Rossen Stoyanchev
  */
 public class RequestMatchersTests {
 
@@ -37,26 +37,26 @@ public class RequestMatchersTests {
 
 	@Before
 	public void setUp() {
-		this.request = new MockClientHttpRequest(anything());
+		this.request = new MockClientHttpRequest();
 	}
 
 	@Test
 	public void requestTo() throws Exception {
-		this.request.setUri(new URI("http://foo.com/bar"));
+		this.request.setURI(new URI("http://foo.com/bar"));
 
 		RequestMatchers.requestTo("http://foo.com/bar").match(this.request);
 	}
 
 	@Test(expected=AssertionError.class)
 	public void requestToNoMatch() throws Exception {
-		this.request.setUri(new URI("http://foo.com/bar"));
+		this.request.setURI(new URI("http://foo.com/bar"));
 
 		RequestMatchers.requestTo("http://foo.com/wrong").match(this.request);
 	}
 
 	@Test
 	public void requestToContains() throws Exception {
-		this.request.setUri(new URI("http://foo.com/bar"));
+		this.request.setURI(new URI("http://foo.com/bar"));
 
 		RequestMatchers.requestTo(containsString("bar")).match(this.request);
 	}

@@ -15,14 +15,12 @@
  */
 package org.springframework.test.web.client.match;
 
-import static org.springframework.test.web.client.match.RequestMatchers.anything;
-
 import java.io.IOException;
 
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.test.web.client.MockClientHttpRequest;
+import org.springframework.mock.http.client.MockClientHttpRequest;
 
 /**
  * Tests for {@link JsonPathRequestMatchers}.
@@ -37,7 +35,7 @@ public class JsonPathRequestMatchersTests {
 
 	@Before
 	public void setUp() throws IOException {
-		this.request = new MockClientHttpRequest(anything());
+		this.request = new MockClientHttpRequest();
 		this.request.getBody().write(RESPONSE_CONTENT.getBytes());
 	}
 

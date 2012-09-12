@@ -26,6 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.mock.http.client.MockClientHttpResponse;
 import org.springframework.test.web.client.ResponseCreator;
 import org.springframework.util.Assert;
 
@@ -36,9 +37,9 @@ import org.springframework.util.Assert;
  */
 public class DefaultResponseCreator implements ResponseCreator {
 
-	private byte[] body;
+	private byte[] content;
 
-	private Resource bodyResource;
+	private Resource contentResource;
 
 	private final HttpHeaders headers = new HttpHeaders();
 
@@ -55,21 +56,24 @@ public class DefaultResponseCreator implements ResponseCreator {
 	}
 
 	public ClientHttpResponse createResponse(ClientHttpRequest request) throws IOException {
-		if (this.bodyResource != null ){
-			InputStream stream = this.bodyResource.getInputStream();
-			return new MockClientHttpResponse(stream, this.headers, this.statusCode);
+		MockClientHttpResponse response;
+		if (this.contentResource != null ){
+			InputStream stream = this.contentResource.getInputStream();
+			response = new MockClientHttpResponse(stream, this.statusCode);
 		}
 		else {
-			return new MockClientHttpResponse(this.body, this.headers, this.statusCode);
+			response = new MockClientHttpResponse(this.content, this.statusCode);
 		}
+		response.getHeaders().putAll(this.headers);
+		return response;
 	}
 
 	/**
 	 * Set the body as a UTF-8 String.
 	 */
-	public DefaultResponseCreator body(String body) {
+	public DefaultResponseCreator body(String content) {
 		try {
-			this.body = body.getBytes("UTF-8");
+			this.content = content.getBytes("UTF-8");
 		}
 		catch (UnsupportedEncodingException e) {
 			// should not happen, UTF-8 is always supported
@@ -81,16 +85,16 @@ public class DefaultResponseCreator implements ResponseCreator {
 	/**
 	 * Set the body as a byte array.
 	 */
-	public DefaultResponseCreator body(byte[] body) {
-		this.body = body;
+	public DefaultResponseCreator body(byte[] content) {
+		this.content = content;
 		return this;
 	}
 
 	/**
 	 * Set the body as a {@link Resource}.
 	 */
-	public DefaultResponseCreator body(Resource bodyResource) {
-		this.bodyResource = bodyResource;
+	public DefaultResponseCreator body(Resource resource) {
+		this.contentResource = resource;
 		return this;
 	}
 

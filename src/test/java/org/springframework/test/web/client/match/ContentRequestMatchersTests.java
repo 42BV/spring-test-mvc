@@ -21,7 +21,7 @@ import static org.springframework.test.web.client.match.RequestMatchers.anything
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.client.MockClientHttpRequest;
+import org.springframework.mock.http.client.MockClientHttpRequest;
 
 /**
  * Tests for {@link ContentRequestMatchers}.
@@ -34,7 +34,7 @@ public class ContentRequestMatchersTests {
 
 	@Before
 	public void setUp() {
-		this.request = new MockClientHttpRequest(anything());
+		this.request = new MockClientHttpRequest();
 	}
 
 	@Test

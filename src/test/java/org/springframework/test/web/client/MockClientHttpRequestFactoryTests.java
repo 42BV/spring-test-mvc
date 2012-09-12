@@ -26,6 +26,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Tests for {@link MockClientHttpRequestFactory}.
@@ -34,17 +36,22 @@ import org.springframework.http.client.ClientHttpRequest;
  */
 public class MockClientHttpRequestFactoryTests {
 
-	private MockClientHttpRequestFactory factory;
+	private MockRestServiceServer server;
+
+	private ClientHttpRequestFactory factory;
+
 
 	@Before
 	public void setup() {
-		this.factory = new MockClientHttpRequestFactory();
+		RestTemplate restTemplate = new RestTemplate();
+		this.server = MockRestServiceServer.createServer(restTemplate);
+		this.factory = restTemplate.getRequestFactory();
 	}
 
 	@Test
 	public void createRequest() throws Exception {
 		URI uri = new URI("/foo");
-		ClientHttpRequest expected = this.factory.expectRequest(anything());
+		ClientHttpRequest expected = (ClientHttpRequest) this.server.expect(anything());
 		ClientHttpRequest actual = this.factory.createRequest(uri, HttpMethod.GET);
 
 		assertSame(expected, actual);
@@ -56,20 +63,21 @@ public class MockClientHttpRequestFactoryTests {
 	public void noFurtherRequestsExpected() throws Exception {
 		try {
 			this.factory.createRequest(new URI("/foo"), HttpMethod.GET);
-		} catch (AssertionError error) {
+		}
+		catch (AssertionError error) {
 			assertEquals("No further requests expected", error.getMessage());
 		}
 	}
 
 	@Test
 	public void verifyZeroExpected() throws Exception {
-		this.factory.verifyRequests();
+		this.server.verify();
 	}
 
 	@Test
 	public void verifyExpectedEqualExecuted() throws Exception {
-		this.factory.expectRequest(anything());
-		this.factory.expectRequest(anything());
+		this.server.expect(anything());
+		this.server.expect(anything());
 
 		this.factory.createRequest(new URI("/foo"), HttpMethod.GET);
 		this.factory.createRequest(new URI("/bar"), HttpMethod.POST);
@@ -77,13 +85,13 @@ public class MockClientHttpRequestFactoryTests {
 
 	@Test
 	public void verifyMoreExpected() throws Exception {
-		this.factory.expectRequest(anything());
-		this.factory.expectRequest(anything());
+		this.server.expect(anything());
+		this.server.expect(anything());
 
 		this.factory.createRequest(new URI("/foo"), HttpMethod.GET);
 
 		try {
-			this.factory.verifyRequests();
+			this.server.verify();
 		}
 		catch (AssertionError error) {
 			assertTrue(error.getMessage(), error.getMessage().contains("1 out of 2 were executed"));
