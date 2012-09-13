@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,11 @@ package org.springframework.test.web.server;
 
 /**
  * A contract for defining actions on the results of an executed request.
- * 
+ *
  * <p>See static factory methods in
  * {@code org.springframework.test.web.server.result.MockMvcResultMatchers} and
  * {@code org.springframework.test.web.server.result.MockMvcResultHandlers}.
- * 
+ *
  * @author Rossen Stoyanchev
  */
 public interface ResultActions {
@@ -32,12 +32,12 @@ public interface ResultActions {
 	 * Provide an expectation. For example:
 	 * <pre>
 	 * // Assuming static import of MockMvcResultMatchers.*
-	 * 
+	 *
 	 * mockMvc.perform(get("/person/1"))
 	 *   .andExpect(status.isOk())
-	 *   .andExpect(content().type(MediaType.APPLICATION_JSON))
+	 *   .andExpect(content().mimeType(MediaType.APPLICATION_JSON))
 	 *   .andExpect(jsonPath("$.person.name").equalTo("Jason"));
-	 *   
+	 *
 	 * mockMvc.perform(post("/form"))
 	 *   .andExpect(status.isOk())
 	 *   .andExpect(redirectedUrl("/person/1"))
@@ -45,7 +45,7 @@ public interface ResultActions {
 	 *   .andExpect(model().attributeExists("person"))
 	 *   .andExpect(flash().attributeCount(1))
 	 *   .andExpect(flash().attribute("message", "success!"));
-	 * </pre> 
+	 * </pre>
 	 */
 	ResultActions andExpect(ResultMatcher matcher) throws Exception;
 
@@ -53,7 +53,7 @@ public interface ResultActions {
 	 * Provide a general action. For example:
 	 * <pre>
 	 * // Assuming static imports of MockMvcResultHandlers.* and MockMvcResultMatchers.*
-	 * 
+	 *
 	 * mockMvc.perform(get("/form"))
 	 *   .andDo(print())         // Print the results
 	 *   .andExpect(status.isOk())
@@ -61,11 +61,11 @@ public interface ResultActions {
 	 * </pre>
 	 */
 	ResultActions andDo(ResultHandler handler) throws Exception;
-	
+
 	/**
 	 * TODO
 	 * @return TODO
 	 */
 	MvcResult andReturn();
-	
+
 }

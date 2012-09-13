@@ -95,7 +95,7 @@ public class XmlContentRequestMatcherTests {
 	@Test
 	public void testXmlEqualTo() throws Exception {
 		this.mockServer.expect(requestTo("/composers"))
-			.andExpect(content().type("application/xml"))
+			.andExpect(content().mimeType("application/xml"))
 			.andExpect(content().xml(PEOPLE_XML))
 			.andRespond(withSuccess());
 
@@ -110,7 +110,7 @@ public class XmlContentRequestMatcherTests {
 		nsContext.setBindings(NAMESPACES);
 
 		this.mockServer.expect(requestTo("/composers"))
-			.andExpect(content().type("application/xml"))
+			.andExpect(content().mimeType("application/xml"))
 			.andExpect(content().node(hasXPath("/ns:people/composers/composer[1]", nsContext)))
 			.andRespond(withSuccess());
 

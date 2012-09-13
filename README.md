@@ -24,7 +24,7 @@ Test an `@ResponseBody` method in a controller:
     MockMvcBuilders.standaloneSetup(new TestController()).build()
         .perform(get("/form"))
             .andExpect(status().isOk())
-            .andExpect(content().type("text/plain"))
+            .andExpect(content().mimeType("text/plain"))
             .andExpect(content().string("hello world"));
 
 Test binding failure by pointing to Spring MVC XML-based context configuration:
@@ -46,7 +46,7 @@ Test serving a resource by pointing to Spring MVC Java-based application configu
 
     MockMvcBuilders.annotationConfigSetup(TestConfiguration.class).build()
         .perform(get("/resources/Spring.js"))
-	        .andExpect(content().type("application/octet-stream"))
+	        .andExpect(content().mimeType("application/octet-stream"))
 	        .andExpect(content().string(containsString("Spring={};")));
 
 The last example uses a Hamcrest matcher to check if the content contains specific text.

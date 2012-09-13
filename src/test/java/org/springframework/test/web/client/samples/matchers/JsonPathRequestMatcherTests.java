@@ -80,7 +80,7 @@ public class JsonPathRequestMatcherTests {
 	@Test
 	public void testExists() throws Exception {
 		this.mockServer.expect(requestTo("/composers"))
-			.andExpect(content().type("application/json;charset=UTF-8"))
+			.andExpect(content().mimeType("application/json;charset=UTF-8"))
 			.andExpect(jsonPath("$.composers[0]").exists())
 			.andExpect(jsonPath("$.composers[1]").exists())
 			.andExpect(jsonPath("$.composers[2]").exists())
@@ -94,7 +94,7 @@ public class JsonPathRequestMatcherTests {
 	@Test
 	public void testDoesNotExist() throws Exception {
 		this.mockServer.expect(requestTo("/composers"))
-			.andExpect(content().type("application/json;charset=UTF-8"))
+			.andExpect(content().mimeType("application/json;charset=UTF-8"))
 			.andExpect(jsonPath("$.composers[?(@.name = 'Edvard Grieeeeeeg')]").doesNotExist())
 			.andExpect(jsonPath("$.composers[?(@.name = 'Robert Schuuuuuuman')]").doesNotExist())
 			.andExpect(jsonPath("$.composers[-1]").doesNotExist())
@@ -108,7 +108,7 @@ public class JsonPathRequestMatcherTests {
 	@Test
 	public void testEqualTo() throws Exception {
 		this.mockServer.expect(requestTo("/composers"))
-			.andExpect(content().type("application/json;charset=UTF-8"))
+			.andExpect(content().mimeType("application/json;charset=UTF-8"))
 			.andExpect(jsonPath("$.composers[0].name").value("Johann Sebastian Bach"))
 			.andExpect(jsonPath("$.performers[1].name").value("Yehudi Menuhin"))
 			.andExpect(jsonPath("$.composers[0].name").value(equalTo("Johann Sebastian Bach"))) // Hamcrest
@@ -122,7 +122,7 @@ public class JsonPathRequestMatcherTests {
 	@Test
 	public void testHamcrestMatcher() throws Exception {
 		this.mockServer.expect(requestTo("/composers"))
-			.andExpect(content().type("application/json;charset=UTF-8"))
+			.andExpect(content().mimeType("application/json;charset=UTF-8"))
 			.andExpect(jsonPath("$.composers", hasSize(4)))
 			.andExpect(jsonPath("$.performers", hasSize(equalTo(2))))
 			.andExpect(jsonPath("$.composers[?(@.name = 'Mozart')]", empty()))
@@ -143,7 +143,7 @@ public class JsonPathRequestMatcherTests {
 		String performerName = "$.performers[%s].name";
 
 		this.mockServer.expect(requestTo("/composers"))
-			.andExpect(content().type("application/json;charset=UTF-8"))
+			.andExpect(content().mimeType("application/json;charset=UTF-8"))
 			.andExpect(jsonPath(composerName, 0).value(startsWith("Johann")))
 			.andExpect(jsonPath(performerName, 0).value(endsWith("Ashkenazy")))
 			.andExpect(jsonPath(performerName, 1).value(containsString("di Me")))

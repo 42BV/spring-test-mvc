@@ -41,22 +41,22 @@ public class ContentRequestMatchersTests {
 	public void testContentType() throws Exception {
 		this.request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
-		RequestMatchers.content().type("application/json").match(this.request);
-		RequestMatchers.content().type(MediaType.APPLICATION_JSON).match(this.request);
+		RequestMatchers.content().mimeType("application/json").match(this.request);
+		RequestMatchers.content().mimeType(MediaType.APPLICATION_JSON).match(this.request);
 	}
 
 	@Test(expected=AssertionError.class)
 	public void testContentTypeNoMatch1() throws Exception {
 		this.request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
-		RequestMatchers.content().type("application/xml").match(this.request);
+		RequestMatchers.content().mimeType("application/xml").match(this.request);
 	}
 
 	@Test(expected=AssertionError.class)
 	public void testContentTypeNoMatch2() throws Exception {
 		this.request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
-		RequestMatchers.content().type(MediaType.APPLICATION_ATOM_XML).match(this.request);
+		RequestMatchers.content().mimeType(MediaType.APPLICATION_ATOM_XML).match(this.request);
 	}
 
 	@Test

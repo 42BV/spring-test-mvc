@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
  *
  * mockMvc.perform(get("/form"))
  *     .andExpect(status().isOk())
- *     .andExpect(content().type("text/plain"))
+ *     .andExpect(content().mimeType("text/plain"))
  *     .andExpect(forwardedUrl("/WEB-INF/layouts/main.jsp"));
  * </pre>
  *

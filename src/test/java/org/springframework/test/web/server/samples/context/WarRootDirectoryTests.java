@@ -82,7 +82,7 @@ public class WarRootDirectoryTests {
 	public void resourceRequest() throws Exception {
 		mockMvc.perform(get("/resources/Spring.js"))
 			.andExpect(status().isOk())
-			.andExpect(content().type("text/javascript"))
+			.andExpect(content().mimeType("text/javascript"))
 			.andExpect(content().string(containsString("Spring={};")));
 	}
 
@@ -92,7 +92,7 @@ public class WarRootDirectoryTests {
 	public void resourcesViaDefaultServlet() throws Exception {
 		mockMvc.perform(get("/unknown/resource"))
 			.andExpect(status().isOk())
-			.andExpect(handler().type(DefaultServletHttpRequestHandler.class))
+			.andExpect(handler().handlerType(DefaultServletHttpRequestHandler.class))
 			.andExpect(forwardedUrl("default"));
 	}
 

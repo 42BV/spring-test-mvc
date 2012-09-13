@@ -52,12 +52,12 @@ public class ContentResultMatcherTests {
 	@Test
 	public void testContentType() throws Exception {
 		this.mockMvc.perform(get("/handle"))
-			.andExpect(content().type(MediaType.TEXT_PLAIN))
-			.andExpect(content().type("text/plain"));
+			.andExpect(content().mimeType(MediaType.TEXT_PLAIN))
+			.andExpect(content().mimeType("text/plain"));
 
 		this.mockMvc.perform(get("/handleUtf8"))
-			.andExpect(content().type(MediaType.valueOf("text/plain;charset=UTF-8")))
-			.andExpect(content().type("text/plain;charset=UTF-8"));
+			.andExpect(content().mimeType(MediaType.valueOf("text/plain;charset=UTF-8")))
+			.andExpect(content().mimeType("text/plain;charset=UTF-8"));
 	}
 
 	@Test

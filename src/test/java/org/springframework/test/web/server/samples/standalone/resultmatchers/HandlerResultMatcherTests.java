@@ -50,7 +50,7 @@ public class HandlerResultMatcherTests {
 	
 	@Test
 	public void testHandlerType() throws Exception {
-		this.mockMvc.perform(get("/")).andExpect(handler().type(SimpleController.class));
+		this.mockMvc.perform(get("/")).andExpect(handler().handlerType(SimpleController.class));
 	}
 	
 	@Test

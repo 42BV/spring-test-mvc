@@ -55,14 +55,14 @@ public class ContentRequestMatchers {
 	/**
 	 * Assert the request content type as a String.
 	 */
-	public RequestMatcher type(String expectedContentType) {
-		return type(MediaType.parseMediaType(expectedContentType));
+	public RequestMatcher mimeType(String expectedContentType) {
+		return mimeType(MediaType.parseMediaType(expectedContentType));
 	}
 
 	/**
 	 * Assert the request content type as a {@link MediaType}.
 	 */
-	public RequestMatcher type(final MediaType expectedContentType) {
+	public RequestMatcher mimeType(final MediaType expectedContentType) {
 		return new RequestMatcher() {
 			public void match(ClientHttpRequest request) throws IOException, AssertionError {
 				MediaType actualContentType = request.getHeaders().getContentType();

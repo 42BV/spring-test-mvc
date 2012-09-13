@@ -34,7 +34,7 @@ public class HandlerResultMatchers {
 	/**
 	 * TODO
 	 */
-	public ResultMatcher type(final Class<?> type) {
+	public ResultMatcher handlerType(final Class<?> type) {
 		return new ResultMatcher() {
 			public void match(MvcResult result) throws Exception {
 				Object handler = result.getHandler();
