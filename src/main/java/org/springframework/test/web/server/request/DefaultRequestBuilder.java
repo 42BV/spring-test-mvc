@@ -85,7 +85,7 @@ public class DefaultRequestBuilder implements RequestBuilder {
 	/**
 	 * Use methods on {@link MockMvcRequestBuilders} to obtain a new instance.
 	 */
-	DefaultRequestBuilder(URI uri, HttpMethod method) {
+	protected DefaultRequestBuilder(URI uri, HttpMethod method) {
 		this.uri = uri;
 		this.method = method;
 	}
@@ -269,8 +269,8 @@ public class DefaultRequestBuilder implements RequestBuilder {
 	}
 
 	/**
-	 * Creates a new {@link MockHttpServletRequest} based on the given {@link ServletContext}. Can be overridden in
-	 * subclasses.
+	 * Creates a new {@link MockHttpServletRequest} based on the given
+	 * {@link ServletContext}. Can be overridden in sub-classes.
 	 *
 	 * @param servletContext the servlet context to use
 	 * @return the created mock request

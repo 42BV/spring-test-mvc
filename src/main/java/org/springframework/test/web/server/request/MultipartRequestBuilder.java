@@ -43,7 +43,7 @@ public class MultipartRequestBuilder extends DefaultRequestBuilder {
 	 * Use {@link MockMvcRequestBuilders#fileUpload(String, Object...)} to
 	 * obtain a new instance.
 	 */
-	MultipartRequestBuilder(URI uri) {
+	protected MultipartRequestBuilder(URI uri) {
 		super(uri, HttpMethod.POST);
 		super.contentType(MediaType.MULTIPART_FORM_DATA);
 	}
