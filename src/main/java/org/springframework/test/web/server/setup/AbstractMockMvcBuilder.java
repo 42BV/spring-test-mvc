@@ -16,22 +16,34 @@
 
 package org.springframework.test.web.server.setup;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.Filter;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
 import org.springframework.core.NestedRuntimeException;
+import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockServletConfig;
 import org.springframework.test.web.server.MockMvc;
 import org.springframework.test.web.server.TestDispatcherServlet;
+import org.springframework.util.Assert;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
  * An abstract class for building {@link MockMvc} instances.
  *
+ * <p>Provides support for configuring {@link Filter}s and mapping them to URL
+ * patterns as defined by the Servlet specification.
+ *
  * @author Rossen Stoyanchev
+ * @author Rob Winch
  */
 public abstract class AbstractMockMvcBuilder implements MockMvcBuilder {
+
+	private List<Filter> filters = new ArrayList<Filter>();
 
 	/**
 	 * Build a {@link MockMvc} instance.
@@ -48,10 +60,78 @@ public abstract class AbstractMockMvcBuilder implements MockMvcBuilder {
 		}
 		catch (ServletException ex) {
 			// should never happen..
-			throw new MockMvcBuildException("Failed to init DispatcherServlet", ex);
+			throw new MockMvcBuildException("Failed to initialize TestDispatcherServlet", ex);
 		}
 
-		return new MockMvc(dispatcherServlet) {};
+		Filter[] filterArray = filters.toArray(new Filter[filters.size()]);
+		MockFilterChain mockMvcFilterChain = new MockFilterChain(dispatcherServlet, filterArray) {};
+		return new MockMvc(mockMvcFilterChain, dispatcherServlet.getServletContext()) {};
+	}
+
+	/**
+	 * Add filters mapped to any request (i.e. "/*"). For example:
+	 *
+	 * <pre class="code">
+	 * mockMvcBuilder.addFilters(springSecurityFilterChain);
+	 * </pre>
+	 *
+	 * <p>is the equivalent of the following web.xml configuration:
+	 *
+	 * <pre class="code">
+	 * &lt;filter-mapping&gt;
+	 *     &lt;filter-name&gt;springSecurityFilterChain&lt;/filter-name&gt;
+	 *     &lt;url-pattern&gt;/*&lt;/url-pattern&gt;
+	 * &lt;/filter-mapping&gt;
+	 * </pre>
+	 *
+	 * <p>Filters will be invoked in the order in which they are provided.
+	 *
+	 * @param filters the filters to add
+	 */
+	@SuppressWarnings("unchecked")
+	public final <T extends AbstractMockMvcBuilder> T addFilters(Filter... filters) {
+		Assert.notNull(filters, "filters cannot be null");
+
+		for(Filter f : filters) {
+			Assert.notNull(f, "filters cannot contain null values");
+			this.filters.add(f);
+		}
+		return (T) this;
+	}
+
+	/**
+	 * Add a filter mapped to a specific set of patterns. For example:
+	 *
+	 * <pre class="code">
+	 * mockMvcBuilder.addFilters(myResourceFilter, "/resources/*");
+	 * </pre>
+	 *
+	 * <p>is the equivalent of:
+	 *
+	 * <pre class="code">
+	 * &lt;filter-mapping&gt;
+	 *     &lt;filter-name&gt;myResourceFilter&lt;/filter-name&gt;
+	 *     &lt;url-pattern&gt;/resources/*&lt;/url-pattern&gt;
+	 * &lt;/filter-mapping&gt;
+	 * </pre>
+	 *
+	 * <p>Filters will be invoked in the order in which they are provided.
+	 *
+	 * @param filter the filter to add
+	 * @param urlPatterns URL patterns to map to; if empty, "/*" is used by default
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public final <T extends AbstractMockMvcBuilder> T addFilter(Filter filter, String... urlPatterns) {
+		Assert.notNull(filter, "filter cannot be null");
+		Assert.notNull(urlPatterns, "urlPatterns cannot be null");
+
+		if(urlPatterns.length > 0) {
+			filter = new PatternMappingFilterProxy(filter, urlPatterns);
+		}
+
+		this.filters.add(filter);
+		return (T) this;
 	}
 
 	/**

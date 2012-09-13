@@ -35,6 +35,13 @@ Test binding failure by pointing to Spring MVC XML-based context configuration:
 	        .andExpect(model().attributeHasErrors("formBean"))
 	        .andExpect(view().name("form"));
 
+Test that a `Filter` performs a redirect:
+
+	MockMvcBuilders.standaloneSetup(new TestController())
+        .addFilters(new LoginFilter()).build()
+        .perform(get("/form")
+            .andExpect(redirectedUrl("/login"));
+
 Test serving a resource by pointing to Spring MVC Java-based application configuration:
 
     MockMvcBuilders.annotationConfigSetup(TestConfiguration.class).build()
