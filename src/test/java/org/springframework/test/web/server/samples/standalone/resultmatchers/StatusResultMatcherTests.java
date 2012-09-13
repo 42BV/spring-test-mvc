@@ -81,7 +81,6 @@ public class StatusResultMatcherTests {
 
 
 	@Controller
-	@SuppressWarnings("unused")
 	private static class StatusController {
 
 		@RequestMapping("/created")

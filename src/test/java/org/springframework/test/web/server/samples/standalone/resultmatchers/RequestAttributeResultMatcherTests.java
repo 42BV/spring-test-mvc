@@ -32,8 +32,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.HandlerMapping;
 
 /**
- * Examples of expectations on created request attributes. 
- * 
+ * Examples of expectations on created request attributes.
+ *
  * @author Rossen Stoyanchev
  */
 public class RequestAttributeResultMatcherTests {
@@ -50,32 +50,31 @@ public class RequestAttributeResultMatcherTests {
 		this.mockMvc.perform(get("/main/1").servletPath("/main"))
             .andExpect(request().attribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE, "/{id}"))
             .andExpect(request().attribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE, "/1"));
-		
+
 		// Hamcrest matchers...
 		this.mockMvc.perform(get("/main/1").servletPath("/main"))
 	        .andExpect(request().attribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE, equalTo("/{id}")))
 	        .andExpect(request().attribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE, equalTo("/1")));
 	}
-	
+
 	@Test
 	public void testRequestAttributeMatcher() throws Exception {
-		
+
 		String producibleMediaTypes = HandlerMapping.PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE;
-		
+
 		this.mockMvc.perform(get("/1"))
 	        .andExpect(request().attribute(producibleMediaTypes, contains(MediaType.APPLICATION_JSON)))
 	        .andExpect(request().attribute(producibleMediaTypes, not(contains(MediaType.APPLICATION_XML))));
 	}
-	
-	
+
+
 	@Controller
-	@SuppressWarnings("unused")
 	private static class SimpleController {
-		
+
 		@RequestMapping(value="/{id}", produces="application/json")
 		public String show() {
 			return "view";
 		}
 	}
-	
+
 }

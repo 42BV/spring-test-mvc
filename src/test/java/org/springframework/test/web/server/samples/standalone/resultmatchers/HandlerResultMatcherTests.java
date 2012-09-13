@@ -32,35 +32,35 @@ import org.springframework.test.web.server.MockMvc;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * Examples of expectations on the handler or handler method that executed the request. 
- * 
- * <p>Note that in most cases "handler" is synonymous with "controller". 
+ * Examples of expectations on the handler or handler method that executed the request.
+ *
+ * <p>Note that in most cases "handler" is synonymous with "controller".
  * For example an {@code @Controller} is a kind of handler.
- * 
+ *
  * @author Rossen Stoyanchev
  */
 public class HandlerResultMatcherTests {
-	
+
 	private MockMvc mockMvc;
 
 	@Before
 	public void setup() {
 		this.mockMvc = standaloneSetup(new SimpleController()).build();
 	}
-	
+
 	@Test
 	public void testHandlerType() throws Exception {
 		this.mockMvc.perform(get("/")).andExpect(handler().handlerType(SimpleController.class));
 	}
-	
+
 	@Test
 	public void testHandlerMethodNameEqualTo() throws Exception {
 		this.mockMvc.perform(get("/")).andExpect(handler().methodName("handle"));
-		
+
 		// Hamcrest matcher..
 		this.mockMvc.perform(get("/")).andExpect(handler().methodName(equalTo("handle")));
 	}
-	
+
 	@Test
 	public void testHandlerMethodNameMatcher() throws Exception {
 		this.mockMvc.perform(get("/")).andExpect(handler().methodName(is(not("save"))));
@@ -72,11 +72,10 @@ public class HandlerResultMatcherTests {
 		this.mockMvc.perform(get("/")).andExpect(handler().method(method));
 	}
 
-	
+
 	@Controller
-	@SuppressWarnings("unused")
 	private static class SimpleController {
-		
+
 		@RequestMapping("/")
 		public String handle() {
 			return "view";

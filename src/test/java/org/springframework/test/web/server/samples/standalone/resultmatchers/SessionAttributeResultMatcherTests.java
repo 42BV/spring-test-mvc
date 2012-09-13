@@ -34,8 +34,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.SessionAttributes;
 
 /**
- * Examples of expectations on created session attributes. 
- * 
+ * Examples of expectations on created session attributes.
+ *
  * @author Rossen Stoyanchev
  */
 public class SessionAttributeResultMatcherTests {
@@ -46,38 +46,37 @@ public class SessionAttributeResultMatcherTests {
 	public void setup() {
 		this.mockMvc = standaloneSetup(new SimpleController()).build();
 	}
-	
+
 	@Test
 	public void testSessionAttributeEqualTo() throws Exception {
 		this.mockMvc.perform(get("/"))
             .andExpect(request().sessionAttribute("locale", Locale.UK));
-		
+
 		// Hamcrest matchers...
 		this.mockMvc.perform(get("/"))
 	        .andExpect(request().sessionAttribute("locale", equalTo(Locale.UK)));
 	}
-	
+
 	@Test
 	public void testSessionAttributeMatcher() throws Exception {
 		this.mockMvc.perform(get("/"))
 	        .andExpect(request().sessionAttribute("locale", notNullValue()));
 	}
-	
-	
+
+
 	@Controller
 	@SessionAttributes("locale")
-	@SuppressWarnings("unused")
 	private static class SimpleController {
-		
+
 		@ModelAttribute
 		public void populate(Model model) {
 			model.addAttribute("locale", Locale.UK);
 		}
-		
+
 		@RequestMapping("/")
 		public String handle() {
 			return "view";
 		}
 	}
-	
+
 }

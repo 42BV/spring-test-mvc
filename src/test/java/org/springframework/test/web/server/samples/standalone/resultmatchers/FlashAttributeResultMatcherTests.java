@@ -35,8 +35,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
- * Examples of expectations on flash attributes. 
- * 
+ * Examples of expectations on flash attributes.
+ *
  * @author Rossen Stoyanchev
  */
 public class FlashAttributeResultMatcherTests {
@@ -59,14 +59,14 @@ public class FlashAttributeResultMatcherTests {
 		this.mockMvc.perform(post("/persons"))
             .andExpect(flash().attributeCount(3));
 	}
-	
+
 	@Test
 	public void testEqualTo() throws Exception {
 		this.mockMvc.perform(post("/persons"))
             .andExpect(flash().attribute("one", "1"))
             .andExpect(flash().attribute("two", 2.222))
             .andExpect(flash().attribute("three", new URL("http://example.com")));
-		
+
 		// Hamcrest matchers...
 		this.mockMvc.perform(post("/persons"))
 	        .andExpect(flash().attribute("one", equalTo("1")))
@@ -82,11 +82,10 @@ public class FlashAttributeResultMatcherTests {
 	        .andExpect(flash().attribute("three", notNullValue()));
 	}
 
-	
+
 	@Controller
-	@SuppressWarnings("unused")
 	private static class PersonController {
-		
+
 		@RequestMapping(value="/persons", method=RequestMethod.POST)
 		public String save(RedirectAttributes redirectAttrs) throws Exception {
 			redirectAttrs.addFlashAttribute("one", "1");

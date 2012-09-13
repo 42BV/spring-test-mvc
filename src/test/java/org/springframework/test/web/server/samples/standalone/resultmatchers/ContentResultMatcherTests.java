@@ -89,7 +89,6 @@ public class ContentResultMatcherTests {
 
 
 	@Controller
-	@SuppressWarnings("unused")
 	private static class SimpleController {
 
 		@RequestMapping(value="/handle", produces="text/plain")

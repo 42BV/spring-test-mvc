@@ -48,7 +48,7 @@ import org.springframework.web.servlet.view.xml.MarshallingView;
 
 /**
  * Tests with view resolution.
- * 
+ *
  * @author Rossen Stoyanchev
  */
 public class ViewResolutionTests {
@@ -59,7 +59,7 @@ public class ViewResolutionTests {
 		InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
 		viewResolver.setPrefix("/WEB-INF/");
 		viewResolver.setSuffix(".jsp");
-		
+
 		standaloneSetup(new PersonController()).setViewResolvers(viewResolver).build()
 			.perform(get("/person/Corea"))
 				.andExpect(status().isOk())
@@ -68,9 +68,9 @@ public class ViewResolutionTests {
 				.andExpect(forwardedUrl("/WEB-INF/person/show.jsp"));
 	}
 
-	@Test 
+	@Test
 	public void testJsonOnly() throws Exception {
-		
+
 		standaloneSetup(new PersonController())
 			.setSingleView(new MappingJacksonJsonView()).build()
 				.perform(get("/person/Corea"))
@@ -79,9 +79,9 @@ public class ViewResolutionTests {
 					.andExpect(jsonPath("$.person.name").value("Corea"));
 	}
 
-	@Test 
+	@Test
 	public void testXmlOnly() throws Exception {
-		
+
 		Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
 		marshaller.setClassesToBeBound(Person.class);
 
@@ -95,10 +95,10 @@ public class ViewResolutionTests {
 
 	@Test
 	public void testContentNegotiation() throws Exception {
-		
+
 		Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
 		marshaller.setClassesToBeBound(Person.class);
-		
+
 		List<View> viewList = new ArrayList<View>();
 		viewList.add(new MappingJacksonJsonView());
 		viewList.add(new MarshallingView(marshaller));
@@ -106,8 +106,8 @@ public class ViewResolutionTests {
 		ContentNegotiatingViewResolver cnViewResolver = new ContentNegotiatingViewResolver();
 		cnViewResolver.setDefaultViews(viewList);
 		cnViewResolver.setDefaultContentType(MediaType.TEXT_HTML);
-		
-		MockMvc mockMvc = 
+
+		MockMvc mockMvc =
 			standaloneSetup(new PersonController())
 				.setViewResolvers(cnViewResolver, new InternalResourceViewResolver())
 				.build();
@@ -127,23 +127,22 @@ public class ViewResolutionTests {
 			.andExpect(status().isOk())
 			.andExpect(content().mimeType(MediaType.APPLICATION_XML))
 			.andExpect(xpath("/person/name/text()").string(equalTo("Corea")));
-	}	
+	}
 
-	@Test 
+	@Test
 	public void defaultViewResolver() throws Exception {
-		
+
 		standaloneSetup(new PersonController()).build()
 			.perform(get("/person/Corea"))
 				.andExpect(model().attribute("person", hasProperty("name", equalTo("Corea"))))
 				.andExpect(status().isOk())
 				.andExpect(forwardedUrl("person/show"));  // InternalResourceViewResolver
 	}
-	
-	
+
+
 	@Controller
-	@SuppressWarnings("unused")
 	private static class PersonController {
-		
+
 		@RequestMapping(value="/person/{name}", method=RequestMethod.GET)
 		public String show(@PathVariable String name, Model model) {
 			Person person = new Person(name);
@@ -151,6 +150,6 @@ public class ViewResolutionTests {
 			return "person/show";
 		}
 	}
-	
+
 }
 

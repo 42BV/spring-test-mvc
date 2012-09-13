@@ -60,11 +60,10 @@ public class RedirectTests {
 	            .andExpect(flash().attributeCount(0));
 	}
 
-	
+
 	@Controller
-	@SuppressWarnings("unused")
 	private static class PersonController {
-		
+
 		@RequestMapping(value="/persons", method=RequestMethod.POST)
 		public String save(@Valid Person person, Errors errors, RedirectAttributes redirectAttrs) {
 			if (errors.hasErrors()) {

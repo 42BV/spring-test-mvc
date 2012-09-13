@@ -16,7 +16,6 @@
 package org.springframework.test.web.client.match;
 
 import static org.hamcrest.Matchers.hasXPath;
-import static org.springframework.test.web.client.match.RequestMatchers.anything;
 
 import org.junit.Before;
 import org.junit.Test;

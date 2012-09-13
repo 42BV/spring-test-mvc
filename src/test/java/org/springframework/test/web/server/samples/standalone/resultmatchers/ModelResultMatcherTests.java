@@ -42,8 +42,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
- * Examples of expectations on the content of the model prepared by the controller. 
- * 
+ * Examples of expectations on the content of the model prepared by the controller.
+ *
  * @author Rossen Stoyanchev
  */
 public class ModelResultMatcherTests {
@@ -60,7 +60,7 @@ public class ModelResultMatcherTests {
 		mockMvc.perform(get("/"))
 			.andExpect(model().attribute("integer", 3))
 			.andExpect(model().attribute("string", "a string value"));
-		
+
 		// Hamcrest Matchers..
 		mockMvc.perform(get("/"))
 			.andExpect(model().attribute("integer", equalTo(3)))
@@ -70,7 +70,7 @@ public class ModelResultMatcherTests {
 	@Test
 	public void testAttributeExists() throws Exception {
 		mockMvc.perform(get("/")).andExpect(model().attributeExists("integer", "string", "person"));
-		
+
 		// Hamcrest Matchers..
 		mockMvc.perform(get("/")).andExpect(model().attribute("integer", notNullValue()));
 		mockMvc.perform(get("/")).andExpect(model().attribute("INTEGER", nullValue()));
@@ -94,13 +94,12 @@ public class ModelResultMatcherTests {
 		mockMvc.perform(get("/")).andExpect(model().hasNoErrors());
 	}
 
-	
+
 	@Controller
-	@SuppressWarnings("unused")
 	private static class SampleController {
-		
+
 		private final Object[] values;
-		
+
 		public SampleController(Object... values) {
 			this.values = values;
 		}
@@ -118,5 +117,5 @@ public class ModelResultMatcherTests {
 			return "view";
 		}
 	}
-	
+
 }

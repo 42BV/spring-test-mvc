@@ -29,8 +29,8 @@ import org.springframework.test.web.server.MockMvc;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * Examples of expectations on the view name selected by the controller. 
- * 
+ * Examples of expectations on the view name selected by the controller.
+ *
  * @author Rossen Stoyanchev
  */
 public class ViewNameResultMatcherTests {
@@ -45,7 +45,7 @@ public class ViewNameResultMatcherTests {
 	@Test
 	public void testEqualTo() throws Exception {
 		this.mockMvc.perform(get("/")).andExpect(view().name("mySpecialView"));
-		
+
 		// Hamcrest matchers...
 		this.mockMvc.perform(get("/")).andExpect(view().name(equalTo("mySpecialView")));
 	}
@@ -55,11 +55,10 @@ public class ViewNameResultMatcherTests {
 		this.mockMvc.perform(get("/")).andExpect(view().name(containsString("Special")));
 	}
 
-	
+
 	@Controller
-	@SuppressWarnings("unused")
 	private static class SimpleController {
-		
+
 		@RequestMapping("/")
 		public String handle() {
 			return "mySpecialView";

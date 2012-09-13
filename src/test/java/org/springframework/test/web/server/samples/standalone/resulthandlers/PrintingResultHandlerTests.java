@@ -16,10 +16,6 @@
 
 package org.springframework.test.web.server.samples.standalone.resulthandlers;
 
-import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.server.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
-
 import org.junit.Test;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,7 +38,6 @@ public class PrintingResultHandlerTests {
 
 
 	@Controller
-	@SuppressWarnings("unused")
 	private static class SimpleController {
 
 		@RequestMapping("/")

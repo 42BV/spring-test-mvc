@@ -37,16 +37,15 @@ public class ResponseBodyTests {
 
 	@Test
 	public void json() throws Exception {
-		
+
 		standaloneSetup(new PersonController()).build()
 			.perform(get("/person/Lee").accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(content().mimeType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.name").value("Lee"));
-	}	
+	}
 
 	@Controller
-	@SuppressWarnings("unused")
 	private class PersonController {
 
 		@RequestMapping(value="/person/{name}")

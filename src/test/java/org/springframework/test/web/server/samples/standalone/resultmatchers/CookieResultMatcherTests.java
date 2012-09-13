@@ -110,7 +110,6 @@ public class CookieResultMatcherTests {
 	}
 
 	@Controller
-	@SuppressWarnings("unused")
 	private static class SimpleController {
 
 		@RequestMapping("/")

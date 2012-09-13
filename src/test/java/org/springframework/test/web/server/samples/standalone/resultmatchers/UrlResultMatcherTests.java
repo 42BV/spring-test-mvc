@@ -28,8 +28,8 @@ import org.springframework.test.web.server.MockMvc;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * Examples of expectations on forwarded or redirected URLs. 
- * 
+ * Examples of expectations on forwarded or redirected URLs.
+ *
  * @author Rossen Stoyanchev
  */
 public class UrlResultMatcherTests {
@@ -40,7 +40,7 @@ public class UrlResultMatcherTests {
 	public void setup() {
 		this.mockMvc = standaloneSetup(new SimpleController()).build();
 	}
-	
+
 	@Test
 	public void testRedirect() throws Exception {
 		this.mockMvc.perform(get("/persons")).andExpect(redirectedUrl("/persons/1"));
@@ -51,11 +51,10 @@ public class UrlResultMatcherTests {
 		this.mockMvc.perform(get("/")).andExpect(forwardedUrl("/home"));
 	}
 
-	
+
 	@Controller
-	@SuppressWarnings("unused")
 	private static class SimpleController {
-		
+
 		@RequestMapping("/persons")
 		public String save() {
 			return "redirect:/persons/1";

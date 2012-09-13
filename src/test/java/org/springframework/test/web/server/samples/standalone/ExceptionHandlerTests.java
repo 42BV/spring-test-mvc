@@ -34,20 +34,19 @@ import org.springframework.web.bind.annotation.RequestMethod;
  * @author Rossen Stoyanchev
  */
 public class ExceptionHandlerTests {
-	
+
 	@Test
 	public void testExceptionHandlerMethod() throws Exception {
 		standaloneSetup(new PersonController()).build()
 			.perform(get("/person/Clyde"))
 				.andExpect(status().isOk())
                 .andExpect(forwardedUrl("errorView"));
-	}	
+	}
 
-	
+
 	@Controller
-	@SuppressWarnings("unused")
 	private static class PersonController {
-		
+
 		@RequestMapping(value="/person/{name}", method=RequestMethod.GET)
 		public String show(@PathVariable String name) {
 			if (name.equals("Clyde")) {
@@ -55,7 +54,7 @@ public class ExceptionHandlerTests {
 			}
 			return "person/show";
 		}
-		
+
 		@ExceptionHandler
 		public String handleException(IllegalArgumentException exception) {
 			return "errorView";
