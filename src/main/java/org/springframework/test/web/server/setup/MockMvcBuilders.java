@@ -68,7 +68,7 @@ public class MockMvcBuilders {
 	 * Build a {@link MockMvc} from a fully initialized {@link WebApplicationContext}
 	 * The context must have been setup with a {@link ServletContext} and refreshed.
 	 */
-	public static MockMvcBuilder webApplicationContextSetup(WebApplicationContext context) {
+	public static InitializedContextMockMvcBuilder webApplicationContextSetup(WebApplicationContext context) {
 		return new InitializedContextMockMvcBuilder(context);
 	}
 
