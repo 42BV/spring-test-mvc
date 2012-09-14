@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,44 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.test.web.server.samples.standalone;
 
 import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.server.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
 
 import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.web.Person;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- * Response written from {@code @ResponseBody} method.
+ * Tests demonstrating the use of request parameters.
  *
  * @author Rossen Stoyanchev
  */
-public class ResponseBodyTests {
+public class RequestParameterTests {
 
 	@Test
-	public void json() throws Exception {
+	public void queryParameter() throws Exception {
 
 		standaloneSetup(new PersonController()).build()
-			.perform(get("/person/Lee").accept(MediaType.APPLICATION_JSON))
+			.perform(get("/search?name=George").accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(content().mimeType("application/json;charset=UTF-8"))
-				.andExpect(jsonPath("$.name").value("Lee"));
+				.andExpect(jsonPath("$.name").value("George"));
 	}
+
 
 	@Controller
 	private class PersonController {
 
-		@RequestMapping(value="/person/{name}")
+		@RequestMapping(value="/search")
 		@ResponseBody
-		public Person get(@PathVariable String name) {
+		public Person get(@RequestParam String name) {
 			Person person = new Person(name);
 			return person;
 		}

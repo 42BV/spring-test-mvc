@@ -20,30 +20,61 @@ public abstract class MockMvcRequestBuilders {
 	private MockMvcRequestBuilders() {
 	}
 
+	/**
+	 * Create a {@link DefaultRequestBuilder} for a GET request.
+	 * @param urlTemplate a URI template including any component (e.g. scheme, host, query)
+	 * @param urlVariables zero or more URI variables
+	 */
 	public static DefaultRequestBuilder get(String urlTemplate, Object... urlVariables) {
 		return request(HttpMethod.GET, urlTemplate, urlVariables);
 	}
 
+	/**
+	 * Create a {@link DefaultRequestBuilder} for a POST request.
+	 * @param urlTemplate a URI template including any component (e.g. scheme, host, query)
+	 * @param urlVariables zero or more URI variables
+	 */
 	public static DefaultRequestBuilder post(String urlTemplate, Object... urlVariables) {
 		return request(HttpMethod.POST, urlTemplate, urlVariables);
 	}
 
+	/**
+	 * Create a {@link DefaultRequestBuilder} for a PUT request.
+	 * @param urlTemplate a URI template including any component (e.g. scheme, host, query)
+	 * @param urlVariables zero or more URI variables
+	 */
 	public static DefaultRequestBuilder put(String urlTemplate, Object... urlVariables) {
 		return request(HttpMethod.PUT, urlTemplate, urlVariables);
 	}
 
+	/**
+	 * Create a {@link DefaultRequestBuilder} for a DELETE request.
+	 * @param urlTemplate a URI template including any component (e.g. scheme, host, query)
+	 * @param urlVariables zero or more URI variables
+	 */
 	public static DefaultRequestBuilder delete(String urlTemplate, Object... urlVariables) {
 		return request(HttpMethod.DELETE, urlTemplate, urlVariables);
 	}
 
+	/**
+	 * Create a {@link DefaultRequestBuilder} for a multipart request.
+	 * @param urlTemplate a URI template including any component (e.g. scheme, host, query)
+	 * @param urlVariables zero or more URI variables
+	 */
 	public static MultipartRequestBuilder fileUpload(String urlTemplate, Object... urlVariables) {
 		URI url = expandUrl(urlTemplate, urlVariables);
 		return new MultipartRequestBuilder(url);
 	}
 
-	public static DefaultRequestBuilder request(HttpMethod method, String urlTemplate, Object... urlVariables) {
+	/**
+	 * Create a {@link DefaultRequestBuilder} for any HTTP method.
+	 * @param httpMethod the HTTP method
+	 * @param urlTemplate a URI template including any component (e.g. scheme, host, query)
+	 * @param urlVariables zero or more URI variables
+	 */
+	private static DefaultRequestBuilder request(HttpMethod httpMethod, String urlTemplate, Object... urlVariables) {
 		URI url = expandUrl(urlTemplate, urlVariables);
-		return new DefaultRequestBuilder(url, method);
+		return new DefaultRequestBuilder(url, httpMethod);
 	}
 
 	private static URI expandUrl(String urlTemplate, Object[] urlVariables) {

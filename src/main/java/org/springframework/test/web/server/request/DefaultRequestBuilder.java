@@ -18,10 +18,13 @@ package org.springframework.test.web.server.request;
 
 import java.net.URI;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.Cookie;
@@ -47,7 +50,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 public class DefaultRequestBuilder implements RequestBuilder {
 
-	private final URI uri;
+	private final UriComponentsBuilder uriComponentsBuilder;
 
 	private final HttpMethod method;
 
@@ -55,13 +58,11 @@ public class DefaultRequestBuilder implements RequestBuilder {
 
 	private final MultiValueMap<String, Object> headers = new LinkedMultiValueMap<String, Object>();
 
-	private final HttpHeaders httpHeaders = new HttpHeaders();
-
 	private String contentType;
 
-	private byte[] requestBody;
+	private byte[] content;
 
-	private Cookie[] cookies;
+	private final List<Cookie> cookies = new ArrayList<Cookie>();
 
 	private Locale locale;
 
@@ -83,16 +84,31 @@ public class DefaultRequestBuilder implements RequestBuilder {
 
 
 	/**
-	 * Use methods on {@link MockMvcRequestBuilders} to obtain a new instance.
+	 * Protected constructor. Use static factory methods in
+	 * {@link MockMvcRequestBuilders}.
+	 *
+	 * @param uri the URI for the request including any component (e.g. scheme, host, query)
+	 * @param httpMethod the HTTP method for the request
 	 */
-	protected DefaultRequestBuilder(URI uri, HttpMethod method) {
-		this.uri = uri;
-		this.method = method;
+	protected DefaultRequestBuilder(URI uri, HttpMethod httpMethod) {
+		Assert.notNull(uri, "uri is required");
+		Assert.notNull(httpMethod, "httpMethod is required");
+		this.uriComponentsBuilder = UriComponentsBuilder.fromUri(uri);
+		this.method = httpMethod;
 	}
 
-	public DefaultRequestBuilder param(String name, String value, String... values) {
-		addToMultiValueMap(this.parameters, name, value, values);
+	public DefaultRequestBuilder param(String name, String... values) {
+		addToMultiValueMap(this.parameters, name, values);
 		return this;
+	}
+
+	private static <T> void addToMultiValueMap(MultiValueMap<String, T> map, String name, T[] values) {
+		Assert.hasLength(name, "'name' must not be empty");
+		Assert.notNull(values, "'values' is required");
+		Assert.notEmpty(values, "'values' must not be empty");
+		for (T value : values) {
+			map.add(name, value);
+		}
 	}
 
 	public DefaultRequestBuilder accept(MediaType... mediaTypes) {
@@ -108,31 +124,29 @@ public class DefaultRequestBuilder implements RequestBuilder {
 		return this;
 	}
 
-	public DefaultRequestBuilder body(byte[] requestBody) {
-		this.requestBody = requestBody;
+	public DefaultRequestBuilder body(byte[] content) {
+		this.content = content;
 		return this;
 	}
 
-	public DefaultRequestBuilder header(String name, Object value, Object... values) {
-		addToMultiValueMap(this.headers, name, value, values);
+	public DefaultRequestBuilder header(String name, Object... values) {
+		addToMultiValueMap(this.headers, name, values);
 		return this;
 	}
 
 	public DefaultRequestBuilder headers(HttpHeaders httpHeaders) {
-		this.httpHeaders.putAll(httpHeaders);
+		for (String name : httpHeaders.keySet()) {
+			for (String value : httpHeaders.get(name)) {
+				this.headers.add(name, value);
+			}
+		}
 		return this;
 	}
 
-	public DefaultRequestBuilder cookie(Cookie cookie, Cookie... cookies) {
-		Assert.notNull(cookie, "'cookie' must not be null");
-		if (cookies == null) {
-			this.cookies = new Cookie[] { cookie };
-		}
-		else {
-			this.cookies = new Cookie[1 + cookies.length];
-			this.cookies[0] = cookie;
-			System.arraycopy(cookies, 0, this.cookies, 1, cookies.length);
-		}
+	public DefaultRequestBuilder cookie(Cookie... cookies) {
+		Assert.notNull(cookies, "'cookies' must not be null");
+		Assert.notEmpty(cookies, "'cookies' must not be empty");
+		this.cookies.addAll(Arrays.asList(cookies));
 		return this;
 	}
 
@@ -183,20 +197,35 @@ public class DefaultRequestBuilder implements RequestBuilder {
 		return this;
 	}
 
+	/**
+	 * Specify the portion of the requestURI that indicates the request context.
+	 * The request URI must begin with the context path. It should start with a
+	 * "/" but must not end with a "/".
+	 *
+	 * @see <a href="http://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletRequest.html#getContextPath%28%29">HttpServletRequest.getContextPath()</a>
+	 */
 	public DefaultRequestBuilder contextPath(String contextPath) {
-		this.contextPath = contextPath;
+		if (StringUtils.hasText(contextPath)) {
+			Assert.isTrue(contextPath.startsWith("/"), "Context path must start with a '/'");
+			Assert.isTrue(!contextPath.endsWith("/"), "Context path must not end with a '/'");
+		}
+		this.contextPath = (contextPath != null) ? contextPath : "";
 		return this;
 	}
 
 	/**
-	 * Set the servletPath to which the DispatcherServlet is mapped.
-	 * When specified, pathInfo will be equal to the remaining part of the URI.
-	 * <p>For example given a servletPath of {@code "/main"} and request URL
-	 * {@code "/main/accounts/1"}, the pathInfo will be {@code "/accounts/1"}.
-	 * Or if the servletPath is not set, the pathInfo will be the full URL.
+	 * Specify the portion of the requestURI that represents the Servlet path.
+	 * The request URI must begin with the context path, followed by the Servlet path.
+	 * The pathInfo is the remaining portion of the requestURI.
+	 *
+	 * @see <a href="http://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletRequest.html#getServletPath%28%29">HttpServletRequest.getServletPath()</a>
 	 */
 	public DefaultRequestBuilder servletPath(String servletPath) {
-		this.servletPath = servletPath;
+		if (StringUtils.hasText(servletPath)) {
+			Assert.isTrue(servletPath.startsWith("/"), "Servlet path must start with a '/'");
+			Assert.isTrue(!servletPath.endsWith("/"), "Servlet path must not end with a '/'");
+		}
+		this.servletPath = (servletPath != null) ? servletPath : "";
 		return this;
 	}
 
@@ -209,19 +238,44 @@ public class DefaultRequestBuilder implements RequestBuilder {
 
 		MockHttpServletRequest request = createServletRequest(servletContext);
 
-		request.setMethod(this.method.name());
+		UriComponents uriComponents = this.uriComponentsBuilder.build();
 
-		String requestUri = UriComponentsBuilder.fromUri(this.uri).query(null).fragment(null).build().toString();
+		String requestUri = uriComponents.getPath();
 		request.setRequestURI(requestUri);
 
-		UriComponents uriComponents = UriComponentsBuilder.fromUri(this.uri).build();
-		String queryString = uriComponents.getQuery();
-		request.setQueryString(queryString);
+		Assert.isTrue(requestUri.startsWith(this.contextPath),
+				"requestURI [" + requestUri + "] does not start with contextPath [" + this.contextPath + "]");
 
-		MultiValueMap<String, String> queryParams = uriComponents.getQueryParams();
-		for (String name : queryParams.keySet()) {
-			for (String value : queryParams.get(name)) {
-				request.addParameter(name, value);
+		Assert.isTrue(requestUri.startsWith(this.contextPath + this.servletPath),
+				"Invalid servletPath [" + this.servletPath + "] for requestURI [" + requestUri + "]");
+
+		request.setContextPath(this.contextPath);
+		request.setServletPath(this.servletPath);
+		request.setPathInfo(derivePathInfo(requestUri));
+
+		if (uriComponents.getScheme() != null) {
+			request.setScheme(uriComponents.getScheme());
+		}
+		if (uriComponents.getHost() != null) {
+			request.setServerName(uriComponents.getHost());
+		}
+		if (uriComponents.getPort() != -1) {
+			request.setServerPort(uriComponents.getPort());
+		}
+
+		request.setMethod(this.method.name());
+
+		for (String name : this.headers.keySet()) {
+			for (Object value : this.headers.get(name)) {
+				request.addHeader(name, value);
+			}
+		}
+
+		request.setQueryString(uriComponents.getQuery());
+
+		for (Entry<String, List<String>> entry : uriComponents.getQueryParams().entrySet()) {
+			for (String value : entry.getValue()) {
+				request.addParameter(entry.getKey(), value);
 			}
 		}
 
@@ -230,35 +284,26 @@ public class DefaultRequestBuilder implements RequestBuilder {
 				request.addParameter(name, value);
 			}
 		}
-		for (String name : this.headers.keySet()) {
-			for (Object value : this.headers.get(name)) {
-				request.addHeader(name, value);
-			}
-		}
-		for (String name : this.httpHeaders.keySet()) {
-			for (Object value : this.httpHeaders.get(name)) {
-				request.addHeader(name, value);
-			}
-		}
+
 		for (String name : this.attributes.keySet()) {
 			request.setAttribute(name, this.attributes.get(name));
 		}
 
+		// Set session before session attributes
+
 		if (this.session != null) {
 			request.setSession(this.session);
 		}
+
 		for (String name : this.sessionAttributes.keySet()) {
 			request.getSession().setAttribute(name, this.sessionAttributes.get(name));
 		}
 
 		request.setContentType(this.contentType);
-		request.setContent(this.requestBody);
-		request.setCookies(this.cookies);
+		request.setContent(this.content);
+		request.setCookies(this.cookies.toArray(new Cookie[this.cookies.size()]));
 		request.setCharacterEncoding(this.characterEncoding);
 		request.setUserPrincipal(this.principal);
-		request.setContextPath(this.contextPath);
-		request.setServletPath(this.servletPath);
-		request.setPathInfo(determinePathInfo());
 		request.setSecure(this.secure);
 
 		if (this.locale != null) {
@@ -271,36 +316,20 @@ public class DefaultRequestBuilder implements RequestBuilder {
 	/**
 	 * Creates a new {@link MockHttpServletRequest} based on the given
 	 * {@link ServletContext}. Can be overridden in sub-classes.
-	 *
-	 * @param servletContext the servlet context to use
-	 * @return the created mock request
 	 */
 	protected MockHttpServletRequest createServletRequest(ServletContext servletContext) {
 		return new MockHttpServletRequest(servletContext);
 	}
 
-	private String determinePathInfo() {
-		String uriString = this.uri.toString();
-		String prefix = "";
-		if (StringUtils.hasText(this.contextPath)) {
-			prefix += this.contextPath;
-			Assert.isTrue(uriString.startsWith(prefix), "The URI '" + uriString
-					+ "' must start with the contextPath='" + prefix + "'");
+	private String derivePathInfo(String requestUri) {
+		if (!StringUtils.hasText(this.contextPath) && !StringUtils.hasText(this.servletPath)) {
+			return null;
 		}
-		if (StringUtils.hasText(this.servletPath)) {
-			prefix += this.servletPath;
-			Assert.isTrue(uriString.startsWith(prefix), "The URI '" + uriString
-					+ "' must start with the combined contextPath and servletPath '" + prefix + "'");
+		String pathInfo = requestUri.substring(this.contextPath.length() + this.servletPath.length());
+		if (!StringUtils.hasText(pathInfo)) {
+			return null;
 		}
-		return uriString.substring(prefix.length());
+		return pathInfo;
 	}
 
-	private static <T> void addToMultiValueMap(MultiValueMap<String, T> map, String name, T value, T[] values) {
-		Assert.hasLength(name, "'name' must not be empty");
-		Assert.notNull(value, "'value' must not be null");
-		map.add(name, value);
-		if (values != null) {
-			map.get(name).addAll(Arrays.asList(values));
-		}
-	}
 }
