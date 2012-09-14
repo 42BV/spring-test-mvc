@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,25 +56,27 @@ public class CookieResultMatchers {
 	}
 
 	/**
-	 * Assert a cookie exists and its max age is not 0, i.e. it's not expired.
+	 * Assert a cookie exists. Note that the existence check is irrespective of
+	 * whether max age is 0 (i.e. expired).
 	 */
 	public ResultMatcher exists(final String name) {
 		return new ResultMatcher() {
 			public void match(MvcResult result) {
 				Cookie cookie = result.getResponse().getCookie(name);
-				assertTrue("No cookie with name: " + name, cookie != null && cookie.getMaxAge() != 0);
+				assertTrue("No cookie with name: " + name, cookie != null);
 			}
 		};
 	}
 
 	/**
-	 * Assert a cookie doesn't exist or its maxAge is equals to 0 (expired cookie)
+	 * Assert a cookie does not exist. Note that the existence check is
+	 * irrespective of whether max age is 0 (i.e. expired).
 	 */
 	public ResultMatcher doesNotExist(final String name) {
 		return new ResultMatcher() {
 			public void match(MvcResult result) {
 				Cookie cookie = result.getResponse().getCookie(name);
-				assertTrue("Unexpected cookie with name " + name, cookie == null || cookie.getMaxAge() == 0);
+				assertTrue("Unexpected cookie with name " + name, cookie == null);
 			}
 		};
 	}
@@ -86,6 +88,7 @@ public class CookieResultMatchers {
 		return new ResultMatcher() {
 			public void match(MvcResult result) {
 				Cookie cookie = result.getResponse().getCookie(name);
+				assertTrue("No cookie with name: " + name, cookie != null);
 				MatcherAssert.assertThat("Response cookie maxAge", cookie.getMaxAge(), matcher);
 			}
 		};
