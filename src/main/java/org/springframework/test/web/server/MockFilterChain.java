@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.mock.web;
+package org.springframework.test.web.server;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -30,11 +30,18 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
+import org.springframework.mock.web.MockFilterConfig;
+import org.springframework.mock.web.PassThroughFilterChain;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
- * Mock implementation of the {@link javax.servlet.FilterChain} interface. Used
+ * <strong>Note:</strong>
+ * this class is a copy of the same class in the spring-test module of
+ * the Spring Framework with some additional changes. It's here temporarily
+ * until Spring MVC Test moves into the Spring Framework.
+ *
+ * <p>Mock implementation of the {@link javax.servlet.FilterChain} interface. Used
  * for testing the web framework; also useful for testing custom
  * {@link javax.servlet.Filter} implementations.
  *

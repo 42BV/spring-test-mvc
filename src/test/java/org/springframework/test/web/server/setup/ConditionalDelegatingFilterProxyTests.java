@@ -27,10 +27,10 @@ import javax.servlet.ServletResponse;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockFilterConfig;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.server.MockFilterChain;
 
 /**
  *
