@@ -322,9 +322,6 @@ public class DefaultRequestBuilder implements RequestBuilder {
 	}
 
 	private String derivePathInfo(String requestUri) {
-		if (!StringUtils.hasText(this.contextPath) && !StringUtils.hasText(this.servletPath)) {
-			return null;
-		}
 		String pathInfo = requestUri.substring(this.contextPath.length() + this.servletPath.length());
 		if (!StringUtils.hasText(pathInfo)) {
 			return null;

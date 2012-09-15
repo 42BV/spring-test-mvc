@@ -96,7 +96,7 @@ public class DefaultRequestBuilderTests {
 
 		assertEquals("", request.getContextPath());
 		assertEquals("", request.getServletPath());
-		assertNull(request.getPathInfo());
+		assertEquals("/foo", request.getPathInfo());
 	}
 
 	@Test
