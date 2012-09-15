@@ -227,8 +227,9 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	 * requests. If enabled a method mapped to "/users" also matches to "/users.*".
 	 * <p>The default value is {@code true}.
 	 */
-	public void setUseSuffixPatternMatch(boolean useSuffixPatternMatch) {
+	public StandaloneMockMvcBuilder setUseSuffixPatternMatch(boolean useSuffixPatternMatch) {
 		this.useSuffixPatternMatch = useSuffixPatternMatch;
+		return this;
 	}
 
 	/**
@@ -236,8 +237,9 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 	 * If enabled a method mapped to "/users" also matches to "/users/".
 	 * <p>The default value is {@code true}.
 	 */
-	public void setUseTrailingSlashPatternMatch(boolean useTrailingSlashPatternMatch) {
+	public StandaloneMockMvcBuilder setUseTrailingSlashPatternMatch(boolean useTrailingSlashPatternMatch) {
 		this.useTrailingSlashPatternMatch = useTrailingSlashPatternMatch;
+		return this;
 	}
 
 	@Override
