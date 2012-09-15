@@ -353,6 +353,7 @@ public class DefaultRequestBuilderTests {
 		assertEquals(user, request.getUserPrincipal());
 	}
 
+
 	private final class User implements Principal {
 
 		public String getName() {

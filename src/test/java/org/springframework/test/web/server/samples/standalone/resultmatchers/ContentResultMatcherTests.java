@@ -18,8 +18,8 @@ package org.springframework.test.web.server.samples.standalone.resultmatchers;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
-import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.server.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.server.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
 
 import org.junit.Before;
@@ -46,7 +46,7 @@ public class ContentResultMatcherTests {
 
 	@Before
 	public void setup() {
-		this.mockMvc = standaloneSetup(new SimpleController()).build();
+		this.mockMvc = standaloneSetup(new SimpleController()).alwaysExpect(status().isOk()).build();
 	}
 
 	@Test

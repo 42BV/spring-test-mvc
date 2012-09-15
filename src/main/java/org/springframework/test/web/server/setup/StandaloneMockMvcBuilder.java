@@ -76,7 +76,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
  *
  * @author Rossen Stoyanchev
  */
-public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
+public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneMockMvcBuilder> {
 
 	private final Object[] controllers;
 

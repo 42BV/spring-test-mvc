@@ -49,10 +49,7 @@ public class RequestAttributeResultMatcherTests {
 	public void testRequestAttributeEqualTo() throws Exception {
 		this.mockMvc.perform(get("/main/1").servletPath("/main"))
             .andExpect(request().attribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE, "/{id}"))
-            .andExpect(request().attribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE, "/1"));
-
-		// Hamcrest matchers...
-		this.mockMvc.perform(get("/main/1").servletPath("/main"))
+            .andExpect(request().attribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE, "/1"))
 	        .andExpect(request().attribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE, equalTo("/{id}")))
 	        .andExpect(request().attribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE, equalTo("/1")));
 	}

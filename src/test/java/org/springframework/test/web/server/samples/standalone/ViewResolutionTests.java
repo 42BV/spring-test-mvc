@@ -71,12 +71,11 @@ public class ViewResolutionTests {
 	@Test
 	public void testJsonOnly() throws Exception {
 
-		standaloneSetup(new PersonController())
-			.setSingleView(new MappingJacksonJsonView()).build()
-				.perform(get("/person/Corea"))
-					.andExpect(status().isOk())
-					.andExpect(content().mimeType(MediaType.APPLICATION_JSON))
-					.andExpect(jsonPath("$.person.name").value("Corea"));
+		standaloneSetup(new PersonController()).setSingleView(new MappingJacksonJsonView()).build()
+			.perform(get("/person/Corea"))
+				.andExpect(status().isOk())
+				.andExpect(content().mimeType(MediaType.APPLICATION_JSON))
+				.andExpect(jsonPath("$.person.name").value("Corea"));
 	}
 
 	@Test
@@ -85,12 +84,11 @@ public class ViewResolutionTests {
 		Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
 		marshaller.setClassesToBeBound(Person.class);
 
-		standaloneSetup(new PersonController())
-			.setSingleView(new MarshallingView(marshaller)).build()
-				.perform(get("/person/Corea"))
-					.andExpect(status().isOk())
-					.andExpect(content().mimeType(MediaType.APPLICATION_XML))
-					.andExpect(xpath("/person/name/text()").string(equalTo("Corea")));
+		standaloneSetup(new PersonController()).setSingleView(new MarshallingView(marshaller)).build()
+			.perform(get("/person/Corea"))
+				.andExpect(status().isOk())
+				.andExpect(content().mimeType(MediaType.APPLICATION_XML))
+				.andExpect(xpath("/person/name/text()").string(equalTo("Corea")));
 	}
 
 	@Test

@@ -27,7 +27,7 @@ import org.springframework.web.context.WebApplicationContext;
  *
  * @author Rossen Stoyanchev
  */
-public class InitializedContextMockMvcBuilder extends AbstractMockMvcBuilder {
+public class InitializedContextMockMvcBuilder extends AbstractMockMvcBuilder<InitializedContextMockMvcBuilder> {
 
 	private final WebApplicationContext applicationContext;
 

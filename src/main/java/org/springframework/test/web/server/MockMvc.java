@@ -16,11 +16,12 @@
 
 package org.springframework.test.web.server;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 
+import org.springframework.beans.Mergeable;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.util.Assert;
@@ -53,6 +54,13 @@ public class MockMvc {
 
 	private final ServletContext servletContext;
 
+	private RequestBuilder defaultRequestBuilder;
+
+	private List<ResultMatcher> defaultResultMatchers = new ArrayList<ResultMatcher>();
+
+	private List<ResultHandler> defaultResultHandlers = new ArrayList<ResultHandler>();
+
+
 	/**
 	 * Protected constructor not for direct instantiation.
 	 * @see org.springframework.test.web.server.setup.MockMvcBuilders
@@ -65,6 +73,20 @@ public class MockMvc {
 		this.servletContext = servletContext;
 	}
 
+	protected void setDefaultRequest(RequestBuilder requestBuilder) {
+		this.defaultRequestBuilder = requestBuilder;
+	}
+
+	protected void setDefaultResultMatchers(List<ResultMatcher> resultMatchers) {
+		Assert.notNull(resultMatchers, "resultMatchers is required");
+		this.defaultResultMatchers = resultMatchers;
+	}
+
+	protected void setDefaultResultHandlers(List<ResultHandler> resultHandlers) {
+		Assert.notNull(resultHandlers, "resultHandlers is required");
+		this.defaultResultHandlers = resultHandlers;
+	}
+
 	/**
 	 * Execute a request and return a {@link ResultActions} instance that wraps
 	 * the results and enables further actions such as setting up expectations.
@@ -73,11 +95,16 @@ public class MockMvc {
 	 * see static factory methods in
 	 * {@link org.springframework.test.web.server.request.MockMvcRequestBuilders}
 	 * @return A ResultActions instance; never {@code null}
-	 * @throws Exception any exception not handled by a HandlerExceptionResolver occurs
 	 * @see org.springframework.test.web.server.request.MockMvcRequestBuilders
 	 * @see org.springframework.test.web.server.result.MockMvcResultMatchers
 	 */
-	public ResultActions perform(RequestBuilder requestBuilder) throws IOException, ServletException {
+	public ResultActions perform(RequestBuilder requestBuilder) throws Exception {
+
+		if (this.defaultRequestBuilder != null) {
+			if (requestBuilder instanceof Mergeable) {
+				requestBuilder = (RequestBuilder) ((Mergeable) requestBuilder).merge(this.defaultRequestBuilder);
+			}
+		}
 
 		MockHttpServletRequest request = requestBuilder.buildRequest(this.servletContext);
 		MockHttpServletResponse response = new MockHttpServletResponse();
@@ -87,6 +114,8 @@ public class MockMvc {
 
 		this.filterChain.reset();
 		this.filterChain.doFilter(request, response);
+
+		applyDefaultResultActions(mvcResult);
 
 		return new ResultActions() {
 
@@ -106,4 +135,14 @@ public class MockMvc {
 		};
 	}
 
+	private void applyDefaultResultActions(MvcResult mvcResult) throws Exception {
+
+		for (ResultMatcher matcher : this.defaultResultMatchers) {
+			matcher.match(mvcResult);
+		}
+
+		for (ResultHandler handler : this.defaultResultHandlers) {
+			handler.handle(mvcResult);
+		}
+	}
 }

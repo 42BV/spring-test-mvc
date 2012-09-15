@@ -70,6 +70,23 @@ public class MultipartRequestBuilder extends DefaultRequestBuilder {
 	}
 
 	@Override
+	public Object merge(Object parent) {
+		if (parent == null) {
+			return this;
+		}
+		if (!(parent instanceof MultipartRequestBuilder)) {
+			throw new IllegalArgumentException("Cannot merge with [" + parent.getClass().getName() + "]");
+		}
+
+		super.merge(parent);
+
+		MultipartRequestBuilder parentBuilder = (MultipartRequestBuilder) parent;
+		this.files.addAll(parentBuilder.files);
+
+		return this;
+	}
+
+	@Override
 	protected final MockHttpServletRequest createServletRequest(ServletContext servletContext) {
 		MockMultipartHttpServletRequest request = new MockMultipartHttpServletRequest();
 		for (MockMultipartFile file : files) {

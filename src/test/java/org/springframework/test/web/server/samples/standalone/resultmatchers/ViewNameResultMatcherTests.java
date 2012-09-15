@@ -19,6 +19,7 @@ package org.springframework.test.web.server.samples.standalone.resultmatchers;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.server.result.MockMvcResultMatchers.view;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
 
@@ -39,19 +40,20 @@ public class ViewNameResultMatcherTests {
 
 	@Before
 	public void setup() {
-		this.mockMvc = standaloneSetup(new SimpleController()).build();
+		this.mockMvc = standaloneSetup(new SimpleController())
+				.alwaysExpect(status().isOk())
+				.build();
 	}
 
 	@Test
 	public void testEqualTo() throws Exception {
-		this.mockMvc.perform(get("/")).andExpect(view().name("mySpecialView"));
-
-		// Hamcrest matchers...
-		this.mockMvc.perform(get("/")).andExpect(view().name(equalTo("mySpecialView")));
+		this.mockMvc.perform(get("/"))
+			.andExpect(view().name("mySpecialView"))
+			.andExpect(view().name(equalTo("mySpecialView")));
 	}
 
 	@Test
-	public void testMatcher() throws Exception {
+	public void testHamcrestMatcher() throws Exception {
 		this.mockMvc.perform(get("/")).andExpect(view().name(containsString("Special")));
 	}
 

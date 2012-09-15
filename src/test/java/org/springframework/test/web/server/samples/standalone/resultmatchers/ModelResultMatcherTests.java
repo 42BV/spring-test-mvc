@@ -52,28 +52,30 @@ public class ModelResultMatcherTests {
 
 	@Before
 	public void setup() {
-		this.mockMvc = standaloneSetup(new SampleController("a string value", 3, new Person("a name"))).build();
+
+		SampleController controller = new SampleController("a string value", 3, new Person("a name"));
+
+		this.mockMvc = standaloneSetup(controller)
+				.defaultRequest(get("/"))
+				.alwaysExpect(status().isOk())
+				.build();
 	}
 
 	@Test
 	public void testAttributeEqualTo() throws Exception {
 		mockMvc.perform(get("/"))
 			.andExpect(model().attribute("integer", 3))
-			.andExpect(model().attribute("string", "a string value"));
-
-		// Hamcrest Matchers..
-		mockMvc.perform(get("/"))
-			.andExpect(model().attribute("integer", equalTo(3)))
+			.andExpect(model().attribute("string", "a string value"))
+			.andExpect(model().attribute("integer", equalTo(3))) // Hamcrest...
 			.andExpect(model().attribute("string", equalTo("a string value")));
 	}
 
 	@Test
 	public void testAttributeExists() throws Exception {
-		mockMvc.perform(get("/")).andExpect(model().attributeExists("integer", "string", "person"));
-
-		// Hamcrest Matchers..
-		mockMvc.perform(get("/")).andExpect(model().attribute("integer", notNullValue()));
-		mockMvc.perform(get("/")).andExpect(model().attribute("INTEGER", nullValue()));
+		mockMvc.perform(get("/"))
+			.andExpect(model().attributeExists("integer", "string", "person"))
+			.andExpect(model().attribute("integer", notNullValue()))  // Hamcrest...
+			.andExpect(model().attribute("INTEGER", nullValue()));
 	}
 
 	@Test

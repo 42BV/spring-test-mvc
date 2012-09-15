@@ -18,6 +18,8 @@ package org.springframework.test.web.server.samples.standalone.resultmatchers;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.server.result.MockMvcResultMatchers.xpath;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
 
@@ -58,7 +60,11 @@ public class XpathResultMatcherTests {
 
 	@Before
 	public void setup() throws Exception {
-		this.mockMvc = standaloneSetup(new MusicController()).build();
+		this.mockMvc = standaloneSetup(new MusicController())
+				.defaultRequest(get("/").accept(MediaType.APPLICATION_XML))
+				.alwaysExpect(status().isOk())
+				.alwaysExpect(content().mimeType(MediaType.APPLICATION_XML))
+				.build();
 	}
 
 	@Test
@@ -67,16 +73,13 @@ public class XpathResultMatcherTests {
 		String composer = "/ns:people/composers/composer[%s]";
 		String performer = "/ns:people/performers/performer[%s]";
 
-		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_XML))
+		this.mockMvc.perform(get("/music/people"))
 			.andExpect(xpath(composer, NS, 1).exists())
 			.andExpect(xpath(composer, NS, 2).exists())
 			.andExpect(xpath(composer, NS, 3).exists())
 			.andExpect(xpath(composer, NS, 4).exists())
 			.andExpect(xpath(performer, NS, 1).exists())
-			.andExpect(xpath(performer, NS, 2).exists());
-
-		// Hamcrest matchers...
-		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_XML))
+			.andExpect(xpath(performer, NS, 2).exists())
 			.andExpect(xpath(composer, NS, 1).node(notNullValue()));
 	}
 
@@ -86,14 +89,11 @@ public class XpathResultMatcherTests {
 		String composer = "/ns:people/composers/composer[%s]";
 		String performer = "/ns:people/performers/performer[%s]";
 
-		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_XML))
+		this.mockMvc.perform(get("/music/people"))
 			.andExpect(xpath(composer, NS, 0).doesNotExist())
 			.andExpect(xpath(composer, NS, 5).doesNotExist())
 			.andExpect(xpath(performer, NS, 0).doesNotExist())
-			.andExpect(xpath(performer, NS, 3).doesNotExist());
-
-		// Hamcrest matchers...
-		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_XML))
+			.andExpect(xpath(performer, NS, 3).doesNotExist())
 			.andExpect(xpath(composer, NS, 0).node(nullValue()));
 	}
 
@@ -103,17 +103,14 @@ public class XpathResultMatcherTests {
 		String composerName = "/ns:people/composers/composer[%s]/name";
 		String performerName = "/ns:people/performers/performer[%s]/name";
 
-		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_XML))
+		this.mockMvc.perform(get("/music/people"))
 			.andExpect(xpath(composerName, NS, 1).string("Johann Sebastian Bach"))
 			.andExpect(xpath(composerName, NS, 2).string("Johannes Brahms"))
 			.andExpect(xpath(composerName, NS, 3).string("Edvard Grieg"))
 			.andExpect(xpath(composerName, NS, 4).string("Robert Schumann"))
 			.andExpect(xpath(performerName, NS, 1).string("Vladimir Ashkenazy"))
-			.andExpect(xpath(performerName, NS, 2).string("Yehudi Menuhin"));
-
-		// Hamcrest matchers...
-		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_XML))
-			.andExpect(xpath(composerName, NS, 1).string(equalTo("Johann Sebastian Bach")))
+			.andExpect(xpath(performerName, NS, 2).string("Yehudi Menuhin"))
+			.andExpect(xpath(composerName, NS, 1).string(equalTo("Johann Sebastian Bach"))) // Hamcrest..
 			.andExpect(xpath(composerName, NS, 1).string(startsWith("Johann")))
 			.andExpect(xpath(composerName, NS, 1).string(notNullValue()));
 	}
@@ -123,15 +120,12 @@ public class XpathResultMatcherTests {
 
 		String composerDouble = "/ns:people/composers/composer[%s]/someDouble";
 
-		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_XML))
+		this.mockMvc.perform(get("/music/people"))
 			.andExpect(xpath(composerDouble, NS, 1).number(21d))
 			.andExpect(xpath(composerDouble, NS, 2).number(.0025))
 			.andExpect(xpath(composerDouble, NS, 3).number(1.6035))
-			.andExpect(xpath(composerDouble, NS, 4).number(Double.NaN));
-
-		// Hamcrest matchers...
-		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_XML))
-			.andExpect(xpath(composerDouble, NS, 1).number(equalTo(21d)))
+			.andExpect(xpath(composerDouble, NS, 4).number(Double.NaN))
+			.andExpect(xpath(composerDouble, NS, 1).number(equalTo(21d)))  // Hamcrest..
 			.andExpect(xpath(composerDouble, NS, 3).number(closeTo(1.6, .01)));
 	}
 
@@ -140,7 +134,7 @@ public class XpathResultMatcherTests {
 
 		String performerBooleanValue = "/ns:people/performers/performer[%s]/someBoolean";
 
-		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_XML))
+		this.mockMvc.perform(get("/music/people"))
 			.andExpect(xpath(performerBooleanValue, NS, 1).booleanValue(false))
 			.andExpect(xpath(performerBooleanValue, NS, 2).booleanValue(true));
 	}
@@ -148,13 +142,10 @@ public class XpathResultMatcherTests {
 	@Test
 	public void testNodeCount() throws Exception {
 
-		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_XML))
+		this.mockMvc.perform(get("/music/people"))
 			.andExpect(xpath("/ns:people/composers/composer", NS).nodeCount(4))
-			.andExpect(xpath("/ns:people/performers/performer", NS).nodeCount(2));
-
-		// Hamcrest matchers...
-		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_XML))
-			.andExpect(xpath("/ns:people/composers/composer", NS).nodeCount(lessThan(5)))
+			.andExpect(xpath("/ns:people/performers/performer", NS).nodeCount(2))
+			.andExpect(xpath("/ns:people/composers/composer", NS).nodeCount(lessThan(5))) // Hamcrest..
 			.andExpect(xpath("/ns:people/performers/performer", NS).nodeCount(greaterThan(0)));
 	}
 

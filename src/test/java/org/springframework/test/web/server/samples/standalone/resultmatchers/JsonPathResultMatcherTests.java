@@ -25,7 +25,9 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.server.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
 
 import java.util.Arrays;
@@ -55,7 +57,11 @@ public class JsonPathResultMatcherTests {
 
 	@Before
 	public void setup() {
-		this.mockMvc = standaloneSetup(new MusicController()).build();
+		this.mockMvc = standaloneSetup(new MusicController())
+				.defaultRequest(get("/").accept(MediaType.APPLICATION_JSON))
+				.alwaysExpect(status().isOk())
+				.alwaysExpect(content().mimeType("application/json;charset=UTF-8"))
+				.build();
 	}
 
 	@Test
@@ -64,7 +70,7 @@ public class JsonPathResultMatcherTests {
 		String composerByName = "$.composers[?(@.name = '%s')]";
 		String performerByName = "$.performers[?(@.name = '%s')]";
 
-		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_JSON))
+		this.mockMvc.perform(get("/music/people"))
 			.andExpect(jsonPath(composerByName, "Johann Sebastian Bach").exists())
 			.andExpect(jsonPath(composerByName, "Johannes Brahms").exists())
 			.andExpect(jsonPath(composerByName, "Edvard Grieg").exists())
@@ -80,7 +86,7 @@ public class JsonPathResultMatcherTests {
 
 	@Test
 	public void testDoesNotExist() throws Exception {
-		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_JSON))
+		this.mockMvc.perform(get("/music/people"))
 			.andExpect(jsonPath("$.composers[?(@.name = 'Edvard Grieeeeeeg')]").doesNotExist())
 			.andExpect(jsonPath("$.composers[?(@.name = 'Robert Schuuuuuuman')]").doesNotExist())
 			.andExpect(jsonPath("$.composers[-1]").doesNotExist())
@@ -89,19 +95,19 @@ public class JsonPathResultMatcherTests {
 
 	@Test
 	public void testEqualTo() throws Exception {
-		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_JSON))
+		this.mockMvc.perform(get("/music/people"))
 			.andExpect(jsonPath("$.composers[0].name").value("Johann Sebastian Bach"))
 			.andExpect(jsonPath("$.performers[1].name").value("Yehudi Menuhin"));
 
 		// Hamcrest matchers...
-		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_JSON))
+		this.mockMvc.perform(get("/music/people"))
 			.andExpect(jsonPath("$.composers[0].name").value(equalTo("Johann Sebastian Bach")))
 			.andExpect(jsonPath("$.performers[1].name").value(equalTo("Yehudi Menuhin")));
 	}
 
 	@Test
 	public void testHamcrestMatcher() throws Exception {
-		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_JSON))
+		this.mockMvc.perform(get("/music/people"))
 			.andExpect(jsonPath("$.composers", hasSize(4)))
 			.andExpect(jsonPath("$.performers", hasSize(equalTo(2))))
 			.andExpect(jsonPath("$.composers[?(@.name = 'Mozart')]", empty()))
@@ -118,7 +124,7 @@ public class JsonPathResultMatcherTests {
 		String composerName = "$.composers[%s].name";
 		String performerName = "$.performers[%s].name";
 
-		this.mockMvc.perform(get("/music/people").accept(MediaType.APPLICATION_JSON))
+		this.mockMvc.perform(get("/music/people"))
 			.andExpect(jsonPath(composerName, 0).value(startsWith("Johann")))
 			.andExpect(jsonPath(performerName, 0).value(endsWith("Ashkenazy")))
 			.andExpect(jsonPath(performerName, 1).value(containsString("di Me")))

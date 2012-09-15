@@ -28,6 +28,9 @@ import org.springframework.core.NestedRuntimeException;
 import org.springframework.mock.web.MockServletConfig;
 import org.springframework.test.web.server.MockFilterChain;
 import org.springframework.test.web.server.MockMvc;
+import org.springframework.test.web.server.RequestBuilder;
+import org.springframework.test.web.server.ResultHandler;
+import org.springframework.test.web.server.ResultMatcher;
 import org.springframework.test.web.server.TestDispatcherServlet;
 import org.springframework.util.Assert;
 import org.springframework.web.context.WebApplicationContext;
@@ -41,9 +44,16 @@ import org.springframework.web.context.WebApplicationContext;
  * @author Rossen Stoyanchev
  * @author Rob Winch
  */
-public abstract class AbstractMockMvcBuilder implements MockMvcBuilder {
+public abstract class AbstractMockMvcBuilder<Self extends AbstractMockMvcBuilder<Self>> implements MockMvcBuilder {
 
 	private List<Filter> filters = new ArrayList<Filter>();
+
+	private RequestBuilder requestBuilder;
+
+	private final List<ResultMatcher> resultMatchers = new ArrayList<ResultMatcher>();
+
+	private final List<ResultHandler> resultHandlers = new ArrayList<ResultHandler>();
+
 
 	/**
 	 * Build a {@link MockMvc} instance.
@@ -65,7 +75,59 @@ public abstract class AbstractMockMvcBuilder implements MockMvcBuilder {
 
 		Filter[] filterArray = filters.toArray(new Filter[filters.size()]);
 		MockFilterChain mockMvcFilterChain = new MockFilterChain(dispatcherServlet, filterArray) {};
-		return new MockMvc(mockMvcFilterChain, dispatcherServlet.getServletContext()) {};
+
+		return new MockMvc(mockMvcFilterChain, dispatcherServlet.getServletContext()) {{
+			setDefaultRequest(AbstractMockMvcBuilder.this.requestBuilder);
+			setDefaultResultMatchers(AbstractMockMvcBuilder.this.resultMatchers);
+			setDefaultResultHandlers(AbstractMockMvcBuilder.this.resultHandlers);
+		}};
+	}
+
+	/**
+	 * Define a default request that all performed requests should logically
+	 * extend from. In effect this provides a mechanism for defining common
+	 * initialization for all requests such as the content type, request
+	 * parameters, session attributes, and any other request property.
+	 *
+	 * <p>Properties specified at the time of performing a request override the
+	 * default properties defined here.
+	 *
+	 * @param requestBuilder a RequestBuilder; see static factory methods in
+	 * {@link org.springframework.test.web.server.request.MockMvcRequestBuilders}
+	 * .
+	 */
+	@SuppressWarnings("unchecked")
+	public final <T extends Self> T defaultRequest(RequestBuilder requestBuilder) {
+		this.requestBuilder = requestBuilder;
+		return (T) this;
+	}
+
+	/**
+	 * Define an expectation that should <em>always</em> be applied to every
+	 * response. For example, status code 200 (OK), content type
+	 * {@code "application/json"}, etc.
+	 *
+	 * @param resultMatcher a ResultMatcher; see static factory methods in
+	 * {@link org.springframework.test.web.server.result.MockMvcResultMatchers}
+	 */
+	@SuppressWarnings("unchecked")
+	public final <T extends Self> T alwaysExpect(ResultMatcher resultMatcher) {
+		this.resultMatchers.add(resultMatcher);
+		return (T) this;
+	}
+
+	/**
+	 * Define an action that should <em>always</em> be applied to every
+	 * response. For example, writing detailed information about the performed
+	 * request and resulting response to {@code System.out}.
+	 *
+	 * @param resultHandler a ResultHandler; see static factory methods in
+	 * {@link org.springframework.test.web.server.result.MockMvcResultHandlers}
+	 */
+	@SuppressWarnings("unchecked")
+	public final <T extends Self> T alwaysDo(ResultHandler resultHandler) {
+		this.resultHandlers.add(resultHandler);
+		return (T) this;
 	}
 
 	/**
@@ -89,7 +151,7 @@ public abstract class AbstractMockMvcBuilder implements MockMvcBuilder {
 	 * @param filters the filters to add
 	 */
 	@SuppressWarnings("unchecked")
-	public final <T extends AbstractMockMvcBuilder> T addFilters(Filter... filters) {
+	public final <T extends Self> T addFilters(Filter... filters) {
 		Assert.notNull(filters, "filters cannot be null");
 
 		for(Filter f : filters) {
@@ -122,7 +184,7 @@ public abstract class AbstractMockMvcBuilder implements MockMvcBuilder {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public final <T extends AbstractMockMvcBuilder> T addFilter(Filter filter, String... urlPatterns) {
+	public final <T extends Self> T addFilter(Filter filter, String... urlPatterns) {
 		Assert.notNull(filter, "filter cannot be null");
 		Assert.notNull(urlPatterns, "urlPatterns cannot be null");
 
