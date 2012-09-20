@@ -67,8 +67,8 @@ public class JsonPathResultMatcherTests {
 	@Test
 	public void testExists() throws Exception {
 
-		String composerByName = "$.composers[?(@.name = '%s')]";
-		String performerByName = "$.performers[?(@.name = '%s')]";
+		String composerByName = "$.composers[?(@.name == '%s')]";
+		String performerByName = "$.performers[?(@.name == '%s')]";
 
 		this.mockMvc.perform(get("/music/people"))
 			.andExpect(jsonPath(composerByName, "Johann Sebastian Bach").exists())
@@ -87,8 +87,8 @@ public class JsonPathResultMatcherTests {
 	@Test
 	public void testDoesNotExist() throws Exception {
 		this.mockMvc.perform(get("/music/people"))
-			.andExpect(jsonPath("$.composers[?(@.name = 'Edvard Grieeeeeeg')]").doesNotExist())
-			.andExpect(jsonPath("$.composers[?(@.name = 'Robert Schuuuuuuman')]").doesNotExist())
+			.andExpect(jsonPath("$.composers[?(@.name == 'Edvard Grieeeeeeg')]").doesNotExist())
+			.andExpect(jsonPath("$.composers[?(@.name == 'Robert Schuuuuuuman')]").doesNotExist())
 			.andExpect(jsonPath("$.composers[-1]").doesNotExist())
 			.andExpect(jsonPath("$.composers[4]").doesNotExist());
 	}

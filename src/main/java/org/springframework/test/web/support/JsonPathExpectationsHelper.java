@@ -25,6 +25,7 @@ import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 
+import com.jayway.jsonpath.InvalidPathException;
 import com.jayway.jsonpath.JsonPath;
 
 /**
@@ -57,11 +58,23 @@ public class JsonPathExpectationsHelper {
 	@SuppressWarnings("unchecked")
 	public <T> void assertValue(String content, Matcher<T> matcher) throws ParseException {
 		T value = (T) evaluateJsonPath(content);
-		MatcherAssert.assertThat("JSON path: " + expression, value, matcher);
+		MatcherAssert.assertThat("JSON path: " + this.expression, value, matcher);
 	}
 
 	private Object evaluateJsonPath(String content) throws ParseException  {
-		return this.jsonPath.read(content);
+		String message = "No value for JSON path: " + this.expression + ", exception: ";
+		try {
+			return this.jsonPath.read(content);
+		}
+		catch (InvalidPathException ex) {
+			throw new AssertionError(message + ex.getMessage());
+		}
+		catch (ArrayIndexOutOfBoundsException ex) {
+			throw new AssertionError(message + ex.getMessage());
+		}
+		catch (IndexOutOfBoundsException ex) {
+			throw new AssertionError(message + ex.getMessage());
+		}
 	}
 
 	/**
@@ -76,7 +89,7 @@ public class JsonPathExpectationsHelper {
 	 */
 	public void exists(String content) throws ParseException {
 		Object value = evaluateJsonPath(content);
-		String reason = "No value for JSON path: " + expression;
+		String reason = "No value for JSON path: " + this.expression;
 		assertTrue(reason, value != null);
 		if (List.class.isInstance(value)) {
 			assertTrue(reason, !((List<?>) value).isEmpty());
@@ -87,8 +100,18 @@ public class JsonPathExpectationsHelper {
 	 * Evaluate the JSON path and assert it doesn't point to any content.
 	 */
 	public void doesNotExist(String content) throws ParseException {
-		Object value = evaluateJsonPath(content);
-		String reason = String.format("Expected no value for JSON path: %s but found: %s", expression, value);
+
+		Object value;
+		try {
+			value = evaluateJsonPath(content);
+		}
+		catch (AssertionError ex) {
+			return;
+		}
+
+		// If InvalidPathException not raised (< 0.8.0)
+
+		String reason = String.format("Expected no value for JSON path: %s but found: %s", this.expression, value);
 		if (List.class.isInstance(value)) {
 			assertTrue(reason, ((List<?>) value).isEmpty());
 		}
