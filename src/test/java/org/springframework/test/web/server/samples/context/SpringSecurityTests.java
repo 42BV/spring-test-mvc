@@ -26,9 +26,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextImpl;
@@ -43,19 +40,30 @@ import org.springframework.test.web.server.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
+ * Basic example that includes Spring Security configuration.
+ *
+ * <p>Note that currently there are no {@link ResultMatcher}' built specifically
+ * for asserting the Spring Security context. However, it's quite easy to put
+ * them together as shown below and Spring Security extensions will become
+ * available in the near future.
+ *
+ * <p>Also see the Javadoc of {@link GenericWebContextLoader}, a class that
+ * provides temporary support for loading WebApplicationContext by extending
+ * the TestContext framework.
  *
  * @author Rob Winch
- *
+ * @author Rossen Stoyanchev
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(
 		loader=WebContextLoader.class,
-		classes=SpringSecurityTests.ContextConfiguration.class)
+		value={
+			"classpath:org/springframework/test/web/server/samples/context/security.xml",
+			"classpath:org/springframework/test/web/server/samples/servlet-context.xml"
+		})
 public class SpringSecurityTests {
-	@Configuration
-	@ImportResource("classpath:org/springframework/test/web/server/samples/context/security.xml")
-	@Import(WebConfig.class)
-	public static class ContextConfiguration {}
+
+	private static String SEC_CONTEXT_ATTR = HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
 
 	@Autowired
 	private FilterChainProxy springSecurityFilterChain;
@@ -67,7 +75,8 @@ public class SpringSecurityTests {
 
 	@Before
 	public void setup() {
-		this.mockMvc = MockMvcBuilders.webApplicationContextSetup(this.wac).addFilters(springSecurityFilterChain).build();
+		this.mockMvc = MockMvcBuilders.webApplicationContextSetup(this.wac)
+				.addFilters(this.springSecurityFilterChain).build();
 	}
 
 	@Test
@@ -82,7 +91,7 @@ public class SpringSecurityTests {
 		SecurityContext securityContext = new SecurityContextImpl();
 		securityContext.setAuthentication(principal);
 
-		this.mockMvc.perform(get("/").sessionAttr(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,	securityContext))
+		this.mockMvc.perform(get("/").sessionAttr(SEC_CONTEXT_ATTR,	securityContext))
 			.andExpect(status().isOk())
 			.andExpect(forwardedUrl("/WEB-INF/layouts/standardLayout.jsp"));
 	}
@@ -93,7 +102,7 @@ public class SpringSecurityTests {
 		SecurityContext securityContext = new SecurityContextImpl();
 		securityContext.setAuthentication(principal);
 
-		this.mockMvc.perform(get("/").sessionAttr(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext))
+		this.mockMvc.perform(get("/").sessionAttr(SEC_CONTEXT_ATTR, securityContext))
 			.andExpect(status().isForbidden());
 	}
 
@@ -105,7 +114,7 @@ public class SpringSecurityTests {
 			.andExpect(new ResultMatcher() {
 				public void match(MvcResult mvcResult) throws Exception {
 					HttpSession session = mvcResult.getRequest().getSession();
-					SecurityContext securityContext = (SecurityContext) session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
+					SecurityContext securityContext = (SecurityContext) session.getAttribute(SEC_CONTEXT_ATTR);
 					Assert.assertEquals(securityContext.getAuthentication().getName(), username);
 				}
 			});
@@ -119,9 +128,10 @@ public class SpringSecurityTests {
 			.andExpect(new ResultMatcher() {
 				public void match(MvcResult mvcResult) throws Exception {
 					HttpSession session = mvcResult.getRequest().getSession();
-					SecurityContext securityContext = (SecurityContext) session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
+					SecurityContext securityContext = (SecurityContext) session.getAttribute(SEC_CONTEXT_ATTR);
 					Assert.assertNull(securityContext);
 				}
 			});
 	}
+
 }
