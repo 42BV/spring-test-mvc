@@ -16,7 +16,7 @@
 
 package org.springframework.test.web.server.samples.standalone.resultmatchers;
 
-import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
@@ -60,8 +60,8 @@ public class RequestAttributeResultMatcherTests {
 		String producibleMediaTypes = HandlerMapping.PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE;
 
 		this.mockMvc.perform(get("/1"))
-	        .andExpect(request().attribute(producibleMediaTypes, contains(MediaType.APPLICATION_JSON)))
-	        .andExpect(request().attribute(producibleMediaTypes, not(contains(MediaType.APPLICATION_XML))));
+	        .andExpect(request().attribute(producibleMediaTypes, hasItem(MediaType.APPLICATION_JSON)))
+	        .andExpect(request().attribute(producibleMediaTypes, not(hasItem(MediaType.APPLICATION_XML))));
 	}
 
 

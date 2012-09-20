@@ -16,7 +16,7 @@
 package org.springframework.test.web.client.match;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.isA;
+import static org.hamcrest.Matchers.instanceOf;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -102,7 +102,7 @@ public class JsonPathRequestMatchers {
 	 * Assert the content at the given JSONPath is an array.
 	 */
 	public RequestMatcher isArray() {
-		return value(isA(List.class));
+		return value(instanceOf(List.class));
 	}
 
 

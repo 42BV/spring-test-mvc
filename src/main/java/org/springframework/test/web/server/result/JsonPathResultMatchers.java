@@ -17,7 +17,7 @@
 package org.springframework.test.web.server.result;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.isA;
+import static org.hamcrest.Matchers.instanceOf;
 
 import java.util.List;
 
@@ -93,6 +93,6 @@ public class JsonPathResultMatchers {
 	 * Assert the content at the given JSONPath is an array.
 	 */
 	public ResultMatcher isArray() {
-		return value(isA(List.class));
+		return value(instanceOf(List.class));
 	}
 }

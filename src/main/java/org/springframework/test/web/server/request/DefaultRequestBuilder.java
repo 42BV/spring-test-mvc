@@ -274,6 +274,11 @@ public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
 		return this;
 	}
 
+	public DefaultRequestBuilder with(RequestBuilderInitializer extension) {
+		extension.initialize(this);
+		return this;
+	}
+
 	public boolean isMergeEnabled() {
 		return true;
 	}

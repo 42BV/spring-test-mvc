@@ -15,12 +15,9 @@
  */
 package org.springframework.test.web.client.samples.matchers;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.client.match.RequestMatchers.content;
@@ -123,13 +120,9 @@ public class JsonPathRequestMatcherTests {
 	public void testHamcrestMatcher() throws Exception {
 		this.mockServer.expect(requestTo("/composers"))
 			.andExpect(content().mimeType("application/json;charset=UTF-8"))
-			.andExpect(jsonPath("$.composers", hasSize(4)))
-			.andExpect(jsonPath("$.performers", hasSize(equalTo(2))))
-			.andExpect(jsonPath("$.composers[?(@.name = 'Mozart')]", empty()))
 			.andExpect(jsonPath("$.composers[0].name", startsWith("Johann")))
 			.andExpect(jsonPath("$.performers[0].name", endsWith("Ashkenazy")))
 			.andExpect(jsonPath("$.performers[1].name", containsString("di Me")))
-			.andExpect(jsonPath("$.performers[*].name", containsInAnyOrder("Yehudi Menuhin", "Vladimir Ashkenazy")))
 			.andExpect(jsonPath("$.composers[1].name", isIn(Arrays.asList("Johann Sebastian Bach", "Johannes Brahms"))))
 			.andRespond(withSuccess());
 
@@ -147,7 +140,6 @@ public class JsonPathRequestMatcherTests {
 			.andExpect(jsonPath(composerName, 0).value(startsWith("Johann")))
 			.andExpect(jsonPath(performerName, 0).value(endsWith("Ashkenazy")))
 			.andExpect(jsonPath(performerName, 1).value(containsString("di Me")))
-			.andExpect(jsonPath(performerName, "*").value(containsInAnyOrder("Yehudi Menuhin", "Vladimir Ashkenazy")))
 			.andExpect(jsonPath(composerName, 1).value(isIn(Arrays.asList("Johann Sebastian Bach", "Johannes Brahms"))))
 			.andRespond(withSuccess());
 

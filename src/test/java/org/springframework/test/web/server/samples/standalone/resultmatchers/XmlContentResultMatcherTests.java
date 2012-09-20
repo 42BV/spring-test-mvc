@@ -18,13 +18,12 @@ package org.springframework.test.web.server.samples.standalone.resultmatchers;
 
 import static org.hamcrest.Matchers.hasXPath;
 import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.server.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -38,7 +37,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.web.Person;
 import org.springframework.test.web.server.MockMvc;
-import org.springframework.util.xml.SimpleNamespaceContext;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -54,15 +52,12 @@ public class XmlContentResultMatcherTests {
 
 	private static final String PEOPLE_XML =
 		"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
-		"<ns2:people xmlns:ns2=\"http://example.org/music/people\"><composers>" +
+		"<people><composers>" +
 		"<composer><name>Johann Sebastian Bach</name><someBoolean>false</someBoolean><someDouble>21.0</someDouble></composer>" +
 		"<composer><name>Johannes Brahms</name><someBoolean>false</someBoolean><someDouble>0.0025</someDouble></composer>" +
 		"<composer><name>Edvard Grieg</name><someBoolean>false</someBoolean><someDouble>1.6035</someDouble></composer>" +
 		"<composer><name>Robert Schumann</name><someBoolean>false</someBoolean><someDouble>NaN</someDouble></composer>" +
-		"</composers></ns2:people>";
-
-	private static final Map<String, String> NAMESPACES =
-			Collections.singletonMap("ns", "http://example.org/music/people");
+		"</composers></people>";
 
 	private MockMvc mockMvc;
 
@@ -84,11 +79,8 @@ public class XmlContentResultMatcherTests {
 	@Test
 	public void testNodeHamcrestMatcher() throws Exception {
 
-		SimpleNamespaceContext nsContext = new SimpleNamespaceContext();
-		nsContext.setBindings(NAMESPACES);
-
 		this.mockMvc.perform(get("/music/people"))
-			.andExpect(content().node(hasXPath("/ns:people/composers/composer[1]", nsContext)));
+			.andExpect(content().node(hasXPath("/people/composers/composer[1]")));
 	}
 
 
@@ -109,7 +101,7 @@ public class XmlContentResultMatcherTests {
 	}
 
 	@SuppressWarnings("unused")
-	@XmlRootElement(name="people", namespace="http://example.org/music/people")
+	@XmlRootElement(name="people")
 	@XmlAccessorType(XmlAccessType.FIELD)
 	private static class PeopleWrapper {
 

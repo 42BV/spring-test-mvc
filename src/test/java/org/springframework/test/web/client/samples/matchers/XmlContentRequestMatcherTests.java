@@ -23,9 +23,7 @@ import static org.springframework.test.web.client.response.ResponseCreators.with
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -39,7 +37,6 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.test.web.Person;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.util.xml.SimpleNamespaceContext;
 import org.springframework.web.client.RestTemplate;
 
 
@@ -55,15 +52,12 @@ public class XmlContentRequestMatcherTests {
 
 	private static final String PEOPLE_XML =
 			"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
-			"<ns2:people xmlns:ns2=\"http://example.org/music/people\"><composers>" +
+			"<people><composers>" +
 			"<composer><name>Johann Sebastian Bach</name><someBoolean>false</someBoolean><someDouble>21.0</someDouble></composer>" +
 			"<composer><name>Johannes Brahms</name><someBoolean>false</someBoolean><someDouble>0.0025</someDouble></composer>" +
 			"<composer><name>Edvard Grieg</name><someBoolean>false</someBoolean><someDouble>1.6035</someDouble></composer>" +
 			"<composer><name>Robert Schumann</name><someBoolean>false</someBoolean><someDouble>NaN</someDouble></composer>" +
-			"</composers></ns2:people>";
-
-	private static final Map<String, String> NAMESPACES =
-			Collections.singletonMap("ns", "http://example.org/music/people");
+			"</composers></people>";
 
 	private MockRestServiceServer mockServer;
 
@@ -106,12 +100,9 @@ public class XmlContentRequestMatcherTests {
 	@Test
 	public void testHamcrestNodeMatcher() throws Exception {
 
-		SimpleNamespaceContext nsContext = new SimpleNamespaceContext();
-		nsContext.setBindings(NAMESPACES);
-
 		this.mockServer.expect(requestTo("/composers"))
 			.andExpect(content().mimeType("application/xml"))
-			.andExpect(content().node(hasXPath("/ns:people/composers/composer[1]", nsContext)))
+			.andExpect(content().node(hasXPath("/people/composers/composer[1]")))
 			.andRespond(withSuccess());
 
 		this.restTemplate.put(new URI("/composers"), this.people);
@@ -120,7 +111,7 @@ public class XmlContentRequestMatcherTests {
 
 
 	@SuppressWarnings("unused")
-	@XmlRootElement(name="people", namespace="http://example.org/music/people")
+	@XmlRootElement(name="people")
 	@XmlAccessorType(XmlAccessType.FIELD)
 	private static class PeopleWrapper {
 
