@@ -40,6 +40,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.ValueConstants;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -82,6 +83,8 @@ public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
 	private String contextPath = "";
 
 	private String servletPath = "";
+
+	private String pathInfo = ValueConstants.DEFAULT_NONE;
 
 
 	/**
@@ -199,11 +202,17 @@ public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
 	}
 
 	/**
-	 * Specify the portion of the requestURI that indicates the request context.
-	 * The request URI must begin with the context path. It should start with a
-	 * "/" but must not end with a "/".
+	 * Specify the portion of the requestURI that represents the context path.
+	 * The context path, if specified, must match to the start of the request
+	 * URI.
 	 *
-	 * @see <a href="http://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletRequest.html#getContextPath%28%29">HttpServletRequest.getContextPath()</a>
+	 * <p>In most cases, tests can be written by omitting the context path from
+	 * the requestURI. This is because most applications don't actually depend
+	 * on the name under which they're deployed. If specified here, the context
+	 * path must start with a "/" and must not end with a "/".
+	 *
+	 * @see <a
+	 * href="http://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletRequest.html#getContextPath%28%29">HttpServletRequest.getContextPath()</a>
 	 */
 	public DefaultRequestBuilder contextPath(String contextPath) {
 		if (StringUtils.hasText(contextPath)) {
@@ -215,11 +224,20 @@ public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
 	}
 
 	/**
-	 * Specify the portion of the requestURI that represents the Servlet path.
-	 * The request URI must begin with the context path, followed by the Servlet path.
-	 * The pathInfo is the remaining portion of the requestURI.
+	 * Specify the portion of the requestURI that represents the path to which
+	 * the Servlet is mapped. This is typically a portion of the requestURI
+	 * after the context path.
 	 *
-	 * @see <a href="http://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletRequest.html#getServletPath%28%29">HttpServletRequest.getServletPath()</a>
+	 * <p>In most cases, tests can be written by omitting the servlet path from
+	 * the requestURI. This is because most applications don't actually depend
+	 * on the prefix to which a servlet is mapped. For example if a Servlet is
+	 * mapped to {@code "/main/*"}, tests can be written with the requestURI
+	 * {@code "/accounts/1"} as opposed to {@code "/main/accounts/1"}.
+	 * If specified here, the servletPath must start with a "/" and must not
+	 * end with a "/".
+	 *
+	 * @see <a
+	 * href="http://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletRequest.html#getServletPath%28%29">HttpServletRequest.getServletPath()</a>
 	 */
 	public DefaultRequestBuilder servletPath(String servletPath) {
 		if (StringUtils.hasText(servletPath)) {
@@ -227,6 +245,27 @@ public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
 			Assert.isTrue(!servletPath.endsWith("/"), "Servlet path must not end with a '/'");
 		}
 		this.servletPath = (servletPath != null) ? servletPath : "";
+		return this;
+	}
+
+	/**
+	 * Specify the portion of the requestURI that represents the pathInfo.
+	 *
+	 * <p>If left unspecified (recommended), the pathInfo will be automatically
+	 * derived by removing the contextPath and the servletPath from the
+	 * requestURI and using any remaining part. If specified here, the pathInfo
+	 * must start with a "/".
+	 *
+	 * <p>If specified, the pathInfo will be used as is.
+	 *
+	 * @see <a
+	 * href="http://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletRequest.html#getPathInfo%28%29">HttpServletRequest.getServletPath()</a>
+	 */
+	public DefaultRequestBuilder pathInfo(String pathInfo) {
+		if (StringUtils.hasText(pathInfo)) {
+			Assert.isTrue(pathInfo.startsWith("/"), "pathInfo must start with a '/'");
+		}
+		this.pathInfo = pathInfo;
 		return this;
 	}
 
@@ -308,6 +347,10 @@ public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
 			this.servletPath = parentBuilder.servletPath;
 		}
 
+		if (ValueConstants.DEFAULT_NONE.equals(this.pathInfo)) {
+			this.pathInfo = parentBuilder.pathInfo;
+		}
+
 		return this;
 	}
 
@@ -320,15 +363,7 @@ public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
 		String requestUri = uriComponents.getPath();
 		request.setRequestURI(requestUri);
 
-		Assert.isTrue(requestUri.startsWith(this.contextPath),
-				"requestURI [" + requestUri + "] does not start with contextPath [" + this.contextPath + "]");
-
-		Assert.isTrue(requestUri.startsWith(this.contextPath + this.servletPath),
-				"Invalid servletPath [" + this.servletPath + "] for requestURI [" + requestUri + "]");
-
-		request.setContextPath(this.contextPath);
-		request.setServletPath(this.servletPath);
-		request.setPathInfo(derivePathInfo(requestUri));
+		updateLookupPathProperties(request, requestUri);
 
 		if (uriComponents.getScheme() != null) {
 			request.setScheme(uriComponents.getScheme());
@@ -405,12 +440,24 @@ public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
 		return new MockHttpServletRequest(servletContext);
 	}
 
-	private String derivePathInfo(String requestUri) {
-		String pathInfo = requestUri.substring(this.contextPath.length() + this.servletPath.length());
-		if (!StringUtils.hasText(pathInfo)) {
-			return null;
+	private void updateLookupPathProperties(MockHttpServletRequest request, String requestUri) {
+
+		Assert.isTrue(requestUri.startsWith(this.contextPath),
+				"requestURI [" + requestUri + "] does not start with contextPath [" + this.contextPath + "]");
+
+		request.setContextPath(this.contextPath);
+		request.setServletPath(this.servletPath);
+
+		if (ValueConstants.DEFAULT_NONE.equals(this.pathInfo)) {
+
+			Assert.isTrue(requestUri.startsWith(this.contextPath + this.servletPath),
+					"Invalid servletPath [" + this.servletPath + "] for requestURI [" + requestUri + "]");
+
+			String extraPath = requestUri.substring(this.contextPath.length() + this.servletPath.length());
+			this.pathInfo = (StringUtils.hasText(extraPath)) ? extraPath : null;
 		}
-		return pathInfo;
+
+		request.setPathInfo(this.pathInfo);
 	}
 
 }

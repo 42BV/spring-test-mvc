@@ -92,6 +92,7 @@ public class DefaultRequestBuilderTests {
 	@Test
 	public void contextPathEmpty() throws Exception {
 		this.builder = new DefaultRequestBuilder(new URI("/foo"), HttpMethod.GET);
+
 		MockHttpServletRequest request = this.builder.buildRequest(this.servletContext);
 
 		assertEquals("", request.getContextPath());
@@ -100,12 +101,11 @@ public class DefaultRequestBuilderTests {
 	}
 
 	@Test
-	public void contextPathNoServletPath() throws Exception {
+	public void contextPathServletPathEmpty() throws Exception {
 		this.builder = new DefaultRequestBuilder(new URI("/travel/hotels/42"), HttpMethod.GET);
-		MockHttpServletRequest request = this.builder.buildRequest(this.servletContext);
-
 		this.builder.contextPath("/travel");
-		request = this.builder.buildRequest(this.servletContext);
+
+		MockHttpServletRequest request = this.builder.buildRequest(this.servletContext);
 
 		assertEquals("/travel", request.getContextPath());
 		assertEquals("", request.getServletPath());
@@ -115,11 +115,10 @@ public class DefaultRequestBuilderTests {
 	@Test
 	public void contextPathServletPath() throws Exception {
 		this.builder = new DefaultRequestBuilder(new URI("/travel/main/hotels/42"), HttpMethod.GET);
-		MockHttpServletRequest request = this.builder.buildRequest(this.servletContext);
-
 		this.builder.contextPath("/travel");
 		this.builder.servletPath("/main");
-		request = this.builder.buildRequest(this.servletContext);
+
+		MockHttpServletRequest request = this.builder.buildRequest(this.servletContext);
 
 		assertEquals("/travel", request.getContextPath());
 		assertEquals("/main", request.getServletPath());
@@ -127,16 +126,29 @@ public class DefaultRequestBuilderTests {
 	}
 
 	@Test
-	public void contextPathServletNoPathInfo() throws Exception {
+	public void contextPathServletPathInfoEmpty() throws Exception {
 		this.builder = new DefaultRequestBuilder(new URI("/travel/hotels/42"), HttpMethod.GET);
-		MockHttpServletRequest request = this.builder.buildRequest(this.servletContext);
 
 		this.builder.contextPath("/travel");
 		this.builder.servletPath("/hotels/42");
-		request = this.builder.buildRequest(this.servletContext);
+
+		MockHttpServletRequest request = this.builder.buildRequest(this.servletContext);
 
 		assertEquals("/travel", request.getContextPath());
 		assertEquals("/hotels/42", request.getServletPath());
+		assertNull(request.getPathInfo());
+	}
+
+	@Test
+	public void contextPathServletPathInfo() throws Exception {
+		this.builder = new DefaultRequestBuilder(new URI("/"), HttpMethod.GET);
+		this.builder.servletPath("/index.html");
+		this.builder.pathInfo(null);
+
+		MockHttpServletRequest request = this.builder.buildRequest(this.servletContext);
+
+		assertEquals("", request.getContextPath());
+		assertEquals("/index.html", request.getServletPath());
 		assertNull(request.getPathInfo());
 	}
 
