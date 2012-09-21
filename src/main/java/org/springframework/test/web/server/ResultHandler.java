@@ -16,22 +16,22 @@
 
 package org.springframework.test.web.server;
 
-
-
 /**
- * A contract for a generic action on the results of an executed request.
- * 
+ * A contract for a generic result action as opposed to asserting an expectation
+ * via {@link ResultMatcher}.
+ *
  * <p>See static factory methods in
- * {@code org.springframework.test.web.server.result.MockMvcResultActions}.
- * 
+ * {@code org.springframework.test.web.server.result.MockMvcResultHandlers}.
+ *
  * @author Rossen Stoyanchev
  */
 public interface ResultHandler {
 
 	/**
 	 * Apply an action on the result of an executed Spring MVC request.
-	 * @param mvcResult TODO
-	 * @throws Exception if a failure occurs while printing
+	 *
+	 * @param mvcResult the result of the executed request
+	 * @throws Exception if a failure occurs
 	 */
 	void handle(MvcResult mvcResult) throws Exception;
 

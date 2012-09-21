@@ -22,6 +22,7 @@ public abstract class MockMvcRequestBuilders {
 
 	/**
 	 * Create a {@link MockHttpServletRequestBuilder} for a GET request.
+	 *
 	 * @param urlTemplate a URI template including any component (e.g. scheme, host, query)
 	 * @param urlVariables zero or more URI variables
 	 */
@@ -31,6 +32,7 @@ public abstract class MockMvcRequestBuilders {
 
 	/**
 	 * Create a {@link MockHttpServletRequestBuilder} for a POST request.
+	 *
 	 * @param urlTemplate a URI template including any component (e.g. scheme, host, query)
 	 * @param urlVariables zero or more URI variables
 	 */
@@ -40,6 +42,7 @@ public abstract class MockMvcRequestBuilders {
 
 	/**
 	 * Create a {@link MockHttpServletRequestBuilder} for a PUT request.
+	 *
 	 * @param urlTemplate a URI template including any component (e.g. scheme, host, query)
 	 * @param urlVariables zero or more URI variables
 	 */
@@ -49,6 +52,7 @@ public abstract class MockMvcRequestBuilders {
 
 	/**
 	 * Create a {@link MockHttpServletRequestBuilder} for a DELETE request.
+	 *
 	 * @param urlTemplate a URI template including any component (e.g. scheme, host, query)
 	 * @param urlVariables zero or more URI variables
 	 */
@@ -58,6 +62,7 @@ public abstract class MockMvcRequestBuilders {
 
 	/**
 	 * Create a {@link MockHttpServletRequestBuilder} for a multipart request.
+	 *
 	 * @param urlTemplate a URI template including any component (e.g. scheme, host, query)
 	 * @param urlVariables zero or more URI variables
 	 */
@@ -68,6 +73,7 @@ public abstract class MockMvcRequestBuilders {
 
 	/**
 	 * Create a {@link MockHttpServletRequestBuilder} for any HTTP method.
+	 *
 	 * @param httpMethod the HTTP method
 	 * @param urlTemplate a URI template including any component (e.g. scheme, host, query)
 	 * @param urlVariables zero or more URI variables

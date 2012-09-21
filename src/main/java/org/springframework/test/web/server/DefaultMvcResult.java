@@ -23,7 +23,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContextUtils;
 
 /**
- * A default implementation of {@link MvcResult}
+ * A simple implementation of {@link MvcResult} with setters.
  *
  * @author Rossen Stoyanchev
  * @author Rob Winch
@@ -41,7 +41,6 @@ public class DefaultMvcResult implements MvcResult {
 	private ModelAndView modelAndView;
 
 	private Exception resolvedException;
-
 
 	public DefaultMvcResult(MockHttpServletRequest request, MockHttpServletResponse response) {
 		this.mockRequest = request;

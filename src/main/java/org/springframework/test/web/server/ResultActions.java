@@ -16,9 +16,8 @@
 
 package org.springframework.test.web.server;
 
-
 /**
- * A contract for defining actions on the results of an executed request.
+ * A contract for specifying some actions on the results of an executed request.
  *
  * <p>See static factory methods in
  * {@code org.springframework.test.web.server.result.MockMvcResultMatchers} and
@@ -63,8 +62,9 @@ public interface ResultActions {
 	ResultActions andDo(ResultHandler handler) throws Exception;
 
 	/**
-	 * TODO
-	 * @return TODO
+	 * Return the result of the executed request for direct inspection.
+	 *
+	 * @return the result of the request
 	 */
 	MvcResult andReturn();
 

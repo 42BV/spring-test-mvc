@@ -16,15 +16,14 @@
 
 package org.springframework.test.web.server;
 
-
 /**
  * A contract to match the results of an executed request against some expectation.
  *
  * <p>See static factory methods in
- * {@code org.springframework.test.web.server.result.MockMvcResultActions}.
+ * {@code org.springframework.test.web.server.result.MockMvcResultMatchers}.
  *
  * <p>Example, assuming a static import of {@code MockMvcRequestBuilders.*} and
- * {@code MockMvcResultActions.*}:
+ * {@code MockMvcResultMatchers.*}:
  *
  * <pre>
  * mockMvc.perform(get("/form"))
@@ -38,8 +37,9 @@ public interface ResultMatcher {
 
 	/**
 	 * Match the result of an executed Spring MVC request to an expectation.
-	 * @param mvcResult TODO
-	 * @throws Exception if a failure occurs while printing
+	 *
+	 * @param mvcResult the result of the executed request
+	 * @throws Exception if a failure occurs
 	 */
 	void match(MvcResult mvcResult) throws Exception;
 
