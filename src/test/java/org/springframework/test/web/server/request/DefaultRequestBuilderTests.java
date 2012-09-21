@@ -17,6 +17,7 @@ package org.springframework.test.web.server.request;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.net.URI;
@@ -40,22 +41,24 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.mock.web.MockServletContext;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.web.servlet.FlashMap;
+import org.springframework.web.servlet.support.SessionFlashMapManager;
 
 /**
- * Tests building a MockHttpServletRequest with {@link DefaultRequestBuilder}.
+ * Tests building a MockHttpServletRequest with {@link MockHttpServletRequestBuilder}.
  *
  * @author Rossen Stoyanchev
  */
 public class DefaultRequestBuilderTests {
 
-	private DefaultRequestBuilder builder;
+	private MockHttpServletRequestBuilder builder;
 
 	private ServletContext servletContext;
 
 
 	@Before
 	public void setUp() throws Exception {
-		this.builder = new DefaultRequestBuilder(new URI("/foo/bar"), HttpMethod.GET);
+		this.builder = new MockHttpServletRequestBuilder(new URI("/foo/bar"), HttpMethod.GET);
 		servletContext = new MockServletContext();
 	}
 
@@ -69,7 +72,7 @@ public class DefaultRequestBuilderTests {
 	@Test
 	public void uri() throws Exception {
 		URI uri = new URI("https://java.sun.com:8080/javase/6/docs/api/java/util/BitSet.html?foo=bar#and(java.util.BitSet)");
-		this.builder = new DefaultRequestBuilder(uri, HttpMethod.GET);
+		this.builder = new MockHttpServletRequestBuilder(uri, HttpMethod.GET);
 		MockHttpServletRequest request = this.builder.buildRequest(this.servletContext);
 
 		assertEquals("https", request.getScheme());
@@ -83,7 +86,7 @@ public class DefaultRequestBuilderTests {
 
 	@Test
 	public void requestUriEncodedPath() throws Exception {
-		this.builder = new DefaultRequestBuilder(new URI("/foo%20bar"), HttpMethod.GET);
+		this.builder = new MockHttpServletRequestBuilder(new URI("/foo%20bar"), HttpMethod.GET);
 		MockHttpServletRequest request = this.builder.buildRequest(this.servletContext);
 
 		assertEquals("/foo%20bar", request.getRequestURI());
@@ -91,7 +94,7 @@ public class DefaultRequestBuilderTests {
 
 	@Test
 	public void contextPathEmpty() throws Exception {
-		this.builder = new DefaultRequestBuilder(new URI("/foo"), HttpMethod.GET);
+		this.builder = new MockHttpServletRequestBuilder(new URI("/foo"), HttpMethod.GET);
 
 		MockHttpServletRequest request = this.builder.buildRequest(this.servletContext);
 
@@ -102,7 +105,7 @@ public class DefaultRequestBuilderTests {
 
 	@Test
 	public void contextPathServletPathEmpty() throws Exception {
-		this.builder = new DefaultRequestBuilder(new URI("/travel/hotels/42"), HttpMethod.GET);
+		this.builder = new MockHttpServletRequestBuilder(new URI("/travel/hotels/42"), HttpMethod.GET);
 		this.builder.contextPath("/travel");
 
 		MockHttpServletRequest request = this.builder.buildRequest(this.servletContext);
@@ -114,7 +117,7 @@ public class DefaultRequestBuilderTests {
 
 	@Test
 	public void contextPathServletPath() throws Exception {
-		this.builder = new DefaultRequestBuilder(new URI("/travel/main/hotels/42"), HttpMethod.GET);
+		this.builder = new MockHttpServletRequestBuilder(new URI("/travel/main/hotels/42"), HttpMethod.GET);
 		this.builder.contextPath("/travel");
 		this.builder.servletPath("/main");
 
@@ -127,7 +130,7 @@ public class DefaultRequestBuilderTests {
 
 	@Test
 	public void contextPathServletPathInfoEmpty() throws Exception {
-		this.builder = new DefaultRequestBuilder(new URI("/travel/hotels/42"), HttpMethod.GET);
+		this.builder = new MockHttpServletRequestBuilder(new URI("/travel/hotels/42"), HttpMethod.GET);
 
 		this.builder.contextPath("/travel");
 		this.builder.servletPath("/hotels/42");
@@ -141,7 +144,7 @@ public class DefaultRequestBuilderTests {
 
 	@Test
 	public void contextPathServletPathInfo() throws Exception {
-		this.builder = new DefaultRequestBuilder(new URI("/"), HttpMethod.GET);
+		this.builder = new MockHttpServletRequestBuilder(new URI("/"), HttpMethod.GET);
 		this.builder.servletPath("/index.html");
 		this.builder.pathInfo(null);
 
@@ -177,7 +180,7 @@ public class DefaultRequestBuilderTests {
 
 	@Test
 	public void requestUriAndFragment() throws Exception {
-		this.builder = new DefaultRequestBuilder(new URI("/foo#bar"), HttpMethod.GET);
+		this.builder = new MockHttpServletRequestBuilder(new URI("/foo#bar"), HttpMethod.GET);
 		MockHttpServletRequest request = this.builder.buildRequest(this.servletContext);
 
 		assertEquals("/foo", request.getRequestURI());
@@ -195,7 +198,7 @@ public class DefaultRequestBuilderTests {
 
 	@Test
 	public void requestParameterFromQuery() throws Exception {
-		this.builder = new DefaultRequestBuilder(new URI("/?foo=bar&foo=baz"), HttpMethod.GET);
+		this.builder = new MockHttpServletRequestBuilder(new URI("/?foo=bar&foo=baz"), HttpMethod.GET);
 
 		MockHttpServletRequest request = this.builder.buildRequest(this.servletContext);
 		Map<String, String[]> parameterMap = request.getParameterMap();
@@ -207,7 +210,7 @@ public class DefaultRequestBuilderTests {
 	@Test
 	public void requestParametersFromQuery_i18n() throws Exception {
 		URI uri = new URI("/?foo=I%C3%B1t%C3%ABrn%C3%A2ti%C3%B4n%C3%A0liz%C3%A6ti%C3%B8n");
-		this.builder = new DefaultRequestBuilder(uri, HttpMethod.GET);
+		this.builder = new MockHttpServletRequestBuilder(uri, HttpMethod.GET);
 		MockHttpServletRequest request = this.builder.buildRequest(this.servletContext);
 
 		assertEquals("I%C3%B1t%C3%ABrn%C3%A2ti%C3%B4n%C3%A0liz%C3%A6ti%C3%B8n", request.getParameter("foo"));
@@ -354,6 +357,16 @@ public class DefaultRequestBuilderTests {
 		assertEquals(session, request.getSession());
 		assertEquals("bar", request.getSession().getAttribute("foo"));
 		assertEquals("qux", request.getSession().getAttribute("baz"));
+	}
+
+	@Test
+	public void flashAttribute() throws Exception {
+		this.builder.flashAttr("foo", "bar");
+		MockHttpServletRequest request = this.builder.buildRequest(this.servletContext);
+
+		FlashMap flashMap = new SessionFlashMapManager().retrieveAndUpdate(request, null);
+		assertNotNull(flashMap);
+		assertEquals("bar", flashMap.get("foo"));
 	}
 
 	@Test

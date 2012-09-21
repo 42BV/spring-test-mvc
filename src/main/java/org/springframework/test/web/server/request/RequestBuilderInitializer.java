@@ -15,20 +15,24 @@
  */
 package org.springframework.test.web.server.request;
 
-
 /**
- * Provides an extension point for applications or 3rd party libraries that wish
- * to provide additional request-building methods without actually having to
- * extend {@link DefaultRequestBuilder}.
+ * Extension point for applications or libraries that wish to provide additional
+ * methods for building a request without actually extending from
+ * {@link MockHttpServletRequestBuilder} as well as its sub-class
+ * {@link MockMultipartHttpServletRequestBuilder}.
  *
- * <p>Implementation can be plugged in via
- * {@link DefaultRequestBuilder#with(RequestBuilderInitializer)}. For example:
+ * <p>Implementations of this interface can be plugged in via
+ * {@link MockHttpServletRequestBuilder#with(RequestBuilderInitializer)}.
+ *
+ * <p>Example showing how a custom {@code login} builder method would be used
+ * to perform a request:
  *
  * <pre>
- * mockMvc.perform(get("/accounts").accept("application/json").with(login("user", "password")));
+ * mockMvc.perform(get(&quot;/accounts&quot;).accept(&quot;application/json&quot;).with(login(&quot;user&quot;, &quot;password&quot;)));
  * </pre>
  *
  * @author Rossen Stoyanchev
+ * @author Rob Winch
  */
 public interface RequestBuilderInitializer {
 
@@ -37,6 +41,6 @@ public interface RequestBuilderInitializer {
 	 *
 	 * @param requestBuilder the requestBuilder to initialize
 	 */
-	void initialize(DefaultRequestBuilder requestBuilder);
+	void initialize(MockHttpServletRequestBuilder requestBuilder);
 
 }

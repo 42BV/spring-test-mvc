@@ -21,60 +21,60 @@ public abstract class MockMvcRequestBuilders {
 	}
 
 	/**
-	 * Create a {@link DefaultRequestBuilder} for a GET request.
+	 * Create a {@link MockHttpServletRequestBuilder} for a GET request.
 	 * @param urlTemplate a URI template including any component (e.g. scheme, host, query)
 	 * @param urlVariables zero or more URI variables
 	 */
-	public static DefaultRequestBuilder get(String urlTemplate, Object... urlVariables) {
+	public static MockHttpServletRequestBuilder get(String urlTemplate, Object... urlVariables) {
 		return request(HttpMethod.GET, urlTemplate, urlVariables);
 	}
 
 	/**
-	 * Create a {@link DefaultRequestBuilder} for a POST request.
+	 * Create a {@link MockHttpServletRequestBuilder} for a POST request.
 	 * @param urlTemplate a URI template including any component (e.g. scheme, host, query)
 	 * @param urlVariables zero or more URI variables
 	 */
-	public static DefaultRequestBuilder post(String urlTemplate, Object... urlVariables) {
+	public static MockHttpServletRequestBuilder post(String urlTemplate, Object... urlVariables) {
 		return request(HttpMethod.POST, urlTemplate, urlVariables);
 	}
 
 	/**
-	 * Create a {@link DefaultRequestBuilder} for a PUT request.
+	 * Create a {@link MockHttpServletRequestBuilder} for a PUT request.
 	 * @param urlTemplate a URI template including any component (e.g. scheme, host, query)
 	 * @param urlVariables zero or more URI variables
 	 */
-	public static DefaultRequestBuilder put(String urlTemplate, Object... urlVariables) {
+	public static MockHttpServletRequestBuilder put(String urlTemplate, Object... urlVariables) {
 		return request(HttpMethod.PUT, urlTemplate, urlVariables);
 	}
 
 	/**
-	 * Create a {@link DefaultRequestBuilder} for a DELETE request.
+	 * Create a {@link MockHttpServletRequestBuilder} for a DELETE request.
 	 * @param urlTemplate a URI template including any component (e.g. scheme, host, query)
 	 * @param urlVariables zero or more URI variables
 	 */
-	public static DefaultRequestBuilder delete(String urlTemplate, Object... urlVariables) {
+	public static MockHttpServletRequestBuilder delete(String urlTemplate, Object... urlVariables) {
 		return request(HttpMethod.DELETE, urlTemplate, urlVariables);
 	}
 
 	/**
-	 * Create a {@link DefaultRequestBuilder} for a multipart request.
+	 * Create a {@link MockHttpServletRequestBuilder} for a multipart request.
 	 * @param urlTemplate a URI template including any component (e.g. scheme, host, query)
 	 * @param urlVariables zero or more URI variables
 	 */
-	public static MultipartRequestBuilder fileUpload(String urlTemplate, Object... urlVariables) {
+	public static MockMultipartHttpServletRequestBuilder fileUpload(String urlTemplate, Object... urlVariables) {
 		URI url = expandUrl(urlTemplate, urlVariables);
-		return new MultipartRequestBuilder(url);
+		return new MockMultipartHttpServletRequestBuilder(url);
 	}
 
 	/**
-	 * Create a {@link DefaultRequestBuilder} for any HTTP method.
+	 * Create a {@link MockHttpServletRequestBuilder} for any HTTP method.
 	 * @param httpMethod the HTTP method
 	 * @param urlTemplate a URI template including any component (e.g. scheme, host, query)
 	 * @param urlVariables zero or more URI variables
 	 */
-	private static DefaultRequestBuilder request(HttpMethod httpMethod, String urlTemplate, Object... urlVariables) {
+	private static MockHttpServletRequestBuilder request(HttpMethod httpMethod, String urlTemplate, Object... urlVariables) {
 		URI url = expandUrl(urlTemplate, urlVariables);
-		return new DefaultRequestBuilder(url, httpMethod);
+		return new MockHttpServletRequestBuilder(url, httpMethod);
 	}
 
 	private static URI expandUrl(String urlTemplate, Object[] urlVariables) {

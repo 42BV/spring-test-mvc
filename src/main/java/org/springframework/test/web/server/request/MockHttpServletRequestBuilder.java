@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.servlet.ServletContext;
+import javax.servlet.ServletRequest;
 import javax.servlet.http.Cookie;
 
 import org.springframework.beans.Mergeable;
@@ -35,22 +36,31 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.test.web.server.MockMvc;
 import org.springframework.test.web.server.RequestBuilder;
+import org.springframework.test.web.server.setup.MockMvcBuilders;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ValueConstants;
+import org.springframework.web.servlet.FlashMap;
+import org.springframework.web.servlet.support.SessionFlashMapManager;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
- * The default builder for {@link MockHttpServletRequest}.
+ * Default builder for {@link MockHttpServletRequest} required as input to
+ * perform request in {@link MockMvc}.
+ *
+ * <p>Application tests will typically access this builder through the static
+ * factory methods in {@link MockMvcBuilders}.
  *
  * @author Rossen Stoyanchev
  * @author Arjen Poutsma
  */
-public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
+public class MockHttpServletRequestBuilder implements RequestBuilder, Mergeable {
 
 	private final UriComponentsBuilder uriComponentsBuilder;
 
@@ -80,6 +90,8 @@ public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
 
 	private final Map<String, Object> sessionAttributes = new LinkedHashMap<String, Object>();
 
+	private final Map<String, Object> flashAttributes = new LinkedHashMap<String, Object>();
+
 	private String contextPath = "";
 
 	private String servletPath = "";
@@ -88,114 +100,190 @@ public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
 
 
 	/**
-	 * Protected constructor. Use static factory methods in
+	 * Package private constructor. Use static factory methods in
 	 * {@link MockMvcRequestBuilders}.
+	 *
+	 * <p>For additional ways to initialize a {@code MockHttpServletRequest},
+	 * see {@link #with(RequestBuilderInitializer)} and the
+	 * {@link RequestBuilderInitializer} extension point.
 	 *
 	 * @param uri the URI for the request including any component (e.g. scheme, host, query)
 	 * @param httpMethod the HTTP method for the request
 	 */
-	protected DefaultRequestBuilder(URI uri, HttpMethod httpMethod) {
+	MockHttpServletRequestBuilder(URI uri, HttpMethod httpMethod) {
 		Assert.notNull(uri, "uri is required");
 		Assert.notNull(httpMethod, "httpMethod is required");
 		this.uriComponentsBuilder = UriComponentsBuilder.fromUri(uri);
 		this.method = httpMethod;
 	}
 
-	public DefaultRequestBuilder param(String name, String... values) {
+	/**
+	 * Add a request parameter to the {@link MockHttpServletRequest}.
+	 * If called more than once, the new values are added.
+	 *
+	 * @param name the parameter name
+	 * @param values one or more values
+	 */
+	public MockHttpServletRequestBuilder param(String name, String... values) {
 		addToMultiValueMap(this.parameters, name, values);
 		return this;
 	}
 
-	private static <T> void addToMultiValueMap(MultiValueMap<String, T> map, String name, T[] values) {
-		Assert.hasLength(name, "'name' must not be empty");
-		Assert.notNull(values, "'values' is required");
-		Assert.notEmpty(values, "'values' must not be empty");
-		for (T value : values) {
-			map.add(name, value);
-		}
-	}
-
-	public DefaultRequestBuilder accept(MediaType... mediaTypes) {
-		Assert.notEmpty(mediaTypes, "No 'Accept' media types");
-		this.headers.set("Accept", MediaType.toString(Arrays.asList(mediaTypes)));
+	/**
+	 * Add a header to the request. Values are always added.
+	 *
+	 * @param name the header name
+	 * @param values one or more header values
+	 */
+	public MockHttpServletRequestBuilder header(String name, Object... values) {
+		addToMultiValueMap(this.headers, name, values);
 		return this;
 	}
 
-	public DefaultRequestBuilder contentType(MediaType mediaType) {
-		Assert.notNull(mediaType, "'mediaType' must not be null");
+	/**
+	 * Add all headers to the request. Values are always added.
+	 *
+	 * @param httpHeaders the headers and values to add
+	 */
+	public MockHttpServletRequestBuilder headers(HttpHeaders httpHeaders) {
+		for (String name : httpHeaders.keySet()) {
+			Object[] values = ObjectUtils.toObjectArray(httpHeaders.get(name).toArray());
+			addToMultiValueMap(this.headers, name, values);
+		}
+		return this;
+	}
+
+	/**
+	 * Set the 'Content-Type' header of the request.
+	 *
+	 * @param mediaType the content type
+	 */
+	public MockHttpServletRequestBuilder contentType(MediaType mediaType) {
+		Assert.notNull(mediaType, "'contentType' must not be null");
 		this.contentType = mediaType.toString();
 		this.headers.set("Content-Type", this.contentType);
 		return this;
 	}
 
-	public DefaultRequestBuilder body(byte[] content) {
+	/**
+	 * Set the 'Accept' header to the given media type(s).
+	 *
+	 * @param mediaTypes one or more media types
+	 */
+	public MockHttpServletRequestBuilder accept(MediaType... mediaTypes) {
+		Assert.notEmpty(mediaTypes, "No 'Accept' media types");
+		this.headers.set("Accept", MediaType.toString(Arrays.asList(mediaTypes)));
+		return this;
+	}
+
+	/**
+	 * Set the request body.
+	 *
+	 * @param content the body content
+	 */
+	public MockHttpServletRequestBuilder body(byte[] content) {
 		this.content = content;
 		return this;
 	}
 
-	public DefaultRequestBuilder header(String name, Object... values) {
-		addToMultiValueMap(this.headers, name, values);
-		return this;
-	}
-
-	public DefaultRequestBuilder headers(HttpHeaders httpHeaders) {
-		for (String name : httpHeaders.keySet()) {
-			for (String value : httpHeaders.get(name)) {
-				this.headers.add(name, value);
-			}
-		}
-		return this;
-	}
-
-	public DefaultRequestBuilder cookie(Cookie... cookies) {
+	/**
+	 * Add the given cookies to the request. Cookies are always added.
+	 *
+	 * @param cookies the cookies to add
+	 */
+	public MockHttpServletRequestBuilder cookie(Cookie... cookies) {
 		Assert.notNull(cookies, "'cookies' must not be null");
 		Assert.notEmpty(cookies, "'cookies' must not be empty");
 		this.cookies.addAll(Arrays.asList(cookies));
 		return this;
 	}
 
-	public DefaultRequestBuilder locale(Locale locale) {
+	/**
+	 * Set the locale of the request.
+	 *
+	 * @param locale the locale
+	 */
+	public MockHttpServletRequestBuilder locale(Locale locale) {
 		this.locale = locale;
 		return this;
 	}
 
-	public DefaultRequestBuilder characterEncoding(String characterEncoding) {
-		this.characterEncoding = characterEncoding;
-		return this;
-	}
-
-	public DefaultRequestBuilder requestAttr(String name, Object value) {
-		Assert.hasLength(name, "'name' must not be empty");
-		Assert.notNull(value, "'value' must not be null");
-		this.attributes.put(name, value);
-		return this;
-	}
-
-	public DefaultRequestBuilder sessionAttr(String name, Object value) {
-		Assert.hasLength(name, "'name' must not be empty");
-		Assert.notNull(value, "'value' must not be null");
-		this.sessionAttributes.put(name, value);
-		return this;
-	}
-
-	public DefaultRequestBuilder sessionAttrs(Map<String, Object> attrs) {
-		Assert.notNull(attrs, "'attrs' must not be null");
-		this.sessionAttributes.putAll(attrs);
+	/**
+	 * Set the character encoding of the request.
+	 *
+	 * @param encoding the character encoding
+	 */
+	public MockHttpServletRequestBuilder characterEncoding(String encoding) {
+		this.characterEncoding = encoding;
 		return this;
 	}
 
 	/**
-	 * Provide an MockHttpSession instance to use, possibly for re-use across tests.
-	 * Attributes provided via {@link #sessionAttr(String, Object)} and
-	 * {@link #sessionAttrs(Map)} will override attributes in the provided session.
+	 * Set a request attribute to the given value.
+	 *
+	 * @param name the attribute name
+	 * @param value the attribute value
 	 */
-	public DefaultRequestBuilder session(MockHttpSession session) {
+	public MockHttpServletRequestBuilder requestAttr(String name, Object value) {
+		addAttributeToMap(this.attributes, name, value);
+		return this;
+	}
+
+	/**
+	 * Set an "input" flash attribute to the given value.
+	 *
+	 * @param name the flash attribute name
+	 * @param value the flash attribute value
+	 */
+	public MockHttpServletRequestBuilder flashAttr(String name, Object value) {
+		addAttributeToMap(this.flashAttributes, name, value);
+		return this;
+	}
+
+	/**
+	 * Set a session attribute to the given value.
+	 *
+	 * @param name the session attribute name
+	 * @param value the session attribute value
+	 */
+	public MockHttpServletRequestBuilder sessionAttr(String name, Object value) {
+		addAttributeToMap(this.sessionAttributes, name, value);
+		return this;
+	}
+
+	/**
+	 * Set session attributes to their corresponding values.
+	 *
+	 * @param sessionAttributes the session attributes
+	 */
+	public MockHttpServletRequestBuilder sessionAttrs(Map<String, Object> sessionAttributes) {
+		Assert.notEmpty(sessionAttributes, "'attrs' must not be empty");
+		for (String name : sessionAttributes.keySet()) {
+			sessionAttr(name, sessionAttributes.get(name));
+		}
+		return this;
+	}
+
+	/**
+	 * Set the HTTP session to use, possibly re-used across requests.
+	 *
+	 * <p>Individual attributes provided via {@link #sessionAttr(String, Object)}
+	 * override the content of the session provided here.
+	 *
+	 * @param session the HTTP session
+	 */
+	public MockHttpServletRequestBuilder session(MockHttpSession session) {
 		Assert.notNull(session, "'session' must not be null");
 		this.session = session;
 		return this;
 	}
 
-	public DefaultRequestBuilder principal(Principal principal) {
+	/**
+	 * Set the principal of the request.
+	 *
+	 * @param principal the principal
+	 */
+	public MockHttpServletRequestBuilder principal(Principal principal) {
 		Assert.notNull(principal, "'principal' must not be null");
 		this.principal = principal;
 		return this;
@@ -214,7 +302,7 @@ public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
 	 * @see <a
 	 * href="http://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletRequest.html#getContextPath%28%29">HttpServletRequest.getContextPath()</a>
 	 */
-	public DefaultRequestBuilder contextPath(String contextPath) {
+	public MockHttpServletRequestBuilder contextPath(String contextPath) {
 		if (StringUtils.hasText(contextPath)) {
 			Assert.isTrue(contextPath.startsWith("/"), "Context path must start with a '/'");
 			Assert.isTrue(!contextPath.endsWith("/"), "Context path must not end with a '/'");
@@ -239,7 +327,7 @@ public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
 	 * @see <a
 	 * href="http://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletRequest.html#getServletPath%28%29">HttpServletRequest.getServletPath()</a>
 	 */
-	public DefaultRequestBuilder servletPath(String servletPath) {
+	public MockHttpServletRequestBuilder servletPath(String servletPath) {
 		if (StringUtils.hasText(servletPath)) {
 			Assert.isTrue(servletPath.startsWith("/"), "Servlet path must start with a '/'");
 			Assert.isTrue(!servletPath.endsWith("/"), "Servlet path must not end with a '/'");
@@ -261,7 +349,7 @@ public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
 	 * @see <a
 	 * href="http://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletRequest.html#getPathInfo%28%29">HttpServletRequest.getServletPath()</a>
 	 */
-	public DefaultRequestBuilder pathInfo(String pathInfo) {
+	public MockHttpServletRequestBuilder pathInfo(String pathInfo) {
 		if (StringUtils.hasText(pathInfo)) {
 			Assert.isTrue(pathInfo.startsWith("/"), "pathInfo must start with a '/'");
 		}
@@ -269,29 +357,46 @@ public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
 		return this;
 	}
 
-	public DefaultRequestBuilder secure(boolean secure){
+	/**
+	 * Set the secure property of the {@link ServletRequest} indicating use of a
+	 * secure channel, such as HTTPS.
+	 *
+	 * @param secure whether the request is using a secure channel
+	 */
+	public MockHttpServletRequestBuilder secure(boolean secure){
 		this.secure = secure;
 		return this;
 	}
 
-	public DefaultRequestBuilder with(RequestBuilderInitializer extension) {
-		extension.initialize(this);
+	public MockHttpServletRequestBuilder with(RequestBuilderInitializer requestBuilderInitializer) {
+		requestBuilderInitializer.initialize(this);
 		return this;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * @return always returns {@code true}.
+	 */
 	public boolean isMergeEnabled() {
 		return true;
 	}
 
+	/**
+	 * Merges the properties of the "parent" RequestBuilder accepting values
+	 * only if not already set in "this" instance.
+	 *
+	 * @param parent the parent {@code RequestBuilder} to inherit properties from
+	 * @return the result of the merge
+	 */
 	public Object merge(Object parent) {
 		if (parent == null) {
 			return this;
 		}
-		if (!(parent instanceof DefaultRequestBuilder)) {
+		if (!(parent instanceof MockHttpServletRequestBuilder)) {
 			throw new IllegalArgumentException("Cannot merge with [" + parent.getClass().getName() + "]");
 		}
 
-		DefaultRequestBuilder parentBuilder = (DefaultRequestBuilder) parent;
+		MockHttpServletRequestBuilder parentBuilder = (MockHttpServletRequestBuilder) parent;
 
 		for (String headerName : parentBuilder.headers.keySet()) {
 			if (!this.headers.containsKey(headerName)) {
@@ -313,7 +418,11 @@ public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
 			}
 		}
 
-		this.cookies.addAll(parentBuilder.cookies);
+		for (Cookie cookie : parentBuilder.cookies) {
+			if (!containsCookie(cookie)) {
+				this.cookies.add(cookie);
+			}
+		}
 
 		if (this.locale == null) {
 			this.locale = parentBuilder.locale;
@@ -336,14 +445,23 @@ public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
 				this.attributes.put(attributeName, parentBuilder.attributes.get(attributeName));
 			}
 		}
+
 		if (this.session == null) {
 			this.session = parentBuilder.session;
 		}
+
 		for (String sessionAttributeName : parentBuilder.sessionAttributes.keySet()) {
 			if (!this.sessionAttributes.containsKey(sessionAttributeName)) {
 				this.sessionAttributes.put(sessionAttributeName, parentBuilder.sessionAttributes.get(sessionAttributeName));
 			}
 		}
+
+		for (String flashAttributeName : parentBuilder.flashAttributes.keySet()) {
+			if (!this.flashAttributes.containsKey(flashAttributeName)) {
+				this.flashAttributes.put(flashAttributeName, parentBuilder.flashAttributes.get(flashAttributeName));
+			}
+		}
+
 		if (!StringUtils.hasText(this.contextPath)) {
 			this.contextPath = parentBuilder.contextPath;
 		}
@@ -359,6 +477,18 @@ public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
 		return this;
 	}
 
+	private boolean containsCookie(Cookie cookie) {
+		for (Cookie c : this.cookies) {
+			if (ObjectUtils.nullSafeEquals(c.getName(), cookie.getName())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Build a {@link MockHttpServletRequest}.
+	 */
 	public MockHttpServletRequest buildRequest(ServletContext servletContext) {
 
 		MockHttpServletRequest request = createServletRequest(servletContext);
@@ -423,7 +553,7 @@ public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
 			request.setAttribute(name, this.attributes.get(name));
 		}
 
-		// Set session before session attributes
+		// Set session before session and flash attributes
 
 		if (this.session != null) {
 			request.setSession(this.session);
@@ -433,6 +563,9 @@ public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
 			request.getSession().setAttribute(name, this.sessionAttributes.get(name));
 		}
 
+		FlashMap flashMap = new FlashMap();
+		flashMap.putAll(this.flashAttributes);
+		new SessionFlashMapManager().saveOutputFlashMap(flashMap, request, null);
 
 		return request;
 	}
@@ -463,6 +596,21 @@ public class DefaultRequestBuilder implements RequestBuilder, Mergeable {
 		}
 
 		request.setPathInfo(this.pathInfo);
+	}
+
+	private static <T> void addToMultiValueMap(MultiValueMap<String, T> map, String name, T[] values) {
+		Assert.hasLength(name, "'name' must not be empty");
+		Assert.notNull(values, "'values' is required");
+		Assert.notEmpty(values, "'values' must not be empty");
+		for (T value : values) {
+			map.add(name, value);
+		}
+	}
+
+	private static void addAttributeToMap(Map<String, Object> map, String name, Object value) {
+		Assert.hasLength(name, "'name' must not be empty");
+		Assert.notNull(value, "'value' must not be null");
+		map.put(name, value);
 	}
 
 }

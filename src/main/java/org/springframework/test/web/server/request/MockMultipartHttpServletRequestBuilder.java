@@ -29,21 +29,25 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockMultipartHttpServletRequest;
 
 /**
- * A request builder for {@link MockMultipartHttpServletRequest}.
+ * Default builder for {@link MockMultipartHttpServletRequest}.
  *
  * @author Rossen Stoyanchev
  * @author Arjen Poutsma
  */
-public class MultipartRequestBuilder extends DefaultRequestBuilder {
+public class MockMultipartHttpServletRequestBuilder extends MockHttpServletRequestBuilder {
 
 	private final List<MockMultipartFile> files = new ArrayList<MockMultipartFile>();
 
 
 	/**
-	 * Use {@link MockMvcRequestBuilders#fileUpload(String, Object...)} to
-	 * obtain a new instance.
+	 * Package private constructor. Use static factory methods in
+	 * {@link MockMvcRequestBuilders}.
+	 *
+	 * <p>For other ways to initialize a {@code MockMultipartHttpServletRequest},
+	 * see {@link #with(RequestBuilderInitializer)} and the
+	 * {@link RequestBuilderInitializer} extension point.
 	 */
-	protected MultipartRequestBuilder(URI uri) {
+	MockMultipartHttpServletRequestBuilder(URI uri) {
 		super(uri, HttpMethod.POST);
 		super.contentType(MediaType.MULTIPART_FORM_DATA);
 	}
@@ -51,11 +55,11 @@ public class MultipartRequestBuilder extends DefaultRequestBuilder {
 	/**
 	 * Create a new MockMultipartFile with the given content.
 	 *
-	 * @param name    the name of the file
+	 * @param name the name of the file
 	 * @param content the content of the file
 	 */
-	public MultipartRequestBuilder file(String name, byte[] content) {
-		files.add(new MockMultipartFile(name, content));
+	public MockMultipartHttpServletRequestBuilder file(String name, byte[] content) {
+		this.files.add(new MockMultipartFile(name, content));
 		return this;
 	}
 
@@ -64,8 +68,8 @@ public class MultipartRequestBuilder extends DefaultRequestBuilder {
 	 *
 	 * @param file the multipart file
 	 */
-	public MultipartRequestBuilder file(MockMultipartFile file) {
-		files.add(file);
+	public MockMultipartHttpServletRequestBuilder file(MockMultipartFile file) {
+		this.files.add(file);
 		return this;
 	}
 
@@ -74,13 +78,13 @@ public class MultipartRequestBuilder extends DefaultRequestBuilder {
 		if (parent == null) {
 			return this;
 		}
-		if (!(parent instanceof MultipartRequestBuilder)) {
+		if (!(parent instanceof MockMultipartHttpServletRequestBuilder)) {
 			throw new IllegalArgumentException("Cannot merge with [" + parent.getClass().getName() + "]");
 		}
 
 		super.merge(parent);
 
-		MultipartRequestBuilder parentBuilder = (MultipartRequestBuilder) parent;
+		MockMultipartHttpServletRequestBuilder parentBuilder = (MockMultipartHttpServletRequestBuilder) parent;
 		this.files.addAll(parentBuilder.files);
 
 		return this;
@@ -89,7 +93,7 @@ public class MultipartRequestBuilder extends DefaultRequestBuilder {
 	@Override
 	protected final MockHttpServletRequest createServletRequest(ServletContext servletContext) {
 		MockMultipartHttpServletRequest request = new MockMultipartHttpServletRequest();
-		for (MockMultipartFile file : files) {
+		for (MockMultipartFile file : this.files) {
 			request.addFile(file);
 		}
 		return request;

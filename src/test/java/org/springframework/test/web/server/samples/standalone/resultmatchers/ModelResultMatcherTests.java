@@ -78,6 +78,7 @@ public class ModelResultMatcherTests {
 			.andExpect(model().attribute("INTEGER", nullValue()));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testAttributeHamcrestMatchers() throws Exception {
 		mockMvc.perform(get("/"))
