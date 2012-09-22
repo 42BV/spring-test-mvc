@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,24 @@ import org.hamcrest.Matchers;
 import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 
+/**
+ * Factory for "output" flash attribute assertions. An instance of this class is
+ * typically accessed via {@link MockMvcResultMatchers#flash()}.
+ *
+ * @author Rossen Stoyanchev
+ */
 public class FlashAttributeResultMatchers {
 
+
 	/**
-	 * TODO
+	 * Protected constructor.
+	 * Use {@link MockMvcResultMatchers#flash()}.
+	 */
+	protected FlashAttributeResultMatchers() {
+	}
+
+	/**
+	 * Assert a flash attribute's value with the given Hamcrest {@link Matcher}.
 	 */
 	public <T> ResultMatcher attribute(final String name, final Matcher<T> matcher) {
 		return new ResultMatcher() {
@@ -37,22 +51,16 @@ public class FlashAttributeResultMatchers {
 			}
 		};
 	}
-	
+
 	/**
-	 * Syntactic sugar, equivalent to:
-	 * <pre>
-	 * flashAttribute("attrName", equalTo("attrValue"))
-	 * </pre>
+	 * Assert a flash attribute's value.
 	 */
 	public <T> ResultMatcher attribute(final String name, final Object value) {
 		return attribute(name, Matchers.equalTo(value));
 	}
-	
+
 	/**
-	 * Syntactic sugar, equivalent to:
-	 * <pre>
-	 * flashAttribute("attrName", notNullValue())
-	 * </pre>
+	 * Assert the existence of the given flash attributes.
 	 */
 	public <T> ResultMatcher attributeExists(final String... names) {
 		return new ResultMatcher() {
@@ -62,10 +70,10 @@ public class FlashAttributeResultMatchers {
 				}
 			}
 		};
-	}	
+	}
 
 	/**
-	 * TODO
+	 * Assert the number of flash attributes.
 	 */
 	public <T> ResultMatcher attributeCount(final int count) {
 		return new ResultMatcher() {
@@ -73,6 +81,6 @@ public class FlashAttributeResultMatchers {
 				assertEquals("FlashMap size", count, result.getFlashMap().size());
 			}
 		};
-	}	
-	
+	}
+
 }

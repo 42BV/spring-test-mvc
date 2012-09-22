@@ -26,6 +26,8 @@ import javax.servlet.http.Cookie;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.server.StubMvcResult;
@@ -38,11 +40,11 @@ import org.springframework.web.servlet.FlashMap;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * Tests for AbstractPrintingResultHandler.
+ * Tests for {@link PrintingResultHandler}.
  *
  * @author Rossen Stoyanchev
  */
-public class AbstractPrintingResultHandlerTests {
+public class PrintingResultHandlerTests {
 
 	private TestPrintingResultHandler handler;
 
@@ -68,10 +70,13 @@ public class AbstractPrintingResultHandlerTests {
 
 		this.handler.handle(this.mvcResult);
 
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("header", "headerValue");
+
 		assertValue("MockHttpServletRequest", "HTTP Method", this.request.getMethod());
 		assertValue("MockHttpServletRequest", "Request URI", this.request.getRequestURI());
 		assertValue("MockHttpServletRequest", "Parameters", this.request.getParameterMap());
-		assertValue("MockHttpServletRequest", "Headers", ResultHandlerUtils.getRequestHeaderMap(this.request));
+		assertValue("MockHttpServletRequest", "Headers", headers);
 	}
 
 	@Test
@@ -86,9 +91,13 @@ public class AbstractPrintingResultHandlerTests {
 
 		this.handler.handle(this.mvcResult);
 
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("header", "headerValue");
+		headers.setContentType(MediaType.TEXT_PLAIN);
+
 		assertValue("MockHttpServletResponse", "Status", this.response.getStatus());
 		assertValue("MockHttpServletResponse", "Error message", response.getErrorMessage());
-		assertValue("MockHttpServletResponse", "Headers", ResultHandlerUtils.getResponseHeaderMap(this.response));
+		assertValue("MockHttpServletResponse", "Headers", headers);
 		assertValue("MockHttpServletResponse", "Content type", this.response.getContentType());
 		assertValue("MockHttpServletResponse", "Body", this.response.getContentAsString());
 		assertValue("MockHttpServletResponse", "Forwarded URL", this.response.getForwardedUrl());

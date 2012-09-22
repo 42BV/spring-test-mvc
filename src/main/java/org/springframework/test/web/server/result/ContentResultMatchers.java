@@ -35,8 +35,8 @@ import org.springframework.test.web.support.XmlExpectationsHelper;
 import org.w3c.dom.Node;
 
 /**
- * Factory for response content {@code ResultMatcher}'s. An instance of this
- * class is typically accessed via {@link MockMvcResultMatchers#content()}.
+ * Factory for response content assertions. An instance of this class is
+ * typically accessed via {@link MockMvcResultMatchers#content()}.
  *
  * @author Rossen Stoyanchev
  * @since 3.2
@@ -45,7 +45,12 @@ public class ContentResultMatchers {
 
 	private final XmlExpectationsHelper xmlHelper;
 
-	public ContentResultMatchers() {
+
+	/**
+	 * Protected constructor.
+	 * Use {@link MockMvcResultMatchers#content()}.
+	 */
+	protected ContentResultMatchers() {
 		this.xmlHelper = new XmlExpectationsHelper();
 	}
 
@@ -83,7 +88,7 @@ public class ContentResultMatchers {
 	}
 
 	/**
-	 * Apply a {@link Matcher} to the response content. For example:
+	 * Assert the response body content with a Hamcrest {@link Matcher}.
 	 * <pre>
 	 * mockMvc.perform(get("/path"))
 	 *   .andExpect(content(containsString("text")));
@@ -98,14 +103,14 @@ public class ContentResultMatchers {
 	}
 
 	/**
-	 * TODO
+	 * Assert the response body content as a String.
 	 */
 	public ResultMatcher string(String content) {
 		return string(Matchers.equalTo(content));
 	}
 
 	/**
-	 * TODO
+	 * Assert the response body content as a byte array.
 	 */
 	public ResultMatcher bytes(final byte[] expectedContent) {
 		return new ResultMatcher() {
@@ -117,11 +122,13 @@ public class ContentResultMatchers {
 	}
 
 	/**
-	 * Parse the response content and the given string as XML and assert the
-	 * two are "similar" - i.e. they contain the same elements and attributes
+	 * Parse the response content and the given string as XML and assert the two
+	 * are "similar" - i.e. they contain the same elements and attributes
 	 * regardless of order.
-	 * <p>Use of this matcher requires the
-	 * <a href="http://xmlunit.sourceforge.net/">XMLUnit<a/> library.
+	 *
+	 * <p>Use of this matcher requires the <a
+	 * href="http://xmlunit.sourceforge.net/">XMLUnit<a/> library.
+	 *
 	 * @param xmlContent the expected XML content
 	 * @see MockMvcResultMatchers#xpath(String, Object...)
 	 * @see MockMvcResultMatchers#xpath(String, Map, Object...)
@@ -138,7 +145,9 @@ public class ContentResultMatchers {
 	// TODO: XML validation
 
 	/**
-	 * Parse the response content as {@link Node} and apply the given {@link Matcher}.
+	 * Parse the response content as {@link Node} and apply the given Hamcrest
+	 * {@link Matcher}.
+	 *
 	 * @see org.hamcrest.Matchers#hasXPath
 	 */
 	public ResultMatcher node(final Matcher<? super Node> matcher) {
@@ -151,7 +160,9 @@ public class ContentResultMatchers {
 	}
 
 	/**
-	 * Parse the response content as {@link DOMSource} and apply the given {@link Matcher}.
+	 * Parse the response content as {@link DOMSource} and apply the given
+	 * Hamcrest {@link Matcher}.
+	 *
 	 * @see <a href="http://code.google.com/p/xml-matchers/">xml-matchers</a>
 	 */
 	public ResultMatcher source(final Matcher<? super Source> matcher) {

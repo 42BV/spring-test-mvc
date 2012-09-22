@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,24 @@ import org.hamcrest.Matchers;
 import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 
+/**
+ * Factory for assertions on the request. An instance of this class is
+ * typically accessed via {@link MockMvcResultMatchers#request()}.
+ *
+ * @author Rossen Stoyanchev
+ */
 public class RequestResultMatchers {
 
+
 	/**
-	 * TODO
+	 * Protected constructor.
+	 * Use {@link MockMvcResultMatchers#request()}.
+	 */
+	protected RequestResultMatchers() {
+	}
+
+	/**
+	 * Assert a request attribute value with the given Hamcrest {@link Matcher}.
 	 */
 	public <T> ResultMatcher attribute(final String name, final Matcher<T> matcher) {
 		return new ResultMatcher() {
@@ -38,14 +52,14 @@ public class RequestResultMatchers {
 	}
 
 	/**
-	 * TODO
+	 * Assert a request attribute value.
 	 */
 	public <T> ResultMatcher attribute(String name, Object value) {
 		return attribute(name, Matchers.equalTo(value));
 	}
-	
+
 	/**
-	 * TODO
+	 * Assert a session attribute value with the given Hamcrest {@link Matcher}.
 	 */
 	public <T> ResultMatcher sessionAttribute(final String name, final Matcher<T> matcher) {
 		return new ResultMatcher() {
@@ -58,7 +72,7 @@ public class RequestResultMatchers {
 	}
 
 	/**
-	 * TODO
+	 * Assert a session attribute value..
 	 */
 	public <T> ResultMatcher sessionAttribute(String name, Object value) {
 		return sessionAttribute(name, Matchers.equalTo(value));

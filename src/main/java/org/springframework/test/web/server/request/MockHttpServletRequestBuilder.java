@@ -109,7 +109,7 @@ public class MockHttpServletRequestBuilder implements RequestBuilder, Mergeable 
 
 
 	/**
-	 * Package private constructor. To get an instance use static factory
+	 * Package private constructor. To get an instance, use static factory
 	 * methods in {@link MockMvcRequestBuilders}.
 	 *
 	 * <p>Although this class cannot be extended, additional ways to initialize
@@ -120,8 +120,10 @@ public class MockHttpServletRequestBuilder implements RequestBuilder, Mergeable 
 	 * @param httpMethod the HTTP method for the request
 	 */
 	MockHttpServletRequestBuilder(URI uri, HttpMethod httpMethod) {
+
 		Assert.notNull(uri, "uri is required");
 		Assert.notNull(httpMethod, "httpMethod is required");
+
 		this.uriComponentsBuilder = UriComponentsBuilder.fromUri(uri);
 		this.method = httpMethod;
 	}

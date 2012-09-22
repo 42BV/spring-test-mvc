@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,11 @@ import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 import org.springframework.test.web.support.JsonPathExpectationsHelper;
 
-
 /**
- * Factory for response content {@code ResultMatcher}'s using a <a
- * href="http://goessner.net/articles/JsonPath/">JSONPath</a> expression. An
- * instance of this class is typically accessed via
- * {@code MockMvcResultMatchers.jsonPpath(..)}.
+ * Factory for assertions on the response content using <a
+ * href="http://goessner.net/articles/JsonPath/">JSONPath</a> expressions.
+ * An instance of this class is typically accessed via
+ * {@link MockMvcResultMatchers#jsonPpath}.
  *
  * @author Rossen Stoyanchev
  */
@@ -40,14 +39,17 @@ public class JsonPathResultMatchers {
 	private JsonPathExpectationsHelper jsonPathHelper;
 
 	/**
-	 * TODO
+	 * Protected constructor. Use
+	 * {@link MockMvcResultMatchers#jsonPath(String, Object...)} or
+	 * {@link MockMvcResultMatchers#jsonPath(String, Matcher)}.
 	 */
-	public JsonPathResultMatchers(String expression, Object ... args) {
+	protected JsonPathResultMatchers(String expression, Object ... args) {
 		this.jsonPathHelper = new JsonPathExpectationsHelper(expression, args);
 	}
 
 	/**
-	 * Evaluate the JSONPath and assert the resulting value with the given {@code Matcher}.
+	 * Evaluate the JSONPath and assert the value of the content found with the
+	 * given Hamcrest {@code Matcher}.
 	 */
 	public <T> ResultMatcher value(final Matcher<T> matcher) {
 		return new ResultMatcher() {
@@ -59,14 +61,14 @@ public class JsonPathResultMatchers {
 	}
 
 	/**
-	 * Apply the JSONPath and assert the resulting value.
+	 * Evaluate the JSONPath and assert the value of the content found.
 	 */
 	public ResultMatcher value(Object value) {
 		return value(equalTo(value));
 	}
 
 	/**
-	 * Apply the JSONPath and assert the resulting value.
+	 * Evaluate the JSONPath and assert that content exists.
 	 */
 	public ResultMatcher exists() {
 		return new ResultMatcher() {
@@ -78,7 +80,7 @@ public class JsonPathResultMatchers {
 	}
 
 	/**
-	 * Evaluate the JSON path and assert the resulting content exists.
+	 * Evaluate the JSON path and assert not content was found.
 	 */
 	public ResultMatcher doesNotExist() {
 		return new ResultMatcher() {
@@ -90,7 +92,7 @@ public class JsonPathResultMatchers {
 	}
 
 	/**
-	 * Assert the content at the given JSONPath is an array.
+	 * Evluate the JSON path and assert the content found is an array.
 	 */
 	public ResultMatcher isArray() {
 		return value(instanceOf(List.class));

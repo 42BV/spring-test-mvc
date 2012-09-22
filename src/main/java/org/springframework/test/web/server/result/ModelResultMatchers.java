@@ -27,10 +27,24 @@ import org.springframework.test.web.server.ResultMatcher;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 
+/**
+ * Factory for assertions on the model. An instance of this class is
+ * typically accessed via {@link MockMvcResultMatchers#model()}.
+ *
+ * @author Rossen Stoyanchev
+ */
 public class ModelResultMatchers {
 
+
 	/**
-	 * TODO
+	 * Protected constructor.
+	 * Use {@link MockMvcResultMatchers#model()}.
+	 */
+	protected ModelResultMatchers() {
+	}
+
+	/**
+	 * Assert a model attribute value with the given Hamcrest {@link Matcher}.
 	 */
 	public <T> ResultMatcher attribute(final String name, final Matcher<T> matcher) {
 		return new ResultMatcher() {
@@ -44,20 +58,14 @@ public class ModelResultMatchers {
 	}
 
 	/**
-	 * Syntactic sugar, equivalent to:
-	 * <pre>
-	 * modelAttribute("attrName", equalTo("attrValue"))
-	 * </pre>
+	 * Assert a model attribute value.
 	 */
 	public ResultMatcher attribute(String name, Object value) {
 		return attribute(name, Matchers.equalTo(value));
 	}
 
 	/**
-	 * Syntactic sugar, equivalent to:
-	 * <pre>
-	 * modelAttribute("attrName", notNullValue())
-	 * </pre>
+	 * Assert the given model attributes exist.
 	 */
 	public ResultMatcher attributeExists(final String... names) {
 		return new ResultMatcher() {
@@ -71,7 +79,7 @@ public class ModelResultMatchers {
 	}
 
 	/**
-	 * TODO
+	 * Assert the given model attribute(s) have errors.
 	 */
 	public ResultMatcher attributeHasErrors(final String... names) {
 		return new ResultMatcher() {
@@ -86,7 +94,7 @@ public class ModelResultMatchers {
 	}
 
 	/**
-	 * TODO
+	 * Assert the given model attribute(s) do not have errors.
 	 */
 	public ResultMatcher attributeHasNoErrors(final String... names) {
 		return new ResultMatcher() {
@@ -101,7 +109,7 @@ public class ModelResultMatchers {
 	}
 
 	/**
-	 * TODO
+	 * Assert the given model attribute field(s) have errors.
 	 */
 	public ResultMatcher attributeHasFieldErrors(final String name, final String... fieldNames) {
 		return new ResultMatcher() {
@@ -118,7 +126,7 @@ public class ModelResultMatchers {
 	}
 
 	/**
-	 * TODO
+	 * Assert the model has no errors.
 	 */
 	public <T> ResultMatcher hasNoErrors() {
 		return new ResultMatcher() {
@@ -134,7 +142,7 @@ public class ModelResultMatchers {
 	}
 
 	/**
-	 * Assert the number of attributes excluding BindingResult instances.
+	 * Assert the number of model attributes.
 	 */
 	public <T> ResultMatcher size(final int size) {
 		return new ResultMatcher() {
@@ -162,4 +170,5 @@ public class ModelResultMatchers {
 		assertTrue("No BindingResult for attribute: " + name, result != null);
 		return result;
 	}
+
 }

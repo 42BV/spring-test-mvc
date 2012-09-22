@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,22 @@ import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 import org.springframework.web.servlet.ModelAndView;
 
+/**
+ * Factory for assertions on the selected view. An instance of this class is
+ * typically accessed via {@link MockMvcResultMatchers#view()}.
+ */
 public class ViewResultMatchers {
 
+
 	/**
-	 * TODO
+	 * Protected constructor.
+	 * Use {@link MockMvcResultMatchers#view()}.
+	 */
+	protected ViewResultMatchers() {
+	}
+
+	/**
+	 * Assert the selected view name with the given Hamcrest {@link Matcher}.
 	 */
 	public ResultMatcher name(final Matcher<? super String> matcher) {
 		return new ResultMatcher() {
@@ -41,10 +53,10 @@ public class ViewResultMatchers {
 	}
 
 	/**
-	 * TODO
+	 * Assert the selected view name.
 	 */
 	public ResultMatcher name(final String name) {
 		return name(Matchers.equalTo(name));
 	}
-	
+
 }

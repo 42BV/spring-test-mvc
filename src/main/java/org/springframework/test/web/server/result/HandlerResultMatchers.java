@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,27 @@ import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
+/**
+ * Factory for assertions on the selected handler. An instance of this class is
+ * typically accessed via {@link MockMvcResultMatchers#handler()}.
+ *
+ * @author Rossen Stoyanchev
+ */
 public class HandlerResultMatchers {
 
+
 	/**
-	 * TODO
+	 * Protected constructor.
+	 * Use {@link MockMvcResultMatchers#handler()}.
+	 */
+	protected HandlerResultMatchers() {
+	}
+
+	/**
+	 * Assert the type of the handler that processed the request.
 	 */
 	public ResultMatcher handlerType(final Class<?> type) {
 		return new ResultMatcher() {
@@ -47,9 +63,13 @@ public class HandlerResultMatchers {
 			}
 		};
 	}
-	
+
 	/**
-	 * TODO
+	 * Assert the name of the controller method that processed the request with
+	 * the given Hamcrest {@link Matcher}.
+	 *
+	 * <p>Use of this method implies annotated controllers are processed with
+	 * {@link RequestMappingHandlerMapping} and {@link RequestMappingHandlerAdapter}.
 	 */
 	public ResultMatcher methodName(final Matcher<? super String> matcher) {
 		return new ResultMatcher() {
@@ -61,16 +81,22 @@ public class HandlerResultMatchers {
 			}
 		};
 	}
-	
+
 	/**
-	 * TODO
+	 * Assert the name of the controller method that processed the request.
+	 *
+	 * <p>Use of this method implies annotated controllers are processed with
+	 * {@link RequestMappingHandlerMapping} and {@link RequestMappingHandlerAdapter}.
 	 */
 	public ResultMatcher methodName(final String name) {
 		return methodName(Matchers.equalTo(name));
 	}
 
 	/**
-	 * TODO
+	 * Assert the controller method that processed the request.
+	 *
+	 * <p>Use of this method implies annotated controllers are processed with
+	 * {@link RequestMappingHandlerMapping} and {@link RequestMappingHandlerAdapter}.
 	 */
 	public ResultMatcher method(final Method method) {
 		return new ResultMatcher() {
@@ -82,5 +108,5 @@ public class HandlerResultMatchers {
 			}
 		};
 	}
-	
+
 }

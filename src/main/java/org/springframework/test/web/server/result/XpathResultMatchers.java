@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.w3c.dom.Node;
 /**
  * Factory for response content {@code ResultMatcher}'s using an XPath
  * expression. An instance of this class is typically accessed via
- * {@code MockMvcResultMatchers.xpath(..)}.
+ * {@link MockMvcResultMatchers#xpath}.
  *
  * @author Rossen Stoyanchev
  */
@@ -40,7 +40,7 @@ public class XpathResultMatchers {
 
 
 	/**
-	 * Class constructor, not for direct instantiation. Use
+	 * Protected constructor, not for direct instantiation. Use
 	 * {@link MockMvcResultMatchers#xpath(String, Object...)} or
 	 * {@link MockMvcResultMatchers#xpath(String, Map, Object...)}.
 	 *
@@ -58,7 +58,8 @@ public class XpathResultMatchers {
 	}
 
 	/**
-	 * Apply the XPath and assert it with the given {@code Matcher<Node>}.
+	 * Evaluate the XPath and assert the {@link Node} content found with the
+	 * given Hamcrest {@link Matcher}.
 	 */
 	public ResultMatcher node(final Matcher<? super Node> matcher) {
 		return new ResultMatcher() {
@@ -70,22 +71,22 @@ public class XpathResultMatchers {
 	}
 
 	/**
-	 * Assert that content exists at the given XPath.
+	 * Evaluate the XPath and assert that content exists.
 	 */
 	public ResultMatcher exists() {
 		return node(Matchers.notNullValue());
 	}
 
 	/**
-	 * Assert that content does not exist at the given XPath.
+	 * Evaluate the XPath and assert that content doesn't exist.
 	 */
 	public ResultMatcher doesNotExist() {
 		return node(Matchers.nullValue());
 	}
 
 	/**
-	 * Apply the XPath and assert the number of nodes found with the given
-	 * {@code Matcher<Integer>}.
+	 * Evaluate the XPath and assert the number of nodes found with the given
+	 * Hamcrest {@link Matcher}.
 	 */
 	public ResultMatcher nodeCount(final Matcher<Integer> matcher) {
 		return new ResultMatcher() {
@@ -97,14 +98,15 @@ public class XpathResultMatchers {
 	}
 
 	/**
-	 * Apply the XPath and assert the number of nodes found.
+	 * Evaluate the XPath and assert the number of nodes found.
 	 */
 	public ResultMatcher nodeCount(int count) {
 		return nodeCount(Matchers.equalTo(count));
 	}
 
 	/**
-	 * Apply the XPath and assert the String content found with the given matcher.
+	 * Apply the XPath and assert the {@link String} value found with the given
+	 * Hamcrest {@link Matcher}.
 	 */
 	public ResultMatcher string(final Matcher<? super String> matcher) {
 		return new ResultMatcher() {
@@ -116,14 +118,15 @@ public class XpathResultMatchers {
 	}
 
 	/**
-	 * Apply the XPath and assert the String content found.
+	 * Apply the XPath and assert the {@link String} value found.
 	 */
 	public ResultMatcher string(String value) {
 		return string(Matchers.equalTo(value));
 	}
 
 	/**
-	 * Apply the XPath and assert the number of nodes found with the given matcher.
+	 * Evaluate the XPath and assert the {@link Double} value found with the
+	 * given Hamcrest {@link Matcher}.
 	 */
 	public ResultMatcher number(final Matcher<? super Double> matcher) {
 		return new ResultMatcher() {
@@ -135,14 +138,14 @@ public class XpathResultMatchers {
 	}
 
 	/**
-	 * Apply the XPath and assert the number of nodes found.
+	 * Evaluate the XPath and assert the {@link Double} value found.
 	 */
 	public ResultMatcher number(Double value) {
 		return number(Matchers.equalTo(value));
 	}
 
 	/**
-	 * Apply the XPath and assert the boolean value found.
+	 * Evaluate the XPath and assert the {@link Boolean} value found.
 	 */
 	public ResultMatcher booleanValue(final Boolean value) {
 		return new ResultMatcher() {

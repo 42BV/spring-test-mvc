@@ -16,6 +16,9 @@
 
 package org.springframework.test.web.server.result;
 
+import java.util.Enumeration;
+
+import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.server.MvcResult;
@@ -29,7 +32,9 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContextUtils;
 
 /**
- * An abstract {@link ResultHandler} that prints {@link MvcResult} details.
+ * Result handler that prints {@link MvcResult} details to the "standard" output
+ * stream. An instance of this class is typically accessed via
+ * {@link MockMvcResultHandlers#print()}.
  *
  * @author Rossen Stoyanchev
  */
@@ -39,21 +44,23 @@ public class PrintingResultHandler implements ResultHandler {
 
 
 	/**
-	 * Class constructor.
-	 *
-	 * @param printer a printer to do the actual writing
+	 * Protected constructor.
+	 * @param printer a {@link ResultValuePrinter} to do the actual writing
 	 */
-	public PrintingResultHandler(ResultValuePrinter printer) {
+	protected PrintingResultHandler(ResultValuePrinter printer) {
 		this.printer = printer;
 	}
 
 	/**
 	 * @return the result value printer.
 	 */
-	public ResultValuePrinter getPrinter() {
+	protected ResultValuePrinter getPrinter() {
 		return this.printer;
 	}
 
+	/**
+	 * Print {@link MvcResult} details to the "standard" output stream.
+	 */
 	public final void handle(MvcResult result) throws Exception {
 
 		this.printer.printHeading("MockHttpServletRequest");
@@ -75,19 +82,28 @@ public class PrintingResultHandler implements ResultHandler {
 		printResponse(result.getResponse());
 	}
 
-	/**
-	 * Print the request.
-	 */
+	/** Print the request */
 	protected void printRequest(MockHttpServletRequest request) throws Exception {
 		this.printer.printValue("HTTP Method", request.getMethod());
 		this.printer.printValue("Request URI", request.getRequestURI());
 		this.printer.printValue("Parameters", request.getParameterMap());
-		this.printer.printValue("Headers", ResultHandlerUtils.getRequestHeaderMap(request));
+		this.printer.printValue("Headers", getRequestHeaders(request));
 	}
 
-	/**
-	 * Print the handler.
-	 */
+	protected static HttpHeaders getRequestHeaders(MockHttpServletRequest request) {
+		HttpHeaders headers = new HttpHeaders();
+		Enumeration<?> names = request.getHeaderNames();
+		while (names.hasMoreElements()) {
+			String name = (String) names.nextElement();
+			Enumeration<String> values = request.getHeaders(name);
+			while (values.hasMoreElements()) {
+				headers.add(name, values.nextElement());
+			}
+		}
+		return headers;
+	}
+
+	/** Print the handler */
 	protected void printHandler(Object handler, HandlerInterceptor[] interceptors) throws Exception {
 		if (handler == null) {
 			this.printer.printValue("Type", null);
@@ -104,9 +120,7 @@ public class PrintingResultHandler implements ResultHandler {
 		}
 	}
 
-	/**
-	 * Print exceptions resolved through a HandlerExceptionResolver.
-	 */
+	/** Print exceptions resolved through a HandlerExceptionResolver */
 	protected void printResolvedException(Exception resolvedException) throws Exception {
 		if (resolvedException == null) {
 			this.printer.printValue("Type", null);
@@ -116,9 +130,7 @@ public class PrintingResultHandler implements ResultHandler {
 		}
 	}
 
-	/**
-	 * Print the ModelAndView.
-	 */
+	/** Print the ModelAndView */
 	protected void printModelAndView(ModelAndView mav) throws Exception {
 		this.printer.printValue("View name", (mav != null) ? mav.getViewName() : null);
 		this.printer.printValue("View", (mav != null) ? mav.getView() : null);
@@ -140,9 +152,7 @@ public class PrintingResultHandler implements ResultHandler {
 		}
 	}
 
-	/**
-	 * Print output flash attributes.
-	 */
+	/** Print "output" flash attributes */
 	protected void printFlashMap(FlashMap flashMap) throws Exception {
 		if (flashMap == null) {
 			this.printer.printValue("Attributes", null);
@@ -155,18 +165,24 @@ public class PrintingResultHandler implements ResultHandler {
 		}
 	}
 
-	/**
-	 * Print the response.
-	 */
+	/** Print the response */
 	protected void printResponse(MockHttpServletResponse response) throws Exception {
 		this.printer.printValue("Status", response.getStatus());
 		this.printer.printValue("Error message", response.getErrorMessage());
-		this.printer.printValue("Headers", ResultHandlerUtils.getResponseHeaderMap(response));
+		this.printer.printValue("Headers", getResponseHeaders(response));
 		this.printer.printValue("Content type", response.getContentType());
 		this.printer.printValue("Body", response.getContentAsString());
 		this.printer.printValue("Forwarded URL", response.getForwardedUrl());
 		this.printer.printValue("Redirected URL", response.getRedirectedUrl());
 		this.printer.printValue("Cookies", response.getCookies());
+	}
+
+	protected static HttpHeaders getResponseHeaders(MockHttpServletResponse response) {
+		HttpHeaders headers = new HttpHeaders();
+		for (String name : response.getHeaderNames()) {
+			headers.put(name, response.getHeaders(name));
+		}
+		return headers;
 	}
 
 

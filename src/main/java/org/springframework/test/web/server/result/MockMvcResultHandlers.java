@@ -21,7 +21,7 @@ import org.springframework.test.web.server.ResultHandler;
 import org.springframework.util.CollectionUtils;
 
 /**
- * Factory methods for {@link ResultHandler}-based result actions.
+ * Static, factory methods for {@link ResultHandler}-based result actions.
  *
  * <p><strong>Eclipse users:</strong> consider adding this class as a Java editor
  * favorite. To navigate, open the Preferences and type "favorites".
@@ -29,6 +29,10 @@ import org.springframework.util.CollectionUtils;
  * @author Rossen Stoyanchev
  */
 public abstract class MockMvcResultHandlers {
+
+
+	private MockMvcResultHandlers() {
+	}
 
 	/**
 	 * Print {@link MvcResult} details to the "standard" output stream.
@@ -38,13 +42,10 @@ public abstract class MockMvcResultHandlers {
 	}
 
 
-	/**
-	 * An {@link PrintingResultHandler} that writes to the "standard" output stream.
-	 */
+	/** An {@link PrintingResultHandler} that writes to the "standard" output stream */
 	private static class ConsolePrintingResultHandler extends PrintingResultHandler {
 
 		public ConsolePrintingResultHandler() {
-
 			super(new ResultValuePrinter() {
 
 				public void printHeading(String heading) {
@@ -61,5 +62,4 @@ public abstract class MockMvcResultHandlers {
 			});
 		}
 	}
-
 }

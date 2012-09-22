@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,54 +16,68 @@
 
 package org.springframework.test.web.server.samples.standalone.resultmatchers;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.server.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.server.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.server.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.server.result.MockMvcResultMatchers.view;
 import static org.springframework.test.web.server.setup.MockMvcBuilders.standaloneSetup;
+
+import java.util.Locale;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.web.server.MockMvc;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.SessionAttributes;
 
 /**
- * Examples of expectations on the view name selected by the controller.
+ * Examples of expectations on created session attributes.
  *
  * @author Rossen Stoyanchev
  */
-public class ViewNameResultMatcherTests {
+public class SessionAttributeAssertionTests {
 
 	private MockMvc mockMvc;
 
 	@Before
 	public void setup() {
 		this.mockMvc = standaloneSetup(new SimpleController())
+				.defaultRequest(get("/"))
 				.alwaysExpect(status().isOk())
 				.build();
 	}
 
 	@Test
-	public void testEqualTo() throws Exception {
+	public void testSessionAttributeEqualTo() throws Exception {
 		this.mockMvc.perform(get("/"))
-			.andExpect(view().name("mySpecialView"))
-			.andExpect(view().name(equalTo("mySpecialView")));
+            .andExpect(request().sessionAttribute("locale", Locale.UK))
+	        .andExpect(request().sessionAttribute("locale", equalTo(Locale.UK)));
 	}
 
 	@Test
-	public void testHamcrestMatcher() throws Exception {
-		this.mockMvc.perform(get("/")).andExpect(view().name(containsString("Special")));
+	public void testSessionAttributeMatcher() throws Exception {
+		this.mockMvc.perform(get("/"))
+	        .andExpect(request().sessionAttribute("locale", notNullValue()));
 	}
 
 
 	@Controller
+	@SessionAttributes("locale")
 	private static class SimpleController {
+
+		@ModelAttribute
+		public void populate(Model model) {
+			model.addAttribute("locale", Locale.UK);
+		}
 
 		@RequestMapping("/")
 		public String handle() {
-			return "mySpecialView";
+			return "view";
 		}
 	}
+
 }

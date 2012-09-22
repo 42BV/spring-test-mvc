@@ -25,15 +25,23 @@ import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 
 /**
- * Factory for response header {@code ResultMatcher}'s. An instance of this
+ * Factory for response header assertions. An instance of this
  * class is usually accessed via {@link MockMvcResultMatchers#header()}.
  *
  * @author Rossen Stoyanchev
  */
 public class HeaderResultMatchers {
 
+
 	/**
-	 * Assert a response header with the given {@link Matcher}.
+	 * Protected constructor.
+	 * Use {@link MockMvcResultMatchers#header()}.
+	 */
+	protected HeaderResultMatchers() {
+	}
+
+	/**
+	 * Assert a response header with the given Hamcrest {@link Matcher}.
 	 */
 	public ResultMatcher string(final String name, final Matcher<? super String> matcher) {
 		return new ResultMatcher() {
@@ -44,14 +52,14 @@ public class HeaderResultMatchers {
 	}
 
 	/**
-	 * Assert the primary value of a response header.
+	 * Assert the primary value of a response header as a {@link String}.
 	 */
 	public ResultMatcher string(final String name, final String value) {
 		return string(name, Matchers.equalTo(value));
 	}
 
 	/**
-	 * Assert the primary value of a response header as a long.
+	 * Assert the primary value of a response header as a {@link Long}.
 	 */
 	public ResultMatcher longValue(final String name, final long value) {
 		return new ResultMatcher() {

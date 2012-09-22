@@ -28,15 +28,24 @@ import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 
 /**
- * Provides methods to define expectations on response cookies.
+ * Factory for response cookie assertions. An instance of this class is
+ * typically accessed via {@link MockMvcResultMatchers#cookie()}.
  *
  * @author Rossen Stoyanchev
  * @author Thomas Bruyelle
  */
 public class CookieResultMatchers {
 
+
 	/**
-	 * Assert a cookie value with a {@link Matcher}.
+	 * Protected constructor.
+	 * Use {@link MockMvcResultMatchers#cookie()}.
+	 */
+	protected CookieResultMatchers() {
+	}
+
+	/**
+	 * Assert a cookie value with the given Hamcrest {@link Matcher}.
 	 */
 	public ResultMatcher value(final String name, final Matcher<? super String> matcher) {
 		return new ResultMatcher() {
@@ -49,15 +58,15 @@ public class CookieResultMatchers {
 	}
 
 	/**
-	 * Assert a cookie's value.
+	 * Assert a cookie value.
 	 */
 	public ResultMatcher value(String name, String value) {
 		return value(name, Matchers.equalTo(value));
 	}
 
 	/**
-	 * Assert a cookie exists. Note that the existence check is irrespective of
-	 * whether max age is 0 (i.e. expired).
+	 * Assert a cookie exists. The existence check is irrespective of whether
+	 * max age is 0 (i.e. expired).
 	 */
 	public ResultMatcher exists(final String name) {
 		return new ResultMatcher() {
@@ -70,7 +79,7 @@ public class CookieResultMatchers {
 
 	/**
 	 * Assert a cookie does not exist. Note that the existence check is
-	 * irrespective of whether max age is 0 (i.e. expired).
+	 * irrespective of whether max age is 0, i.e. expired.
 	 */
 	public ResultMatcher doesNotExist(final String name) {
 		return new ResultMatcher() {
@@ -82,7 +91,7 @@ public class CookieResultMatchers {
 	}
 
 	/**
-	 * Assert a cookie maxAge with a {@link Matcher}
+	 * Assert a cookie's maxAge with a Hamcrest {@link Matcher}.
 	 */
 	public ResultMatcher maxAge(final String name, final Matcher<? super Integer> matcher) {
 		return new ResultMatcher() {
@@ -95,14 +104,14 @@ public class CookieResultMatchers {
 	}
 
 	/**
-	 * Assert a cookie maxAge value.
+	 * Assert a cookie's maxAge value.
 	 */
 	public ResultMatcher maxAge(String name, int maxAge) {
 		return maxAge(name, Matchers.equalTo(maxAge));
 	}
 
 	/**
-	 * Assert a cookie path with a {@link Matcher}
+	 * Assert a cookie path with a Hamcrest {@link Matcher}.
 	 */
 	public ResultMatcher path(final String name, final Matcher<? super String> matcher) {
 		return new ResultMatcher() {
@@ -118,7 +127,7 @@ public class CookieResultMatchers {
 	}
 
 	/**
-	 * Assert a cookie domain with a {@link Matcher}
+	 * Assert a cookie's domain with a Hamcrest {@link Matcher}.
 	 */
 	public ResultMatcher domain(final String name, final Matcher<? super String> matcher) {
 		return new ResultMatcher() {
@@ -130,14 +139,14 @@ public class CookieResultMatchers {
 	}
 
 	/**
-	 * Assert a cookie domain value.
+	 * Assert a cookie's domain value.
 	 */
 	public ResultMatcher domain(String name, String domain) {
 		return domain(name, Matchers.equalTo(domain));
 	}
 
 	/**
-	 * Assert a cookie comment with a {@link Matcher}
+	 * Assert a cookie's comment with a Hamcrest {@link Matcher}.
 	 */
 	public ResultMatcher comment(final String name, final Matcher<? super String> matcher) {
 		return new ResultMatcher() {
@@ -149,14 +158,14 @@ public class CookieResultMatchers {
 	}
 
 	/**
-	 * Assert a cookie comment value.
+	 * Assert a cookie's comment value.
 	 */
 	public ResultMatcher comment(String name, String comment) {
 		return comment(name, Matchers.equalTo(comment));
 	}
 
 	/**
-	 * Assert a cookie version with a {@link Matcher}
+	 * Assert a cookie's version with a Hamcrest {@link Matcher}
 	 */
 	public ResultMatcher version(final String name, final Matcher<? super Integer> matcher) {
 		return new ResultMatcher() {
@@ -168,7 +177,7 @@ public class CookieResultMatchers {
 	}
 
 	/**
-	 * Assert a cookie version value.
+	 * Assert a cookie's version value.
 	 */
 	public ResultMatcher version(String name, int version) {
 		return version(name, Matchers.equalTo(version));
