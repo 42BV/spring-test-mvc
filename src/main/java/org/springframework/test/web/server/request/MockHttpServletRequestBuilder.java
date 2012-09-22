@@ -31,10 +31,12 @@ import javax.servlet.ServletRequest;
 import javax.servlet.http.Cookie;
 
 import org.springframework.beans.Mergeable;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.server.MockMvc;
 import org.springframework.test.web.server.RequestBuilder;
@@ -45,7 +47,11 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ValueConstants;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
+import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.FlashMap;
+import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.support.SessionFlashMapManager;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -98,14 +104,17 @@ public class MockHttpServletRequestBuilder implements RequestBuilder, Mergeable 
 
 	private String pathInfo = ValueConstants.DEFAULT_NONE;
 
+	private final List<RequestPostProcessor> postProcessors =
+			new ArrayList<RequestPostProcessor>();
+
 
 	/**
-	 * Package private constructor. Use static factory methods in
-	 * {@link MockMvcRequestBuilders}.
+	 * Package private constructor. To get an instance use static factory
+	 * methods in {@link MockMvcRequestBuilders}.
 	 *
-	 * <p>For additional ways to initialize a {@code MockHttpServletRequest},
-	 * see {@link #with(RequestBuilderInitializer)} and the
-	 * {@link RequestBuilderInitializer} extension point.
+	 * <p>Although this class cannot be extended, additional ways to initialize
+	 * the {@code MockHttpServletRequest} can be plugged in via
+	 * {@link #with(RequestPostProcessor)}.
 	 *
 	 * @param uri the URI for the request including any component (e.g. scheme, host, query)
 	 * @param httpMethod the HTTP method for the request
@@ -219,7 +228,7 @@ public class MockHttpServletRequestBuilder implements RequestBuilder, Mergeable 
 	}
 
 	/**
-	 * Set a request attribute to the given value.
+	 * Set a request attribute.
 	 *
 	 * @param name the attribute name
 	 * @param value the attribute value
@@ -230,18 +239,7 @@ public class MockHttpServletRequestBuilder implements RequestBuilder, Mergeable 
 	}
 
 	/**
-	 * Set an "input" flash attribute to the given value.
-	 *
-	 * @param name the flash attribute name
-	 * @param value the flash attribute value
-	 */
-	public MockHttpServletRequestBuilder flashAttr(String name, Object value) {
-		addAttributeToMap(this.flashAttributes, name, value);
-		return this;
-	}
-
-	/**
-	 * Set a session attribute to the given value.
+	 * Set a session attribute.
 	 *
 	 * @param name the session attribute name
 	 * @param value the session attribute value
@@ -252,14 +250,38 @@ public class MockHttpServletRequestBuilder implements RequestBuilder, Mergeable 
 	}
 
 	/**
-	 * Set session attributes to their corresponding values.
+	 * Set session attributes.
 	 *
 	 * @param sessionAttributes the session attributes
 	 */
 	public MockHttpServletRequestBuilder sessionAttrs(Map<String, Object> sessionAttributes) {
-		Assert.notEmpty(sessionAttributes, "'attrs' must not be empty");
+		Assert.notEmpty(sessionAttributes, "'sessionAttrs' must not be empty");
 		for (String name : sessionAttributes.keySet()) {
 			sessionAttr(name, sessionAttributes.get(name));
+		}
+		return this;
+	}
+
+	/**
+	 * Set an "input" flash attribute.
+	 *
+	 * @param name the flash attribute name
+	 * @param value the flash attribute value
+	 */
+	public MockHttpServletRequestBuilder flashAttr(String name, Object value) {
+		addAttributeToMap(this.flashAttributes, name, value);
+		return this;
+	}
+
+	/**
+	 * Set flash attributes.
+	 *
+	 * @param flashAttributes the flash attributes
+	 */
+	public MockHttpServletRequestBuilder flashAttrs(Map<String, Object> flashAttributes) {
+		Assert.notEmpty(flashAttributes, "'flashAttrs' must not be empty");
+		for (String name : flashAttributes.keySet()) {
+			flashAttr(name, flashAttributes.get(name));
 		}
 		return this;
 	}
@@ -368,8 +390,17 @@ public class MockHttpServletRequestBuilder implements RequestBuilder, Mergeable 
 		return this;
 	}
 
-	public MockHttpServletRequestBuilder with(RequestBuilderInitializer requestBuilderInitializer) {
-		requestBuilderInitializer.initialize(this);
+	/**
+	 * An extension point for further initialization of {@link MockHttpServletRequest}
+	 * in ways not built directly into the {@code MockHttpServletRequestBuilder}.
+	 * Implementation of this interface can have builder-style methods themselves
+	 * and be made accessible through static factory methods.
+	 *
+	 * @param postProcessor a post-processor to add
+	 */
+	public MockHttpServletRequestBuilder with(RequestPostProcessor postProcessor) {
+		Assert.notNull(postProcessor, "postProcessor is required");
+		this.postProcessors.add(postProcessor);
 		return this;
 	}
 
@@ -474,6 +505,8 @@ public class MockHttpServletRequestBuilder implements RequestBuilder, Mergeable 
 			this.pathInfo = parentBuilder.pathInfo;
 		}
 
+		this.postProcessors.addAll(parentBuilder.postProcessors);
+
 		return this;
 	}
 
@@ -489,7 +522,7 @@ public class MockHttpServletRequestBuilder implements RequestBuilder, Mergeable 
 	/**
 	 * Build a {@link MockHttpServletRequest}.
 	 */
-	public MockHttpServletRequest buildRequest(ServletContext servletContext) {
+	public final MockHttpServletRequest buildRequest(ServletContext servletContext) {
 
 		MockHttpServletRequest request = createServletRequest(servletContext);
 
@@ -498,7 +531,7 @@ public class MockHttpServletRequestBuilder implements RequestBuilder, Mergeable 
 		String requestUri = uriComponents.getPath();
 		request.setRequestURI(requestUri);
 
-		updateLookupPathProperties(request, requestUri);
+		updatePathRequestProperties(request, requestUri);
 
 		if (uriComponents.getScheme() != null) {
 			request.setScheme(uriComponents.getScheme());
@@ -565,7 +598,16 @@ public class MockHttpServletRequestBuilder implements RequestBuilder, Mergeable 
 
 		FlashMap flashMap = new FlashMap();
 		flashMap.putAll(this.flashAttributes);
-		new SessionFlashMapManager().saveOutputFlashMap(flashMap, request, null);
+
+		FlashMapManager flashMapManager = getFlashMapManager(request);
+		flashMapManager.saveOutputFlashMap(flashMap, request, new MockHttpServletResponse());
+
+		// Apply post-processors at the very end
+
+		for (RequestPostProcessor postProcessor : this.postProcessors) {
+			request = postProcessor.postProcessRequest(request);
+			Assert.notNull(request, "Post-processor [" + postProcessor.getClass().getName() + "] returned null");
+		}
 
 		return request;
 	}
@@ -578,7 +620,10 @@ public class MockHttpServletRequestBuilder implements RequestBuilder, Mergeable 
 		return new MockHttpServletRequest(servletContext);
 	}
 
-	private void updateLookupPathProperties(MockHttpServletRequest request, String requestUri) {
+	/**
+	 * Update the contextPath, servletPath, and pathInfo of the request.
+	 */
+	private void updatePathRequestProperties(MockHttpServletRequest request, String requestUri) {
 
 		Assert.isTrue(requestUri.startsWith(this.contextPath),
 				"requestURI [" + requestUri + "] does not start with contextPath [" + this.contextPath + "]");
@@ -596,6 +641,20 @@ public class MockHttpServletRequestBuilder implements RequestBuilder, Mergeable 
 		}
 
 		request.setPathInfo(this.pathInfo);
+	}
+
+	private FlashMapManager getFlashMapManager(MockHttpServletRequest request) {
+		FlashMapManager flashMapManager = null;
+		try {
+			ServletContext servletContext = request.getServletContext();
+			WebApplicationContext wac = WebApplicationContextUtils.getRequiredWebApplicationContext(servletContext);
+			flashMapManager = wac.getBean(DispatcherServlet.FLASH_MAP_MANAGER_BEAN_NAME, FlashMapManager.class);
+		}
+		catch (IllegalStateException ex) {
+		}
+		catch (NoSuchBeanDefinitionException ex) {
+		}
+		return (flashMapManager != null) ? flashMapManager : new SessionFlashMapManager();
 	}
 
 	private static <T> void addToMultiValueMap(MultiValueMap<String, T> map, String name, T[] values) {

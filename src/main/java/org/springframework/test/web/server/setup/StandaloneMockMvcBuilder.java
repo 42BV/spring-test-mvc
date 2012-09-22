@@ -251,6 +251,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 	protected WebApplicationContext initWebApplicationContext(ServletContext servletContext) {
 		StubWebApplicationContext wac = new StubWebApplicationContext(servletContext);
 		registerMvcSingletons(wac);
+		servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, wac);
 		return wac;
 	}
 

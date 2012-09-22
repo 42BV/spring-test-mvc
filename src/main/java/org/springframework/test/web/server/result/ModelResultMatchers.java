@@ -36,8 +36,9 @@ public class ModelResultMatchers {
 		return new ResultMatcher() {
 			@SuppressWarnings("unchecked")
 			public void match(MvcResult result) throws Exception {
-				assertTrue("No ModelAndView found", result.getModelAndView() != null);
-				MatcherAssert.assertThat("Model attribute", (T) result.getModelAndView().getModel().get(name), matcher);
+				ModelAndView mav = result.getModelAndView();
+				assertTrue("No ModelAndView found", mav != null);
+				MatcherAssert.assertThat("Model attribute '" + name + "'", (T) mav.getModel().get(name), matcher);
 			}
 		};
 	}
@@ -107,9 +108,9 @@ public class ModelResultMatchers {
 			public void match(MvcResult mvcResult) throws Exception {
 				ModelAndView mav = getModelAndView(mvcResult);
 				BindingResult result = getBindingResult(mav, name);
-				assertTrue("No errors for attribute: " + name, result.hasErrors());
+				assertTrue("No errors for attribute: '" + name + "'", result.hasErrors());
 				for (final String fieldName : fieldNames) {
-					assertTrue("No errors for field: " + fieldName + " of attribute: " + name,
+					assertTrue("No errors for field: '" + fieldName + "' of attribute: " + name,
 							result.hasFieldErrors(fieldName));
 				}
 			}

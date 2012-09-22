@@ -44,8 +44,8 @@ public class MockMultipartHttpServletRequestBuilder extends MockHttpServletReque
 	 * {@link MockMvcRequestBuilders}.
 	 *
 	 * <p>For other ways to initialize a {@code MockMultipartHttpServletRequest},
-	 * see {@link #with(RequestBuilderInitializer)} and the
-	 * {@link RequestBuilderInitializer} extension point.
+	 * see {@link #with(RequestPostProcessor)} and the
+	 * {@link RequestPostProcessor} extension point.
 	 */
 	MockMultipartHttpServletRequestBuilder(URI uri) {
 		super(uri, HttpMethod.POST);

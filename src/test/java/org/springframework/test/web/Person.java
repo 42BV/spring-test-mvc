@@ -19,6 +19,8 @@ package org.springframework.test.web;
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.springframework.util.ObjectUtils;
+
 @XmlRootElement
 public class Person {
 
@@ -61,6 +63,26 @@ public class Person {
 	public Person setSomeBoolean(boolean someBoolean) {
 		this.someBoolean = someBoolean;
 		return this;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (this == other) {
+			return true;
+		}
+		if (!(other instanceof Person)) {
+			return false;
+		}
+		Person otherPerson = (Person) other;
+		return (ObjectUtils.nullSafeEquals(this.name, otherPerson.name) &&
+				ObjectUtils.nullSafeEquals(this.someDouble, otherPerson.someDouble) &&
+				ObjectUtils.nullSafeEquals(this.someBoolean, otherPerson.someBoolean));
+	}
+
+	@Override
+	public String toString() {
+		return "Person [name=" + this.name + ", someDouble=" + this.someDouble
+				+ ", someBoolean=" + this.someBoolean + "]";
 	}
 
 }

@@ -22,56 +22,82 @@ import static org.springframework.test.web.server.setup.MockMvcBuilders.standalo
 
 import javax.validation.Valid;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.web.Person;
+import org.springframework.test.web.server.MockMvc;
+import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
- * Redirect scenarios.
+ * Redirect scenarios including saving and retrieving flash attributes.
  *
  * @author Rossen Stoyanchev
  */
 public class RedirectTests {
 
-	@Test
-	public void testRedirect() throws Exception {
-		standaloneSetup(new PersonController()).build()
-			.perform(post("/persons").param("name", "Andy"))
-				.andExpect(status().isOk())
-	            .andExpect(redirectedUrl("/person/1"))
-	            .andExpect(model().size(1))
-	            .andExpect(model().attributeExists("id"))
-	            .andExpect(flash().attributeCount(1))
-	            .andExpect(flash().attribute("message", "success!"));
+	private MockMvc mockMvc;
+
+	@Before
+	public void setup() {
+		this.mockMvc = standaloneSetup(new PersonController()).build();
 	}
 
 	@Test
-	public void testBindingErrors() throws Exception {
-		standaloneSetup(new PersonController()).build()
-			.perform(post("/persons"))
-				.andExpect(status().isOk())
-	            .andExpect(forwardedUrl("person/add"))
-	            .andExpect(model().size(1))
-	            .andExpect(model().attributeExists("person"))
-	            .andExpect(flash().attributeCount(0));
+	public void save() throws Exception {
+		this.mockMvc.perform(post("/persons").param("name", "Andy"))
+			.andExpect(status().isOk())
+            .andExpect(redirectedUrl("/persons/Joe"))
+            .andExpect(model().size(1))
+            .andExpect(model().attributeExists("name"))
+            .andExpect(flash().attributeCount(1))
+            .andExpect(flash().attribute("message", "success!"));
+	}
+
+	@Test
+	public void saveWithErrors() throws Exception {
+		this.mockMvc.perform(post("/persons"))
+			.andExpect(status().isOk())
+            .andExpect(forwardedUrl("persons/add"))
+            .andExpect(model().size(1))
+            .andExpect(model().attributeExists("person"))
+            .andExpect(flash().attributeCount(0));
+	}
+
+	@Test
+	public void getPerson() throws Exception {
+		this.mockMvc.perform(get("/persons/Joe").flashAttr("message", "success!"))
+			.andExpect(status().isOk())
+            .andExpect(forwardedUrl("persons/index"))
+            .andExpect(model().size(2))
+            .andExpect(model().attribute("person", new Person("Joe")))
+            .andExpect(model().attribute("message", "success!"))
+            .andExpect(flash().attributeCount(0));
 	}
 
 
 	@Controller
 	private static class PersonController {
 
+		@RequestMapping(value="/persons/{name}", method=RequestMethod.GET)
+		public String getPerson(@PathVariable String name, Model model) {
+			model.addAttribute(new Person(name));
+			return "persons/index";
+		}
+
 		@RequestMapping(value="/persons", method=RequestMethod.POST)
 		public String save(@Valid Person person, Errors errors, RedirectAttributes redirectAttrs) {
 			if (errors.hasErrors()) {
-				return "person/add";
+				return "persons/add";
 			}
-			redirectAttrs.addAttribute("id", "1");
+			redirectAttrs.addAttribute("name", "Joe");
 			redirectAttrs.addFlashAttribute("message", "success!");
-			return "redirect:/person/{id}";
+			return "redirect:/persons/{name}";
 		}
 	}
 }

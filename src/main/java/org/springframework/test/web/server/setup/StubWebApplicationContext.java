@@ -50,12 +50,12 @@ import org.springframework.web.context.support.ServletContextResourcePatternReso
 /**
  * A "stub" WebApplicationContext that accepts registrations of singleton
  * instances and stores them internally in a {@link StaticListableBeanFactory}.
- * 
+ *
  * <p>Since the singletons are instantiated outside of this context, there is
  * no wiring, no bean initialization, no life-cycle events, and no pre- and
  * post-processing activities typically associated with beans managed by
  * an ApplicationContext.
- * 
+ *
  * @author Rossen Stoyanchev
  */
 class StubWebApplicationContext implements WebApplicationContext {
@@ -106,7 +106,7 @@ class StubWebApplicationContext implements WebApplicationContext {
 	public String getDisplayName() {
 		return this.displayName;
 	}
-	
+
 	public long getStartupDate() {
 		return this.startupDate;
 	}
@@ -173,7 +173,7 @@ class StubWebApplicationContext implements WebApplicationContext {
 	public String[] getAliases(String name) {
 		return this.beanFactory.getAliases(name);
 	}
-	
+
 	//---------------------------------------------------------------------
 	// Implementation of ListableBeanFactory interface
 	//---------------------------------------------------------------------
@@ -271,12 +271,12 @@ class StubWebApplicationContext implements WebApplicationContext {
 
 
 	/**
-	 * An extension of StaticListableBeanFactory that implements 
+	 * An extension of StaticListableBeanFactory that implements
 	 * AutowireCapableBeanFactory in order to allow bean initialization of
 	 * {@link ApplicationContextAware} singletons.
 	 */
 	private class StubBeanFactory extends StaticListableBeanFactory implements AutowireCapableBeanFactory {
-		
+
 		public Object initializeBean(Object existingBean, String beanName) throws BeansException {
 			if (existingBean instanceof ApplicationContextAware) {
 				((ApplicationContextAware) existingBean).setApplicationContext(StubWebApplicationContext.this);
