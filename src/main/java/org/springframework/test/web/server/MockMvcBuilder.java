@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.test.web.support;
+package org.springframework.test.web.server;
 
 /**
- * A contract for printing request or response values.
+ * Builds a {@link MockMvc}.
+ *
+ * <p>See static, factory methods in
+ * {@code org.springframework.test.web.server.setup.MockMvcBuilders}.
  *
  * @author Rossen Stoyanchev
  */
-public interface ValuePrinter {
+public interface MockMvcBuilder {
 
 	/**
-	 * Print a heading.
+	 * Build a {@link MockMvc} instance.
 	 */
-	void printHeading(String heading);
-
-	/**
-	 * Print a label and a value.
-	 */
-	void printValue(String label, Object value);
+	MockMvc build();
 
 }

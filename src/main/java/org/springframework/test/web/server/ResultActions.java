@@ -17,11 +17,12 @@
 package org.springframework.test.web.server;
 
 /**
- * A contract for specifying some actions on the results of an executed request.
+ * Allows applying actions, such as expectations, on the result of an executed
+ * request.
  *
  * <p>See static factory methods in
- * {@code org.springframework.test.web.server.result.MockMvcResultMatchers} and
- * {@code org.springframework.test.web.server.result.MockMvcResultHandlers}.
+ * {@code org.springframework.test.web.server.result.MockMvcResultMatchers}
+ * {@code org.springframework.test.web.server.result.MockMvcResultHandlers}
  *
  * @author Rossen Stoyanchev
  */
@@ -30,7 +31,7 @@ public interface ResultActions {
 	/**
 	 * Provide an expectation. For example:
 	 * <pre>
-	 * // Assuming static import of MockMvcResultMatchers.*
+	 * static imports: MockMvcRequestBuilders.*, MockMvcResultMatchers.*
 	 *
 	 * mockMvc.perform(get("/person/1"))
 	 *   .andExpect(status.isOk())
@@ -51,18 +52,15 @@ public interface ResultActions {
 	/**
 	 * Provide a general action. For example:
 	 * <pre>
-	 * // Assuming static imports of MockMvcResultHandlers.* and MockMvcResultMatchers.*
+	 * static imports: MockMvcRequestBuilders.*, MockMvcResultMatchers.*
 	 *
-	 * mockMvc.perform(get("/form"))
-	 *   .andDo(print())         // Print the results
-	 *   .andExpect(status.isOk())
-	 *   .andExpect(contentType(MediaType.APPLICATION_JSON));
+	 * mockMvc.perform(get("/form")).andDo(print());
 	 * </pre>
 	 */
 	ResultActions andDo(ResultHandler handler) throws Exception;
 
 	/**
-	 * Return the result of the executed request for direct inspection.
+	 * Return the result of the executed request for direct access to the results.
 	 *
 	 * @return the result of the request
 	 */

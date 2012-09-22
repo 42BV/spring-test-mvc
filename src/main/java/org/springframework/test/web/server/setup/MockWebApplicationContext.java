@@ -48,17 +48,17 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.ServletContextResourcePatternResolver;
 
 /**
- * A "stub" WebApplicationContext that accepts registrations of singleton
- * instances and stores them internally in a {@link StaticListableBeanFactory}.
+ * A mock WebApplicationContext that accepts registrations of object instances.
  *
- * <p>Since the singletons are instantiated outside of this context, there is
- * no wiring, no bean initialization, no life-cycle events, and no pre- and
- * post-processing activities typically associated with beans managed by
- * an ApplicationContext.
+ * <p>As registered object instances are instantiated and initialized
+ * externally, there is no wiring, bean initialization, lifecycle events, as
+ * well as no pre-processing and post-processing hooks typically associated with
+ * beans managed by an {@link ApplicationContext}. Just a simple lookup into a
+ * {@link StaticListableBeanFactory}.
  *
  * @author Rossen Stoyanchev
  */
-class StubWebApplicationContext implements WebApplicationContext {
+class MockWebApplicationContext implements WebApplicationContext {
 
 	private final ServletContext servletContext;
 
@@ -76,10 +76,11 @@ class StubWebApplicationContext implements WebApplicationContext {
 
 	private final ResourcePatternResolver resourcePatternResolver;
 
+
 	/**
 	 * Class constructor.
 	 */
-	public StubWebApplicationContext(ServletContext servletContext) {
+	public MockWebApplicationContext(ServletContext servletContext) {
 		this.servletContext = servletContext;
 		this.resourcePatternResolver = new ServletContextResourcePatternResolver(servletContext);
 	}
@@ -279,7 +280,7 @@ class StubWebApplicationContext implements WebApplicationContext {
 
 		public Object initializeBean(Object existingBean, String beanName) throws BeansException {
 			if (existingBean instanceof ApplicationContextAware) {
-				((ApplicationContextAware) existingBean).setApplicationContext(StubWebApplicationContext.this);
+				((ApplicationContextAware) existingBean).setApplicationContext(MockWebApplicationContext.this);
 			}
 			return existingBean;
 		}

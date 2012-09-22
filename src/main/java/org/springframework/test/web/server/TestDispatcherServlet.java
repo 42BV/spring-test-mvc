@@ -26,18 +26,18 @@ import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * A sub-class of {@code DispatcherServlet} that saves the results of processing
- * a request in an {@link MvcResult}. The {@code MvcResult} instance is stored
- * the request attribute {@link TestDispatcherServlet#MVC_RESULT_ATTRIBUTE}.
+ * A sub-class of {@code DispatcherServlet} that saves the result in an
+ * {@link MvcResult}. The {@code MvcResult} instance is expected to be available
+ * as the request attribute {@link MockMvc#MVC_RESULT_ATTRIBUTE}.
  *
  * @author Rossen Stoyanchev
  * @author Rob Winch
  */
 @SuppressWarnings("serial")
-public final class TestDispatcherServlet extends DispatcherServlet {
+final class TestDispatcherServlet extends DispatcherServlet {
 
 	/**
-	 * Create a new TestDispatcherServlet with the given {@code WebApplicationContext}.
+	 * Create a new instance with the given web application context.
 	 */
 	public TestDispatcherServlet(WebApplicationContext webApplicationContext) {
 		super(webApplicationContext);
@@ -59,7 +59,9 @@ public final class TestDispatcherServlet extends DispatcherServlet {
 	}
 
 	@Override
-	protected void render(ModelAndView mv, HttpServletRequest request, HttpServletResponse response) throws Exception {
+	protected void render(ModelAndView mv, HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+
 		DefaultMvcResult mvcResult = getMvcResult(request);
 		mvcResult.setModelAndView(mv);
 		super.render(mv, request, response);

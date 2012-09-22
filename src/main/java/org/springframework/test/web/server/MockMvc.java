@@ -29,10 +29,12 @@ import org.springframework.util.Assert;
 /**
  * <strong>Main entry point for server-side Spring MVC test support.</strong>
  *
- * <p>Example, assuming static imports of {@code MockMvcBuilders.*},
- * {@code MockMvcRequestBuilders.*} and {@code MockMvcResultMatchers.*}:
+ * <p>Below is an example:
  *
  * <pre>
+ * static imports:
+ * MockMvcBuilders.*, MockMvcRequestBuilders.*, MockMvcResultMatchers.*
+ *
  * MockMvc mockMvc =
  *     annotationConfigMvcSetup(TestConfiguration.class)
  *         .configureWarRootDir("src/main/webapp", false).build()
@@ -46,7 +48,7 @@ import org.springframework.util.Assert;
  * @author Rossen Stoyanchev
  * @author Rob Winch
  */
-public class MockMvc {
+public final class MockMvc {
 
 	static String MVC_RESULT_ATTRIBUTE = MockMvc.class.getName().concat(".MVC_RESULT_ATTRIBUTE");
 
@@ -62,10 +64,10 @@ public class MockMvc {
 
 
 	/**
-	 * Protected constructor not for direct instantiation.
+	 * Private constructor, not for direct instantiation.
 	 * @see org.springframework.test.web.server.setup.MockMvcBuilders
 	 */
-	protected MockMvc(MockFilterChain filterChain, ServletContext servletContext) {
+	MockMvc(MockFilterChain filterChain, ServletContext servletContext) {
 		Assert.notNull(servletContext, "A ServletContext is required");
 		Assert.notNull(filterChain, "A MockFilterChain is required");
 
@@ -73,28 +75,42 @@ public class MockMvc {
 		this.servletContext = servletContext;
 	}
 
-	protected void setDefaultRequest(RequestBuilder requestBuilder) {
+	/**
+	 * A default request builder merged into every performed request.
+	 * @see org.springframework.test.web.server.setup.AbstractMockMvcBuilder#defaultRequest(RequestBuilder)
+	 */
+	void setDefaultRequest(RequestBuilder requestBuilder) {
 		this.defaultRequestBuilder = requestBuilder;
 	}
 
-	protected void setDefaultResultMatchers(List<ResultMatcher> resultMatchers) {
+	/**
+	 * Expectations to assert after every performed request.
+	 * @see org.springframework.test.web.server.setup.AbstractMockMvcBuilder#alwaysExpect(ResultMatcher)
+	 */
+	void setGlobalResultMatchers(List<ResultMatcher> resultMatchers) {
 		Assert.notNull(resultMatchers, "resultMatchers is required");
 		this.defaultResultMatchers = resultMatchers;
 	}
 
-	protected void setDefaultResultHandlers(List<ResultHandler> resultHandlers) {
+	/**
+	 * General actions to apply after every performed request.
+	 * @see org.springframework.test.web.server.setup.AbstractMockMvcBuilder#alwaysDo(ResultHandler)
+	 */
+	void setGlobalResultHandlers(List<ResultHandler> resultHandlers) {
 		Assert.notNull(resultHandlers, "resultHandlers is required");
 		this.defaultResultHandlers = resultHandlers;
 	}
 
 	/**
-	 * Execute a request and return a {@link ResultActions} instance that wraps
-	 * the results and enables further actions such as setting up expectations.
+	 * Perform a request and return a type that allows chaining further
+	 * actions, such as asserting expectations, on the result.
 	 *
 	 * @param requestBuilder used to prepare the request to execute;
 	 * see static factory methods in
 	 * {@link org.springframework.test.web.server.request.MockMvcRequestBuilders}
-	 * @return A ResultActions instance; never {@code null}
+	 *
+	 * @return an instance of {@link ResultActions}; never {@code null}
+	 *
 	 * @see org.springframework.test.web.server.request.MockMvcRequestBuilders
 	 * @see org.springframework.test.web.server.result.MockMvcResultMatchers
 	 */
@@ -145,4 +161,5 @@ public class MockMvc {
 			handler.handle(mvcResult);
 		}
 	}
+
 }

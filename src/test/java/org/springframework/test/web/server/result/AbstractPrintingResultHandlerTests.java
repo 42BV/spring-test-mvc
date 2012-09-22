@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,6 @@ package org.springframework.test.web.server.result;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,7 +29,6 @@ import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.server.StubMvcResult;
-import org.springframework.test.web.support.ValuePrinter;
 import org.springframework.util.Assert;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
@@ -41,23 +38,24 @@ import org.springframework.web.servlet.FlashMap;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * TODO ...
+ * Tests for AbstractPrintingResultHandler.
  *
  * @author Rossen Stoyanchev
  */
-public class PrintingResultHandlerTests {
+public class AbstractPrintingResultHandlerTests {
 
-	private TestValuePrinter printer;
-	private PrintingResultHandler handler;
+	private TestPrintingResultHandler handler;
 
 	private MockHttpServletRequest request;
+
 	private MockHttpServletResponse response;
+
 	private StubMvcResult mvcResult;
+
 
 	@Before
 	public void setup() {
-		this.printer = new TestValuePrinter();
-		this.handler = new TestPrintingResultHandler(System.out, this.printer);
+		this.handler = new TestPrintingResultHandler();
 		this.request = new MockHttpServletRequest("GET", "/");
 		this.response = new MockHttpServletResponse();
 		this.mvcResult = new StubMvcResult(this.request, null, null, null, null, null, this.response);
@@ -70,11 +68,10 @@ public class PrintingResultHandlerTests {
 
 		this.handler.handle(this.mvcResult);
 
-		String heading = "MockHttpServletRequest";
-		assertValue(heading, "HTTP Method", this.request.getMethod());
-		assertValue(heading, "Request URI", this.request.getRequestURI());
-		assertValue(heading, "Parameters", this.request.getParameterMap());
-		assertValue(heading, "Headers", ResultHandlerUtils.getRequestHeaderMap(this.request));
+		assertValue("MockHttpServletRequest", "HTTP Method", this.request.getMethod());
+		assertValue("MockHttpServletRequest", "Request URI", this.request.getRequestURI());
+		assertValue("MockHttpServletRequest", "Parameters", this.request.getParameterMap());
+		assertValue("MockHttpServletRequest", "Headers", ResultHandlerUtils.getRequestHeaderMap(this.request));
 	}
 
 	@Test
@@ -89,14 +86,13 @@ public class PrintingResultHandlerTests {
 
 		this.handler.handle(this.mvcResult);
 
-		String heading = "MockHttpServletResponse";
-		assertValue(heading, "Status", this.response.getStatus());
-		assertValue(heading, "Error message", response.getErrorMessage());
-		assertValue(heading, "Headers", ResultHandlerUtils.getResponseHeaderMap(this.response));
-		assertValue(heading, "Content type", this.response.getContentType());
-		assertValue(heading, "Body", this.response.getContentAsString());
-		assertValue(heading, "Forwarded URL", this.response.getForwardedUrl());
-		assertValue(heading, "Redirected URL", this.response.getRedirectedUrl());
+		assertValue("MockHttpServletResponse", "Status", this.response.getStatus());
+		assertValue("MockHttpServletResponse", "Error message", response.getErrorMessage());
+		assertValue("MockHttpServletResponse", "Headers", ResultHandlerUtils.getResponseHeaderMap(this.response));
+		assertValue("MockHttpServletResponse", "Content type", this.response.getContentType());
+		assertValue("MockHttpServletResponse", "Body", this.response.getContentAsString());
+		assertValue("MockHttpServletResponse", "Forwarded URL", this.response.getForwardedUrl());
+		assertValue("MockHttpServletResponse", "Redirected URL", this.response.getRedirectedUrl());
 	}
 
 	@Test
@@ -104,8 +100,7 @@ public class PrintingResultHandlerTests {
 		StubMvcResult mvcResult = new StubMvcResult(this.request, null, null, null, null, null, this.response);
 		this.handler.handle(mvcResult);
 
-		String heading = "Handler";
-		assertValue(heading, "Type", null);
+		assertValue("Handler", "Type", null);
 	}
 
 	@Test
@@ -113,8 +108,7 @@ public class PrintingResultHandlerTests {
 		this.mvcResult.setHandler(new Object());
 		this.handler.handle(this.mvcResult);
 
-		String heading = "Handler";
-		assertValue(heading, "Type", Object.class.getName());
+		assertValue("Handler", "Type", Object.class.getName());
 	}
 
 	@Test
@@ -123,17 +117,15 @@ public class PrintingResultHandlerTests {
 		this.mvcResult.setHandler(handlerMethod);
 		this.handler.handle(mvcResult);
 
-		String heading = "Handler";
-		assertValue(heading, "Type", this.getClass().getName());
-		assertValue(heading, "Method", handlerMethod);
+		assertValue("Handler", "Type", this.getClass().getName());
+		assertValue("Handler", "Method", handlerMethod);
 	}
 
 	@Test
 	public void testResolvedExceptionNull() throws Exception {
 		this.handler.handle(this.mvcResult);
 
-		String heading = "Resolved Exception";
-		assertValue(heading, "Type", null);
+		assertValue("Resolved Exception", "Type", null);
 	}
 
 	@Test
@@ -141,19 +133,16 @@ public class PrintingResultHandlerTests {
 		this.mvcResult.setResolvedException(new Exception());
 		this.handler.handle(this.mvcResult);
 
-
-		String heading = "Resolved Exception";
-		assertValue(heading, "Type", Exception.class.getName());
+		assertValue("Resolved Exception", "Type", Exception.class.getName());
 	}
 
 	@Test
 	public void testModelAndViewNull() throws Exception {
 		this.handler.handle(this.mvcResult);
 
-		String heading = "ModelAndView";
-		assertValue(heading, "View name", null);
-		assertValue(heading, "View", null);
-		assertValue(heading, "Model", null);
+		assertValue("ModelAndView", "View name", null);
+		assertValue("ModelAndView", "View", null);
+		assertValue("ModelAndView", "Model", null);
 	}
 
 	@Test
@@ -168,20 +157,18 @@ public class PrintingResultHandlerTests {
 		this.mvcResult.setMav(mav);
 		this.handler.handle(this.mvcResult);
 
-		String heading = "ModelAndView";
-		assertValue(heading, "View name", "viewName");
-		assertValue(heading, "View", null);
-		assertValue(heading, "Attribute", "attrName");
-		assertValue(heading, "value", "attrValue");
-		assertValue(heading, "errors", bindException.getAllErrors());
+		assertValue("ModelAndView", "View name", "viewName");
+		assertValue("ModelAndView", "View", null);
+		assertValue("ModelAndView", "Attribute", "attrName");
+		assertValue("ModelAndView", "value", "attrValue");
+		assertValue("ModelAndView", "errors", bindException.getAllErrors());
 	}
 
 	@Test
 	public void testFlashMapNull() throws Exception {
 		this.handler.handle(mvcResult);
 
-		String heading = "FlashMap";
-		assertValue(heading, "Type", null);
+		assertValue("FlashMap", "Type", null);
 	}
 
 	@Test
@@ -192,50 +179,48 @@ public class PrintingResultHandlerTests {
 
 		this.handler.handle(this.mvcResult);
 
-		String heading = "FlashMap";
-		assertValue(heading, "Attribute", "attrName");
-		assertValue(heading, "value", "attrValue");
+		assertValue("FlashMap", "Attribute", "attrName");
+		assertValue("FlashMap", "value", "attrValue");
 	}
 
-
 	private void assertValue(String heading, String label, Object value) {
-		assertTrue("Heading " + heading + " not printed", this.printer.values.containsKey(heading));
-		assertEquals(value, this.printer.values.get(heading).get(label));
+		Map<String, Map<String, Object>> printedValues = this.handler.getPrinter().printedValues;
+		assertTrue("Heading " + heading + " not printed", printedValues.containsKey(heading));
+		assertEquals(value, printedValues.get(heading).get(label));
 	}
 
 
 	private static class TestPrintingResultHandler extends PrintingResultHandler {
 
-		private final ValuePrinter printer;
-
-		public TestPrintingResultHandler(OutputStream out, TestValuePrinter printer) {
-			super(out);
-			this.printer = printer;
+		public TestPrintingResultHandler() {
+			super(new TestResultValuePrinter());
 		}
 
 		@Override
-		protected ValuePrinter createValuePrinter(PrintStream printStream) {
-			return this.printer;
-		}
-	}
-
-	private static class TestValuePrinter implements ValuePrinter {
-
-		private String currentHeading;
-
-		private final Map<String, Map<String, Object>> values = new HashMap<String, Map<String, Object>>();
-
- 		public void printHeading(String heading) {
- 			this.currentHeading = heading;
- 			this.values.put(heading, new HashMap<String, Object>());
+		public TestResultValuePrinter getPrinter() {
+			return (TestResultValuePrinter) super.getPrinter();
 		}
 
-		public void printValue(String label, Object value) {
-			Assert.notNull(this.currentHeading, "Heading not printed before label " + label + " with value " + value);
-			this.values.get(this.currentHeading).put(label, value);
+		private static class TestResultValuePrinter implements ResultValuePrinter {
+
+			private String printedHeading;
+
+			private Map<String, Map<String, Object>> printedValues = new HashMap<String, Map<String, Object>>();
+
+			public void printHeading(String heading) {
+				this.printedHeading = heading;
+				this.printedValues.put(heading, new HashMap<String, Object>());
+			}
+
+			public void printValue(String label, Object value) {
+				Assert.notNull(this.printedHeading,
+						"Heading not printed before label " + label + " with value " + value);
+				this.printedValues.get(this.printedHeading).put(label, value);
+			}
 		}
 	}
 
 	public void handle() {
 	}
+
 }

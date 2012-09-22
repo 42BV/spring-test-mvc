@@ -21,6 +21,7 @@ import javax.servlet.ServletContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.web.server.MockMvc;
+import org.springframework.test.web.server.MockMvcBuilder;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.WebApplicationContext;

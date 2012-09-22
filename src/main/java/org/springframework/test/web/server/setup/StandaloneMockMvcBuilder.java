@@ -46,6 +46,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.ViewResolver;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
@@ -58,21 +59,22 @@ import org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 /**
- * A MockMvcBuilder that accepts registrations of controller instances rather
- * than searching for them in a Spring ApplicationContext. This allows full
- * control over the instantiation and the initialization of controllers and
- * their dependencies similar to plain unit tests.
+ * A MockMvcBuilder that can be configured with controller instances allowing
+ * full control over the instantiation and the initialization of controllers and
+ * their dependencies similar to plain unit tests, and also making it possible
+ * to test one controller at a time.
  *
- * <p>This MockMvcBuilder also instantiates the minimum set of Spring MVC
- * infrastructure components required for the processing of requests with
- * annotated controllers. The set of infrastructure components is very similar
- * to that provided by the MVC namespace or the MVC Java config.
- * A number of properties in this class can be used to customize the provided
- * configuration.
+ * <p>
+ * This builder creates the minimum infrastructure required by the
+ * {@link DispatcherServlet} to serve requests with annotated controllers and
+ * also provides various methods to customize it. The resulting configuration
+ * and customizations possible are equivalent to using the {@link EnableWebMvc
+ * MVC Java config} except with builder style methods rather than the callback.
  *
- * <p>View resolution can be configured either by selecting a "fixed" view to
- * use (see {@link #setSingleView(View)}) or by providing a list of
- * ViewResolver types (see {@link #setViewResolvers(ViewResolver...)}).
+ * <p>
+ * To configure view resolution, either select a "fixed" view to use for every
+ * performed request (see {@link #setSingleView(View)}) or provide a list of
+ * {@code ViewResolver}'s, see {@link #setViewResolvers(ViewResolver...)}.
  *
  * @author Rossen Stoyanchev
  */
@@ -103,6 +105,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 	private boolean useSuffixPatternMatch = true;
 
 	private boolean useTrailingSlashPatternMatch = true;
+
 
 	/**
 	 * Protected constructor. Not intended for direct instantiation.
@@ -200,7 +203,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 	 * View instance only -- e.g. rendering generated content (JSON, XML, Atom).
 	 */
 	public StandaloneMockMvcBuilder setSingleView(View view) {
-		this.viewResolvers = Collections.<ViewResolver>singletonList(new StubViewResolver(view));
+		this.viewResolvers = Collections.<ViewResolver>singletonList(new StaticViewResolver(view));
 		return this;
 	}
 
@@ -243,55 +246,52 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 	}
 
 	@Override
-	protected ServletContext initServletContext() {
-		return new MockServletContext();
+	protected WebApplicationContext initWebApplicationContext() {
+		ServletContext servletContext = new MockServletContext();
+		MockWebApplicationContext cxt = new MockWebApplicationContext(servletContext);
+		registerMvcSingletons(cxt);
+		servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, cxt);
+		return cxt;
 	}
 
-	@Override
-	protected WebApplicationContext initWebApplicationContext(ServletContext servletContext) {
-		StubWebApplicationContext wac = new StubWebApplicationContext(servletContext);
-		registerMvcSingletons(wac);
-		servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, wac);
-		return wac;
-	}
+	private void registerMvcSingletons(MockWebApplicationContext cxt) {
 
-	private void registerMvcSingletons(StubWebApplicationContext wac) {
-		WebMvcConfig config = new WebMvcConfig();
+		StandaloneConfiguration configuration = new StandaloneConfiguration();
 
-		RequestMappingHandlerMapping handlerMapping = config.requestMappingHandlerMapping();
-		extendRequestMappingHandlerMapping(handlerMapping);
-		handlerMapping.setServletContext(wac.getServletContext());
-		handlerMapping.setApplicationContext(wac);
-		wac.addBean("requestMappingHandlerMapping", handlerMapping);
+		RequestMappingHandlerMapping handlerMapping = configuration.requestMappingHandlerMapping();
+		handlerMapping.setServletContext(cxt.getServletContext());
+		handlerMapping.setApplicationContext(cxt);
+		cxt.addBean("requestMappingHandlerMapping", handlerMapping);
 
-		RequestMappingHandlerAdapter handlerAdapter = config.requestMappingHandlerAdapter();
-		extendRequestMappingHandlerAdapter(handlerAdapter);
-		handlerAdapter.setServletContext(wac.getServletContext());
-		handlerAdapter.setApplicationContext(wac);
+		RequestMappingHandlerAdapter handlerAdapter = configuration.requestMappingHandlerAdapter();
+		handlerAdapter.setServletContext(cxt.getServletContext());
+		handlerAdapter.setApplicationContext(cxt);
 		handlerAdapter.afterPropertiesSet();
-		wac.addBean("requestMappingHandlerAdapter", handlerAdapter);
+		cxt.addBean("requestMappingHandlerAdapter", handlerAdapter);
 
-		wac.addBean("handlerExceptionResolver", config.handlerExceptionResolver());
+		cxt.addBean("handlerExceptionResolver", configuration.handlerExceptionResolver());
 
-		wac.addBeans(initViewResolvers(wac));
-		wac.addBean(DispatcherServlet.LOCALE_RESOLVER_BEAN_NAME, this.localeResolver);
-		wac.addBean(DispatcherServlet.THEME_RESOLVER_BEAN_NAME, new FixedThemeResolver());
-		wac.addBean(DispatcherServlet.REQUEST_TO_VIEW_NAME_TRANSLATOR_BEAN_NAME, new DefaultRequestToViewNameTranslator());
+		cxt.addBeans(initViewResolvers(cxt));
+		cxt.addBean(DispatcherServlet.LOCALE_RESOLVER_BEAN_NAME, this.localeResolver);
+		cxt.addBean(DispatcherServlet.THEME_RESOLVER_BEAN_NAME, new FixedThemeResolver());
+		cxt.addBean(DispatcherServlet.REQUEST_TO_VIEW_NAME_TRANSLATOR_BEAN_NAME, new DefaultRequestToViewNameTranslator());
 
-		if (this.flashMapManager == null) {
-			initFlashMapManager();
-		}
-		wac.addBean(DispatcherServlet.FLASH_MAP_MANAGER_BEAN_NAME, this.flashMapManager);
+		initFlashMapManager();
+		cxt.addBean(DispatcherServlet.FLASH_MAP_MANAGER_BEAN_NAME, this.flashMapManager);
 	}
+
+	// TODO: remove in 3.2
 
 	private void initFlashMapManager() {
-		String className = "org.springframework.web.servlet.support.DefaultFlashMapManager";
-		if (ClassUtils.isPresent(className, getClass().getClassLoader())) {
-			this.flashMapManager = instantiateClass(className);
-		}
-		else {
-			className = "org.springframework.web.servlet.support.SessionFlashMapManager";
-			this.flashMapManager = instantiateClass(className);
+		if (this.flashMapManager == null) {
+			String className = "org.springframework.web.servlet.support.DefaultFlashMapManager";
+			if (ClassUtils.isPresent(className, getClass().getClassLoader())) {
+				this.flashMapManager = instantiateClass(className);
+			}
+			else {
+				className = "org.springframework.web.servlet.support.SessionFlashMapManager";
+				this.flashMapManager = instantiateClass(className);
+			}
 		}
 	}
 
@@ -310,19 +310,8 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 		return (T) BeanUtils.instantiate(clazz);
 	}
 
-	/**
-	 * Allows sub-classes to customize the RequestMappingHandlerMapping instance.
-	 */
-	protected void extendRequestMappingHandlerMapping(RequestMappingHandlerMapping handlerMapping) {
-	}
-
-	/**
-	 * Allows sub-classes to customize the RequestMappingHandlerAdapter instance.
-	 */
-	protected void extendRequestMappingHandlerAdapter(RequestMappingHandlerAdapter handlerAdapter) {
-	}
-
 	private List<ViewResolver> initViewResolvers(WebApplicationContext wac) {
+
 		this.viewResolvers = (this.viewResolvers == null) ?
 				Arrays.<ViewResolver>asList(new InternalResourceViewResolver()) : viewResolvers;
 
@@ -336,41 +325,41 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 	}
 
 
-	/**
-	 * A sub-class of {@link WebMvcConfigurationSupport} that allows re-using
-	 * the MVC Java config setup with customizations for the "standalone" setup.
-	 */
-	private class WebMvcConfig extends WebMvcConfigurationSupport {
+	/** Using the MVC Java configuration as the starting point for the "standalone" setup */
+	private class StandaloneConfiguration extends WebMvcConfigurationSupport {
 
 		@Override
 		public RequestMappingHandlerMapping requestMappingHandlerMapping() {
+
 			StaticRequestMappingHandlerMapping handlerMapping = new StaticRequestMappingHandlerMapping();
+			handlerMapping.registerHandlers(controllers);
+
 			handlerMapping.setUseSuffixPatternMatch(useSuffixPatternMatch);
 			handlerMapping.setUseTrailingSlashMatch(useTrailingSlashPatternMatch);
-			handlerMapping.registerHandlers(StandaloneMockMvcBuilder.this.controllers);
 			handlerMapping.setOrder(0);
 			handlerMapping.setInterceptors(getInterceptors());
+
 			return handlerMapping;
 		}
 
 		@Override
 		protected void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-			converters.addAll(StandaloneMockMvcBuilder.this.messageConverters);
+			converters.addAll(messageConverters);
 		}
 
 		@Override
 		protected void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
-			argumentResolvers.addAll(StandaloneMockMvcBuilder.this.customArgumentResolvers);
+			argumentResolvers.addAll(customArgumentResolvers);
 		}
 
 		@Override
 		protected void addReturnValueHandlers(List<HandlerMethodReturnValueHandler> returnValueHandlers) {
-			returnValueHandlers.addAll(StandaloneMockMvcBuilder.this.customReturnValueHandlers);
+			returnValueHandlers.addAll(customReturnValueHandlers);
 		}
 
 		@Override
 		protected void addInterceptors(InterceptorRegistry registry) {
-			for (MappedInterceptor interceptor : StandaloneMockMvcBuilder.this.mappedInterceptors) {
+			for (MappedInterceptor interceptor : mappedInterceptors) {
 				InterceptorRegistration registration = registry.addInterceptor(interceptor.getInterceptor());
 				if (interceptor.getPathPatterns() != null) {
 					registration.addPathPatterns(interceptor.getPathPatterns());
@@ -380,15 +369,12 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 
 		@Override
 		public FormattingConversionService mvcConversionService() {
-			FormattingConversionService mvcConversionService = (StandaloneMockMvcBuilder.this.conversionService != null) ?
-					StandaloneMockMvcBuilder.this.conversionService : super.mvcConversionService();
-			return (mvcConversionService == null) ? super.mvcConversionService() : mvcConversionService;
+			return (conversionService != null) ? conversionService : super.mvcConversionService();
 		}
 
 		@Override
 		public Validator mvcValidator() {
-			Validator mvcValidator = (StandaloneMockMvcBuilder.this.validator != null) ?
-					StandaloneMockMvcBuilder.this.validator : super.mvcValidator();
+			Validator mvcValidator = (validator != null) ? validator : super.mvcValidator();
 			if (mvcValidator instanceof InitializingBean) {
 				try {
 					((InitializingBean) mvcValidator).afterPropertiesSet();
@@ -406,10 +392,7 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 		}
 	}
 
-	/**
-	 * A {@link RequestMappingHandlerMapping} allowing direct registration of controller
-	 * instances rather than scanning a WebApplicationContext.
-	 */
+	/** A {@code RequestMappingHandlerMapping} that allows registration of controllers */
 	private static class StaticRequestMappingHandlerMapping extends RequestMappingHandlerMapping {
 
 		public void registerHandlers(Object...handlers) {
@@ -419,14 +402,12 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneM
 		}
 	}
 
-	/**
-	 * A {@link ViewResolver} that always returns same View.
-	 */
-	private static class StubViewResolver implements ViewResolver {
+	/** A {@link ViewResolver} that always returns same View */
+	private static class StaticViewResolver implements ViewResolver {
 
 		private final View view;
 
-		public StubViewResolver(View view) {
+		public StaticViewResolver(View view) {
 			this.view = view;
 		}
 

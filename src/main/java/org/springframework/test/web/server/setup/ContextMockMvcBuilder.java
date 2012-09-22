@@ -43,11 +43,12 @@ import org.springframework.web.context.WebApplicationContext;
  */
 public class ContextMockMvcBuilder extends AbstractMockMvcBuilder<ContextMockMvcBuilder> {
 
-	private final ConfigurableWebApplicationContext applicationContext;
+	private final ConfigurableWebApplicationContext webAppContext;
 
 	private String webResourceBasePath = "";
 
 	private ResourceLoader webResourceLoader = new FileSystemResourceLoader();
+
 
 	/**
      * Protected constructor. Not intended for direct instantiation.
@@ -55,7 +56,7 @@ public class ContextMockMvcBuilder extends AbstractMockMvcBuilder<ContextMockMvc
      * @see MockMvcBuilders#xmlConfigSetup(String...)
 	 */
 	public ContextMockMvcBuilder(ConfigurableWebApplicationContext applicationContext) {
-		this.applicationContext = applicationContext;
+		this.webAppContext = applicationContext;
 	}
 
 	/**
@@ -78,7 +79,7 @@ public class ContextMockMvcBuilder extends AbstractMockMvcBuilder<ContextMockMvc
 	 * Activate the given profiles before the application context is "refreshed".
 	 */
 	public ContextMockMvcBuilder activateProfiles(String...profiles) {
-		this.applicationContext.getEnvironment().setActiveProfiles(profiles);
+		this.webAppContext.getEnvironment().setActiveProfiles(profiles);
 		return this;
 	}
 
@@ -90,26 +91,26 @@ public class ContextMockMvcBuilder extends AbstractMockMvcBuilder<ContextMockMvc
 			ContextMockMvcBuilder applyInitializers(ApplicationContextInitializer<T>... initializers) {
 
 		for (ApplicationContextInitializer<T> initializer : initializers) {
-			initializer.initialize((T) this.applicationContext);
+			initializer.initialize((T) this.webAppContext);
 		}
 		return this;
 	}
 
+
 	@Override
-	protected ServletContext initServletContext() {
-		return new MockServletContext(this.webResourceBasePath, this.webResourceLoader) {
+	protected WebApplicationContext initWebApplicationContext() {
+
+		ServletContext servletContext =  new MockServletContext(this.webResourceBasePath, this.webResourceLoader) {
 			// Required for DefaultServletHttpRequestHandler...
 			public RequestDispatcher getNamedDispatcher(String path) {
 				return (path.equals("default")) ? new MockRequestDispatcher(path) : super.getNamedDispatcher(path);
 			}
 		};
-	}
 
-	@Override
-	protected WebApplicationContext initWebApplicationContext(ServletContext servletContext) {
-		this.applicationContext.setServletContext(servletContext);
-		this.applicationContext.refresh();
-		return this.applicationContext;
+		this.webAppContext.setServletContext(servletContext);
+		this.webAppContext.refresh();
+
+		return this.webAppContext;
 	}
 
 	/**
@@ -121,7 +122,7 @@ public class ContextMockMvcBuilder extends AbstractMockMvcBuilder<ContextMockMvc
 	 * on the outcome of SPR-5243 and SPR-5613.
 	 */
 	public ContextMockMvcBuilder setParentContext(ApplicationContext parentContext) {
-		this.applicationContext.setParent(parentContext);
+		this.webAppContext.setParent(parentContext);
 		return this;
 	}
 }

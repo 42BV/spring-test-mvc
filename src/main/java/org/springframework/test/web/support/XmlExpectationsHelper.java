@@ -35,7 +35,7 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 /**
- * A helper class for applying assertions on XML content.
+ * A helper class for assertions on XML content.
  *
  * @author Rossen Stoyanchev
  */
@@ -48,7 +48,7 @@ public class XmlExpectationsHelper {
 	 */
 	public void assertNode(String content, Matcher<? super Node> matcher) throws Exception {
 		Document document = parseXmlString(content);
-		MatcherAssert.assertThat("Contents", document, matcher);
+		MatcherAssert.assertThat("Body content", document, matcher);
 	}
 
 	private Document parseXmlString(String xml) throws Exception  {
@@ -66,9 +66,8 @@ public class XmlExpectationsHelper {
 	 */
 	public void assertSource(String content, Matcher<? super Source> matcher) throws Exception {
 		Document document = parseXmlString(content);
-		MatcherAssert.assertThat("Contents", new DOMSource(document), matcher);
+		MatcherAssert.assertThat("Body content", new DOMSource(document), matcher);
 	}
-
 
 	/**
 	 * Parse the expected and actual content strings as XML and assert that the
@@ -89,7 +88,7 @@ public class XmlExpectationsHelper {
 		Document test = XMLUnit.buildTestDocument(actual);
 		Diff diff = new Diff(control, test);
 		if (!diff.similar()) {
-			AssertionErrors.fail("Contents " + diff.toString());
+			AssertionErrors.fail("Body content " + diff.toString());
 		}
 	}
 

@@ -16,15 +16,10 @@
 
 package org.springframework.test.web.server.result;
 
-import java.io.OutputStream;
-import java.io.PrintStream;
-
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultHandler;
-import org.springframework.test.web.support.PrintStreamValuePrinter;
-import org.springframework.test.web.support.ValuePrinter;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.web.method.HandlerMethod;
@@ -32,88 +27,79 @@ import org.springframework.web.servlet.FlashMap;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContextUtils;
-import org.springframework.web.util.WebUtils;
 
 /**
- * A {@code ResultHandler} that writes request and response details to an
- * {@link OutputStream}. Use {@link MockMvcResultHandlers#print()} to get access
- * to an instance that writes to {@code System#out}.
+ * An abstract {@link ResultHandler} that prints {@link MvcResult} details.
  *
  * @author Rossen Stoyanchev
  */
 public class PrintingResultHandler implements ResultHandler {
 
-	private final OutputStream out;
+	private final ResultValuePrinter printer;
 
 
 	/**
-	 * Protected class constructor.
-	 * @see MockMvcResultHandlers#print()
+	 * Class constructor.
+	 *
+	 * @param printer a printer to do the actual writing
 	 */
-	protected PrintingResultHandler(OutputStream out) {
-		this.out = out;
-	}
-
-	public final void handle(MvcResult mvcResult) throws Exception {
-
-		String encoding = mvcResult.getResponse().getCharacterEncoding();
-
-		PrintStream printStream = new PrintStream(this.out, true,
-				(encoding != null) ? encoding : WebUtils.DEFAULT_CHARACTER_ENCODING);
-
-		ValuePrinter printer = createValuePrinter(printStream);
-
-		printer.printHeading("MockHttpServletRequest");
-		printRequest(mvcResult.getRequest(), printer);
-
-		printer.printHeading("Handler");
-		printHandler(mvcResult.getHandler(), mvcResult.getInterceptors(), printer);
-
-		printer.printHeading("Resolved Exception");
-		printResolvedException(mvcResult.getResolvedException(), printer);
-
-		printer.printHeading("ModelAndView");
-		printModelAndView(mvcResult.getModelAndView(), printer);
-
-		printer.printHeading("FlashMap");
-		printFlashMap(RequestContextUtils.getOutputFlashMap(mvcResult.getRequest()), printer);
-
-		printer.printHeading("MockHttpServletResponse");
-		printResponse(mvcResult.getResponse(), printer);
+	public PrintingResultHandler(ResultValuePrinter printer) {
+		this.printer = printer;
 	}
 
 	/**
-	 * Create the ValuePrinter instance to use for printing.
+	 * @return the result value printer.
 	 */
-	protected ValuePrinter createValuePrinter(PrintStream printStream) {
-		return new PrintStreamValuePrinter(printStream);
+	public ResultValuePrinter getPrinter() {
+		return this.printer;
+	}
+
+	public final void handle(MvcResult result) throws Exception {
+
+		this.printer.printHeading("MockHttpServletRequest");
+		printRequest(result.getRequest());
+
+		this.printer.printHeading("Handler");
+		printHandler(result.getHandler(), result.getInterceptors());
+
+		this.printer.printHeading("Resolved Exception");
+		printResolvedException(result.getResolvedException());
+
+		this.printer.printHeading("ModelAndView");
+		printModelAndView(result.getModelAndView());
+
+		this.printer.printHeading("FlashMap");
+		printFlashMap(RequestContextUtils.getOutputFlashMap(result.getRequest()));
+
+		this.printer.printHeading("MockHttpServletResponse");
+		printResponse(result.getResponse());
 	}
 
 	/**
 	 * Print the request.
 	 */
-	protected void printRequest(MockHttpServletRequest request, ValuePrinter printer) throws Exception {
-		printer.printValue("HTTP Method", request.getMethod());
-		printer.printValue("Request URI", request.getRequestURI());
-		printer.printValue("Parameters", request.getParameterMap());
-		printer.printValue("Headers", ResultHandlerUtils.getRequestHeaderMap(request));
+	protected void printRequest(MockHttpServletRequest request) throws Exception {
+		this.printer.printValue("HTTP Method", request.getMethod());
+		this.printer.printValue("Request URI", request.getRequestURI());
+		this.printer.printValue("Parameters", request.getParameterMap());
+		this.printer.printValue("Headers", ResultHandlerUtils.getRequestHeaderMap(request));
 	}
 
 	/**
 	 * Print the handler.
 	 */
-	protected void printHandler(Object handler, HandlerInterceptor[] interceptors, ValuePrinter printer) throws Exception {
+	protected void printHandler(Object handler, HandlerInterceptor[] interceptors) throws Exception {
 		if (handler == null) {
-			printer.printValue("Type", null);
+			this.printer.printValue("Type", null);
 		}
 		else {
 			if (handler instanceof HandlerMethod) {
 				HandlerMethod handlerMethod = (HandlerMethod) handler;
-				printer.printValue("Type", handlerMethod.getBeanType().getName());
-				printer.printValue("Method", handlerMethod);
+				this.printer.printValue("Type", handlerMethod.getBeanType().getName());
+				this.printer.printValue("Method", handlerMethod);
 			}
 			else {
-				printer.printValue("Type", handler.getClass().getName());
+				this.printer.printValue("Type", handler.getClass().getName());
 			}
 		}
 	}
@@ -121,33 +107,33 @@ public class PrintingResultHandler implements ResultHandler {
 	/**
 	 * Print exceptions resolved through a HandlerExceptionResolver.
 	 */
-	protected void printResolvedException(Exception resolvedException, ValuePrinter printer) throws Exception {
+	protected void printResolvedException(Exception resolvedException) throws Exception {
 		if (resolvedException == null) {
-			printer.printValue("Type", null);
+			this.printer.printValue("Type", null);
 		}
 		else {
-			printer.printValue("Type", resolvedException.getClass().getName());
+			this.printer.printValue("Type", resolvedException.getClass().getName());
 		}
 	}
 
 	/**
 	 * Print the ModelAndView.
 	 */
-	protected void printModelAndView(ModelAndView mav, ValuePrinter printer) throws Exception {
-		printer.printValue("View name", (mav != null) ? mav.getViewName() : null);
-		printer.printValue("View", (mav != null) ? mav.getView() : null);
+	protected void printModelAndView(ModelAndView mav) throws Exception {
+		this.printer.printValue("View name", (mav != null) ? mav.getViewName() : null);
+		this.printer.printValue("View", (mav != null) ? mav.getView() : null);
 		if (mav == null || mav.getModel().size() == 0) {
-			printer.printValue("Model", null);
+			this.printer.printValue("Model", null);
 		}
 		else {
 			for (String name : mav.getModel().keySet()) {
 				if (!name.startsWith(BindingResult.MODEL_KEY_PREFIX)) {
 					Object value = mav.getModel().get(name);
-					printer.printValue("Attribute", name);
-					printer.printValue("value", value);
+					this.printer.printValue("Attribute", name);
+					this.printer.printValue("value", value);
 					Errors errors = (Errors) mav.getModel().get(BindingResult.MODEL_KEY_PREFIX + name);
 					if (errors != null) {
-						printer.printValue("errors", errors.getAllErrors());
+						this.printer.printValue("errors", errors.getAllErrors());
 					}
 				}
 			}
@@ -157,14 +143,14 @@ public class PrintingResultHandler implements ResultHandler {
 	/**
 	 * Print output flash attributes.
 	 */
-	protected void printFlashMap(FlashMap flashMap, ValuePrinter printer) throws Exception {
+	protected void printFlashMap(FlashMap flashMap) throws Exception {
 		if (flashMap == null) {
-			printer.printValue("Attributes", null);
+			this.printer.printValue("Attributes", null);
 		}
 		else {
 			for (String name : flashMap.keySet()) {
-				printer.printValue("Attribute", name);
-				printer.printValue("value", flashMap.get(name));
+				this.printer.printValue("Attribute", name);
+				this.printer.printValue("value", flashMap.get(name));
 			}
 		}
 	}
@@ -172,15 +158,26 @@ public class PrintingResultHandler implements ResultHandler {
 	/**
 	 * Print the response.
 	 */
-	protected void printResponse(MockHttpServletResponse response, ValuePrinter printer) throws Exception {
-		printer.printValue("Status", response.getStatus());
-		printer.printValue("Error message", response.getErrorMessage());
-		printer.printValue("Headers", ResultHandlerUtils.getResponseHeaderMap(response));
-		printer.printValue("Content type", response.getContentType());
-		printer.printValue("Body", response.getContentAsString());
-		printer.printValue("Forwarded URL", response.getForwardedUrl());
-		printer.printValue("Redirected URL", response.getRedirectedUrl());
-		printer.printValue("Cookies", response.getCookies());
+	protected void printResponse(MockHttpServletResponse response) throws Exception {
+		this.printer.printValue("Status", response.getStatus());
+		this.printer.printValue("Error message", response.getErrorMessage());
+		this.printer.printValue("Headers", ResultHandlerUtils.getResponseHeaderMap(response));
+		this.printer.printValue("Content type", response.getContentType());
+		this.printer.printValue("Body", response.getContentAsString());
+		this.printer.printValue("Forwarded URL", response.getForwardedUrl());
+		this.printer.printValue("Redirected URL", response.getRedirectedUrl());
+		this.printer.printValue("Cookies", response.getCookies());
+	}
+
+
+	/**
+	 * A contract for how to actually write result information.
+	 */
+	protected interface ResultValuePrinter {
+
+		void printHeading(String heading);
+
+		void printValue(String label, Object value);
 	}
 
 }

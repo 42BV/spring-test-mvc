@@ -20,115 +20,38 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.Filter;
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 
-import org.springframework.core.NestedRuntimeException;
 import org.springframework.mock.web.MockServletConfig;
-import org.springframework.test.web.server.MockFilterChain;
+import org.springframework.test.web.server.MockMvcBuilder;
+import org.springframework.test.web.server.MockMvcBuilderSupport;
 import org.springframework.test.web.server.MockMvc;
 import org.springframework.test.web.server.RequestBuilder;
 import org.springframework.test.web.server.ResultHandler;
 import org.springframework.test.web.server.ResultMatcher;
-import org.springframework.test.web.server.TestDispatcherServlet;
 import org.springframework.util.Assert;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * An abstract class for building {@link MockMvc} instances.
- *
- * <p>Provides support for configuring {@link Filter}s and mapping them to URL
- * patterns as defined by the Servlet specification.
+ * Abstract implementation of {@link MockMvcBuilder} that implements the actual
+ * {@code build} method, provides convenient methods for configuring filters,
+ * default request properties, and global expectations, and delegates to an
+ * abstract method to obtain a {@link WebApplicationContext}.
  *
  * @author Rossen Stoyanchev
  * @author Rob Winch
  */
-public abstract class AbstractMockMvcBuilder<Self extends AbstractMockMvcBuilder<Self>> implements MockMvcBuilder {
+public abstract class AbstractMockMvcBuilder<Self extends AbstractMockMvcBuilder<Self>>
+		extends MockMvcBuilderSupport implements MockMvcBuilder {
 
 	private List<Filter> filters = new ArrayList<Filter>();
 
-	private RequestBuilder requestBuilder;
+	private RequestBuilder defaultRequestBuilder;
 
-	private final List<ResultMatcher> resultMatchers = new ArrayList<ResultMatcher>();
+	private final List<ResultMatcher> globalResultMatchers = new ArrayList<ResultMatcher>();
 
-	private final List<ResultHandler> resultHandlers = new ArrayList<ResultHandler>();
+	private final List<ResultHandler> globalResultHandlers = new ArrayList<ResultHandler>();
 
-
-	/**
-	 * Build a {@link MockMvc} instance.
-	 */
-	public final MockMvc build() {
-
-		ServletContext servletContext = initServletContext();
-		WebApplicationContext wac = initWebApplicationContext(servletContext);
-
-		ServletConfig config = new MockServletConfig(servletContext);
-		TestDispatcherServlet dispatcherServlet = new TestDispatcherServlet(wac);
-		try {
-			dispatcherServlet.init(config);
-		}
-		catch (ServletException ex) {
-			// should never happen..
-			throw new MockMvcBuildException("Failed to initialize TestDispatcherServlet", ex);
-		}
-
-		Filter[] filterArray = filters.toArray(new Filter[filters.size()]);
-		MockFilterChain mockMvcFilterChain = new MockFilterChain(dispatcherServlet, filterArray) {};
-
-		return new MockMvc(mockMvcFilterChain, dispatcherServlet.getServletContext()) {{
-			setDefaultRequest(AbstractMockMvcBuilder.this.requestBuilder);
-			setDefaultResultMatchers(AbstractMockMvcBuilder.this.resultMatchers);
-			setDefaultResultHandlers(AbstractMockMvcBuilder.this.resultHandlers);
-		}};
-	}
-
-	/**
-	 * Define a default request that all performed requests should logically
-	 * extend from. In effect this provides a mechanism for defining common
-	 * initialization for all requests such as the content type, request
-	 * parameters, session attributes, and any other request property.
-	 *
-	 * <p>Properties specified at the time of performing a request override the
-	 * default properties defined here.
-	 *
-	 * @param requestBuilder a RequestBuilder; see static factory methods in
-	 * {@link org.springframework.test.web.server.request.MockMvcRequestBuilders}
-	 * .
-	 */
-	@SuppressWarnings("unchecked")
-	public final <T extends Self> T defaultRequest(RequestBuilder requestBuilder) {
-		this.requestBuilder = requestBuilder;
-		return (T) this;
-	}
-
-	/**
-	 * Define an expectation that should <em>always</em> be applied to every
-	 * response. For example, status code 200 (OK), content type
-	 * {@code "application/json"}, etc.
-	 *
-	 * @param resultMatcher a ResultMatcher; see static factory methods in
-	 * {@link org.springframework.test.web.server.result.MockMvcResultMatchers}
-	 */
-	@SuppressWarnings("unchecked")
-	public final <T extends Self> T alwaysExpect(ResultMatcher resultMatcher) {
-		this.resultMatchers.add(resultMatcher);
-		return (T) this;
-	}
-
-	/**
-	 * Define an action that should <em>always</em> be applied to every
-	 * response. For example, writing detailed information about the performed
-	 * request and resulting response to {@code System.out}.
-	 *
-	 * @param resultHandler a ResultHandler; see static factory methods in
-	 * {@link org.springframework.test.web.server.result.MockMvcResultHandlers}
-	 */
-	@SuppressWarnings("unchecked")
-	public final <T extends Self> T alwaysDo(ResultHandler resultHandler) {
-		this.resultHandlers.add(resultHandler);
-		return (T) this;
-	}
 
 	/**
 	 * Add filters mapped to any request (i.e. "/*"). For example:
@@ -185,6 +108,7 @@ public abstract class AbstractMockMvcBuilder<Self extends AbstractMockMvcBuilder
 	 */
 	@SuppressWarnings("unchecked")
 	public final <T extends Self> T addFilter(Filter filter, String... urlPatterns) {
+
 		Assert.notNull(filter, "filter cannot be null");
 		Assert.notNull(urlPatterns, "urlPatterns cannot be null");
 
@@ -197,23 +121,75 @@ public abstract class AbstractMockMvcBuilder<Self extends AbstractMockMvcBuilder
 	}
 
 	/**
-	 * Return ServletContext to use, never {@code null}.
+	 * Define default request properties that should be merged into all
+	 * performed requests. In effect this provides a mechanism for defining
+	 * common initialization for all requests such as the content type, request
+	 * parameters, session attributes, and any other request property.
+	 *
+	 * <p>Properties specified at the time of performing a request override the
+	 * default properties defined here.
+	 *
+	 * @param requestBuilder a RequestBuilder; see static factory methods in
+	 * {@link org.springframework.test.web.server.request.MockMvcRequestBuilders}
+	 * .
 	 */
-	protected abstract ServletContext initServletContext();
+	@SuppressWarnings("unchecked")
+	public final <T extends Self> T defaultRequest(RequestBuilder requestBuilder) {
+		this.defaultRequestBuilder = requestBuilder;
+		return (T) this;
+	}
 
 	/**
-	 * Return the WebApplicationContext to use, possibly {@code null}.
-	 * @param servletContext the ServletContext returned
-	 * from {@link #initServletContext()}
+	 * Define a global expectation that should <em>always</em> be applied to
+	 * every response. For example, status code 200 (OK), content type
+	 * {@code "application/json"}, etc.
+	 *
+	 * @param resultMatcher a ResultMatcher; see static factory methods in
+	 * {@link org.springframework.test.web.server.result.MockMvcResultMatchers}
 	 */
-	protected abstract WebApplicationContext initWebApplicationContext(ServletContext servletContext);
-
-
-	@SuppressWarnings("serial")
-	private static class MockMvcBuildException extends NestedRuntimeException {
-
-		public MockMvcBuildException(String msg, Throwable cause) {
-			super(msg, cause);
-		}
+	@SuppressWarnings("unchecked")
+	public final <T extends Self> T alwaysExpect(ResultMatcher resultMatcher) {
+		this.globalResultMatchers.add(resultMatcher);
+		return (T) this;
 	}
+
+	/**
+	 * Define a global action that should <em>always</em> be applied to every
+	 * response. For example, writing detailed information about the performed
+	 * request and resulting response to {@code System.out}.
+	 *
+	 * @param resultHandler a ResultHandler; see static factory methods in
+	 * {@link org.springframework.test.web.server.result.MockMvcResultHandlers}
+	 */
+	@SuppressWarnings("unchecked")
+	public final <T extends Self> T alwaysDo(ResultHandler resultHandler) {
+		this.globalResultHandlers.add(resultHandler);
+		return (T) this;
+	}
+
+	/**
+	 * Build a {@link MockMvc} instance.
+	 */
+	public final MockMvc build() {
+
+		WebApplicationContext webAppContext = initWebApplicationContext();
+		Assert.state(webAppContext != null, "WebApplicationContext not provided by concrete MockMvcBuilder");
+
+		ServletContext servletContext = webAppContext.getServletContext();
+		Assert.state(servletContext != null,"ServletContext not configured by concrete MockMvcBuilder");
+
+		Filter[] filterArray = this.filters.toArray(new Filter[this.filters.size()]);
+		MockServletConfig mockServletConfig = new MockServletConfig(servletContext);
+
+		return super.createMockMvc(filterArray, mockServletConfig, webAppContext,
+				this.defaultRequestBuilder, this.globalResultMatchers, this.globalResultHandlers);
+	}
+
+	/**
+	 * Return the WebApplicationContext to use. The return value must not be
+	 * {@code null}. Further, the {@code WebApplicationContext} should be
+	 * configured with a {@code ServletContext}.
+	 */
+	protected abstract WebApplicationContext initWebApplicationContext();
+
 }

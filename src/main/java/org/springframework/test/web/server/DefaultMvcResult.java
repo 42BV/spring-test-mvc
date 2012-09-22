@@ -28,7 +28,7 @@ import org.springframework.web.servlet.support.RequestContextUtils;
  * @author Rossen Stoyanchev
  * @author Rob Winch
  */
-public class DefaultMvcResult implements MvcResult {
+class DefaultMvcResult implements MvcResult {
 
 	private final MockHttpServletRequest mockRequest;
 
@@ -42,6 +42,10 @@ public class DefaultMvcResult implements MvcResult {
 
 	private Exception resolvedException;
 
+
+	/**
+	 * Create a new instance with the given request and response.
+	 */
 	public DefaultMvcResult(MockHttpServletRequest request, MockHttpServletResponse response) {
 		this.mockRequest = request;
 		this.mockResponse = response;

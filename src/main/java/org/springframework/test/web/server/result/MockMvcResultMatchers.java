@@ -27,7 +27,7 @@ import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
 
 /**
- * Contains factory methods for built-in {@link ResultMatcher} implementations.
+ * Factory methods for {@link ResultMatcher}-based result actions.
  *
  * <p><strong>Eclipse users:</strong> consider adding this class as a Java editor
  * favorite. To navigate, open the Preferences and type "favorites".
@@ -37,35 +37,35 @@ import org.springframework.test.web.server.ResultMatcher;
 public abstract class MockMvcResultMatchers {
 
 	/**
-	 * Access to request-related matchers.
+	 * Access to request-related assertions.
 	 */
 	public static RequestResultMatchers request() {
 		return new RequestResultMatchers();
 	}
 
 	/**
-	 * Access to matchers for the handler that handled the request.
+	 * Access to assertions for the handler that handled the request.
 	 */
 	public static HandlerResultMatchers handler() {
 		return new HandlerResultMatchers();
 	}
 
 	/**
-	 * Access to model-related matchers.
+	 * Access to model-related assertions.
 	 */
 	public static ModelResultMatchers model() {
 		return new ModelResultMatchers();
 	}
 
 	/**
-	 * Access to matchers for the selected view.
+	 * Access to assertions on the selected view.
 	 */
 	public static ViewResultMatchers view() {
 		return new ViewResultMatchers();
 	}
 
 	/**
-	 * Access to flash attribute matchers.
+	 * Access to flash attribute assertions.
 	 */
 	public static FlashAttributeResultMatchers flash() {
 		return new FlashAttributeResultMatchers();
@@ -94,28 +94,28 @@ public abstract class MockMvcResultMatchers {
 	}
 
 	/**
-	 * Access to response status matchers.
+	 * Access to response status assertions.
 	 */
 	public static StatusResultMatchers status() {
 		return new StatusResultMatchers();
 	}
 
 	/**
-	 * Access to response header matchers.
+	 * Access to response header assertions.
 	 */
 	public static HeaderResultMatchers header() {
 		return new HeaderResultMatchers();
 	}
 
 	/**
-	 * Access to response body matchers.
+	 * Access to response body assertions.
 	 */
 	public static ContentResultMatchers content() {
 		return new ContentResultMatchers();
 	}
 
 	/**
-	 * Access to response body matchers using a <a
+	 * Access to response body assertions using a <a
 	 * href="http://goessner.net/articles/JsonPath/">JSONPath</a> expression to
 	 * inspect a specific subset of the body. The JSON path expression can be a
 	 * parameterized string using formatting specifiers as defined in
@@ -129,7 +129,7 @@ public abstract class MockMvcResultMatchers {
 	}
 
 	/**
-	 * Access to response body matchers using a <a
+	 * Access to response body assertions using a <a
 	 * href="http://goessner.net/articles/JsonPath/">JSONPath</a> expression to
 	 * inspect a specific subset of the body and a Hamcrest match for asserting
 	 * the value found at the JSON path.
@@ -142,7 +142,7 @@ public abstract class MockMvcResultMatchers {
 	}
 
 	/**
-	 * Access to response body matchers using an XPath to inspect a specific
+	 * Access to response body assertions using an XPath to inspect a specific
 	 * subset of the body. The XPath expression can be a parameterized string
 	 * using formatting specifiers as defined in
 	 * {@link String#format(String, Object...)}.
@@ -155,7 +155,7 @@ public abstract class MockMvcResultMatchers {
 	}
 
 	/**
-	 * Access to response body matchers using an XPath to inspect a specific
+	 * Access to response body assertions using an XPath to inspect a specific
 	 * subset of the body. The XPath expression can be a parameterized string
 	 * using formatting specifiers as defined in
 	 * {@link String#format(String, Object...)}.
@@ -171,7 +171,7 @@ public abstract class MockMvcResultMatchers {
 	}
 
 	/**
-	 * Access to response cookie result matchers.
+	 * Access to response cookie assertions.
 	 */
 	public static CookieResultMatchers cookie() {
 		return new CookieResultMatchers();

@@ -29,7 +29,7 @@ import com.jayway.jsonpath.InvalidPathException;
 import com.jayway.jsonpath.JsonPath;
 
 /**
- * A helper class for applying assertions using JSONPath expressions.
+ * A helper class for applying assertions via JSONPath expressions.
  *
  * @author Rossen Stoyanchev
  */
@@ -108,8 +108,6 @@ public class JsonPathExpectationsHelper {
 		catch (AssertionError ex) {
 			return;
 		}
-
-		// If InvalidPathException not raised (< 0.8.0)
 
 		String reason = String.format("Expected no value for JSON path: %s but found: %s", this.expression, value);
 		if (List.class.isInstance(value)) {

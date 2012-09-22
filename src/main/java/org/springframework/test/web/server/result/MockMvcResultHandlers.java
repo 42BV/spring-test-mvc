@@ -16,10 +16,12 @@
 
 package org.springframework.test.web.server.result;
 
+import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultHandler;
+import org.springframework.util.CollectionUtils;
 
 /**
- * Contains factory methods for built-in {@link ResultHandler} classes.
+ * Factory methods for {@link ResultHandler}-based result actions.
  *
  * <p><strong>Eclipse users:</strong> consider adding this class as a Java editor
  * favorite. To navigate, open the Preferences and type "favorites".
@@ -29,11 +31,35 @@ import org.springframework.test.web.server.ResultHandler;
 public abstract class MockMvcResultHandlers {
 
 	/**
-	 * Print the results of an executed request to {@code System.out} using
-	 * the encoding the response.
+	 * Print {@link MvcResult} details to the "standard" output stream.
 	 */
 	public static ResultHandler print() {
-		return new PrintingResultHandler(System.out);
+		return new ConsolePrintingResultHandler();
+	}
+
+
+	/**
+	 * An {@link PrintingResultHandler} that writes to the "standard" output stream.
+	 */
+	private static class ConsolePrintingResultHandler extends PrintingResultHandler {
+
+		public ConsolePrintingResultHandler() {
+
+			super(new ResultValuePrinter() {
+
+				public void printHeading(String heading) {
+					System.out.println();
+					System.out.println(String.format("%20s:", heading));
+				}
+
+				public void printValue(String label, Object value) {
+					if (value != null && value.getClass().isArray()) {
+						value = CollectionUtils.arrayToList(value);
+					}
+					System.out.println(String.format("%20s = %s", label, value));
+				}
+			});
+		}
 	}
 
 }

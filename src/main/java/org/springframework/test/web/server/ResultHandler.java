@@ -17,22 +17,30 @@
 package org.springframework.test.web.server;
 
 /**
- * A contract for a generic result action as opposed to asserting an expectation
- * via {@link ResultMatcher}.
+ * Executes a generic action (e.g. printing debug information) on the result of
+ * an executed request.
  *
  * <p>See static factory methods in
  * {@code org.springframework.test.web.server.result.MockMvcResultHandlers}.
+ *
+ * <p>Example:
+ *
+ * <pre>
+ * static imports: MockMvcRequestBuilders.*, MockMvcResultHandlers.*
+ *
+ * mockMvc.perform(get("/form")).andDo(print());
+ * </pre>
  *
  * @author Rossen Stoyanchev
  */
 public interface ResultHandler {
 
 	/**
-	 * Apply an action on the result of an executed Spring MVC request.
+	 * Apply the action on the given result.
 	 *
-	 * @param mvcResult the result of the executed request
+	 * @param result the result of the executed request
 	 * @throws Exception if a failure occurs
 	 */
-	void handle(MvcResult mvcResult) throws Exception;
+	void handle(MvcResult result) throws Exception;
 
 }

@@ -41,7 +41,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 /**
- * A helper class for applying assertions using XPath expressions.
+ * A helper class for applying assertions via XPath expressions.
  *
  * @author Rossen Stoyanchev
  */
@@ -79,6 +79,13 @@ public class XpathExpectationsHelper {
 	}
 
 	/**
+	 * @return the compiled XPath expression.
+	 */
+	protected XPathExpression getXpathExpression() {
+		return this.xpathExpression;
+	}
+
+	/**
 	 * Parse the content, evaluate the XPath expression as a {@link Node}, and
 	 * assert it with the given {@code Matcher<Node>}.
 	 */
@@ -89,10 +96,11 @@ public class XpathExpectationsHelper {
 	}
 
 	/**
-	 * TODO
-	 * @param xml
-	 * @return
-	 * @throws Exception
+	 * Parse the given XML content to a {@link Document}.
+	 *
+	 * @param xml the content to parse
+	 * @return the parsed document
+	 * @throws Exception in case of errors
 	 */
 	protected Document parseXmlString(String xml) throws Exception  {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -104,33 +112,37 @@ public class XpathExpectationsHelper {
 	}
 
 	/**
-	 * TODO
+	 * Apply the XPath expression to given document.
 	 * @throws XPathExpressionException
 	 */
 	@SuppressWarnings("unchecked")
 	protected <T> T evaluateXpath(Document document, QName evaluationType, Class<T> expectedClass)
 			throws XPathExpressionException {
-		return (T) this.xpathExpression.evaluate(document, evaluationType);
+
+		return (T) getXpathExpression().evaluate(document, evaluationType);
 	}
 
 	/**
-	 * TODO
-	 * @throws Exception if content parsing or XPath expression evaluation fails
+	 * Apply the XPath expression and assert the resulting content exists.
+	 * @throws Exception if content parsing or expression evaluation fails
 	 */
 	public void exists(String content) throws Exception {
 		assertNode(content, Matchers.notNullValue());
 	}
 
 	/**
-	 * TODO
+	 * Apply the XPath expression and assert the resulting content does not exist.
+	 * @throws Exception if content parsing or expression evaluation fails
 	 */
 	public void doesNotExist(String content) throws Exception {
 		assertNode(content, Matchers.nullValue());
 	}
 
 	/**
-	 * TODO
-	 * @throws Exception if content parsing or XPath expression evaluation fails
+	 * Apply the XPath expression and assert the resulting content with the
+	 * given Hamcrest matcher.
+	 *
+	 * @throws Exception if content parsing or expression evaluation fails
 	 */
 	public void assertNodeCount(String content, Matcher<Integer> matcher) throws Exception {
 		Document document = parseXmlString(content);
@@ -140,16 +152,18 @@ public class XpathExpectationsHelper {
 	}
 
 	/**
-	 * TODO
-	 * @throws Exception if content parsing or XPath expression evaluation fails
+	 * Apply the XPath expression and assert the resulting content as an integer.
+	 * @throws Exception if content parsing or expression evaluation fails
 	 */
 	public void assertNodeCount(String content, int expectedCount) throws Exception {
 		assertNodeCount(content, Matchers.equalTo(expectedCount));
 	}
 
 	/**
-	 * TODO
-	 * @throws Exception if content parsing or XPath expression evaluation fails
+	 * Apply the XPath expression and assert the resulting content with the
+	 * given Hamcrest matcher.
+	 *
+	 * @throws Exception if content parsing or expression evaluation fails
 	 */
 	public void assertString(String content, Matcher<? super String> matcher) throws Exception {
 		Document document = parseXmlString(content);
@@ -158,16 +172,18 @@ public class XpathExpectationsHelper {
 	}
 
 	/**
-	 * TODO
-	 * @throws Exception if content parsing or XPath expression evaluation fails
+	 * Apply the XPath expression and assert the resulting content as a String.
+	 * @throws Exception if content parsing or expression evaluation fails
 	 */
 	public void assertString(String content, String expectedValue) throws Exception {
 		assertString(content, Matchers.equalTo(expectedValue));
 	}
 
 	/**
-	 * TODO
-	 * @throws Exception if content parsing or XPath expression evaluation fails
+	 * Apply the XPath expression and assert the resulting content with the
+	 * given Hamcrest matcher.
+	 *
+	 * @throws Exception if content parsing or expression evaluation fails
 	 */
 	public void assertNumber(String content, Matcher<? super Double> matcher) throws Exception {
 		Document document = parseXmlString(content);
@@ -176,18 +192,18 @@ public class XpathExpectationsHelper {
 	}
 
 	/**
-	 * TODO
-	 * @throws Exception if content parsing or XPath expression evaluation fails
+	 * Apply the XPath expression and assert the resulting content as a Double.
+	 * @throws Exception if content parsing or expression evaluation fails
 	 */
 	public void assertNumber(String content, Double expectedValue) throws Exception {
 		assertNumber(content, Matchers.equalTo(expectedValue));
 	}
 
 	/**
-	 * TODO
-	 * @throws Exception if content parsing or XPath expression evaluation fails
+	 * Apply the XPath expression and assert the resulting content as a Boolean.
+	 * @throws Exception if content parsing or expression evaluation fails
 	 */
-	public void assertBoolean(String content, Boolean expectedValue) throws Exception {
+	public void assertBoolean(String content, boolean expectedValue) throws Exception {
 		Document document = parseXmlString(content);
 		String result = evaluateXpath(document, XPathConstants.STRING, String.class);
 		assertEquals("Xpath:", expectedValue, Boolean.parseBoolean(result));
