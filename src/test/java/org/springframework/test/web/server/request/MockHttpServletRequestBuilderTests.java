@@ -49,7 +49,7 @@ import org.springframework.web.servlet.support.SessionFlashMapManager;
  *
  * @author Rossen Stoyanchev
  */
-public class DefaultRequestBuilderTests {
+public class MockHttpServletRequestBuilderTests {
 
 	private MockHttpServletRequestBuilder builder;
 
