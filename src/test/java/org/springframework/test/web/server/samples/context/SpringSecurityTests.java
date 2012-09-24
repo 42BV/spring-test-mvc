@@ -17,7 +17,10 @@ import static org.springframework.test.web.server.request.MockMvcRequestBuilders
 import static org.springframework.test.web.server.result.MockMvcResultMatchers.forwardedUrl;
 import static org.springframework.test.web.server.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.server.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.server.samples.context.SecurityRequestPostProcessors.user;
+import static org.springframework.test.web.server.samples.context.SecurityRequestPostProcessors.userDeatilsService;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import junit.framework.Assert;
@@ -26,9 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.test.context.ContextConfiguration;
@@ -36,6 +37,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.server.MockMvc;
 import org.springframework.test.web.server.MvcResult;
 import org.springframework.test.web.server.ResultMatcher;
+import org.springframework.test.web.server.request.RequestPostProcessor;
 import org.springframework.test.web.server.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -47,12 +49,16 @@ import org.springframework.web.context.WebApplicationContext;
  * them together as shown below and Spring Security extensions will become
  * available in the near future.
  *
+ * <p>This also demonstrates a custom {@link RequestPostProcessor} which authenticates
+ * a user to a particular {@link HttpServletRequest}.
+ *
  * <p>Also see the Javadoc of {@link GenericWebContextLoader}, a class that
  * provides temporary support for loading WebApplicationContext by extending
  * the TestContext framework.
  *
  * @author Rob Winch
  * @author Rossen Stoyanchev
+ * @see SecurityRequestPostProcessors
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(
@@ -87,22 +93,14 @@ public class SpringSecurityTests {
 
 	@Test
 	public void accessGranted() throws Exception {
-		TestingAuthenticationToken principal = new TestingAuthenticationToken("test", "", "ROLE_USER");
-		SecurityContext securityContext = new SecurityContextImpl();
-		securityContext.setAuthentication(principal);
-
-		this.mockMvc.perform(get("/").sessionAttr(SEC_CONTEXT_ATTR,	securityContext))
+		this.mockMvc.perform(get("/").with(userDeatilsService("user")))
 			.andExpect(status().isOk())
 			.andExpect(forwardedUrl("/WEB-INF/layouts/standardLayout.jsp"));
 	}
 
 	@Test
 	public void accessDenied() throws Exception {
-		TestingAuthenticationToken principal = new TestingAuthenticationToken("test", "", "ROLE_DENIED");
-		SecurityContext securityContext = new SecurityContextImpl();
-		securityContext.setAuthentication(principal);
-
-		this.mockMvc.perform(get("/").sessionAttr(SEC_CONTEXT_ATTR, securityContext))
+		this.mockMvc.perform(get("/").with(user("user").roles("DENIED")))
 			.andExpect(status().isForbidden());
 	}
 
