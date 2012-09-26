@@ -104,6 +104,10 @@ class MockWebApplicationContext implements WebApplicationContext {
 		return this.id;
 	}
 
+	public String getApplicationName() {
+		return "";
+	}
+
 	public String getDisplayName() {
 		return this.displayName;
 	}
