@@ -16,7 +16,7 @@
 
 package org.springframework.test.web.server.request;
 
-import java.net.URI;
+import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,6 +55,7 @@ import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.support.SessionFlashMapManager;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 
 /**
  * Default builder for {@link MockHttpServletRequest} required as input to
@@ -68,7 +69,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 public class MockHttpServletRequestBuilder implements RequestBuilder, Mergeable {
 
-	private final UriComponentsBuilder uriComponentsBuilder;
+	private final UriComponents uriComponents;
 
 	private final HttpMethod method;
 
@@ -116,15 +117,15 @@ public class MockHttpServletRequestBuilder implements RequestBuilder, Mergeable 
 	 * the {@code MockHttpServletRequest} can be plugged in via
 	 * {@link #with(RequestPostProcessor)}.
 	 *
-	 * @param uri the URI for the request including any component (e.g. scheme, host, query)
-	 * @param httpMethod the HTTP method for the request
+	 * @param urlTemplate a URL template; the resulting URL will be encoded
+	 * @param urlVariables zero or more URL variables
 	 */
-	MockHttpServletRequestBuilder(URI uri, HttpMethod httpMethod) {
+	MockHttpServletRequestBuilder(HttpMethod httpMethod, String urlTemplate, Object... urlVariables) {
 
-		Assert.notNull(uri, "uri is required");
+		Assert.notNull(urlTemplate, "uriTemplate is required");
 		Assert.notNull(httpMethod, "httpMethod is required");
 
-		this.uriComponentsBuilder = UriComponentsBuilder.fromUri(uri);
+		this.uriComponents = UriComponentsBuilder.fromUriString(urlTemplate).buildAndExpand(urlVariables).encode();
 		this.method = httpMethod;
 	}
 
@@ -528,21 +529,19 @@ public class MockHttpServletRequestBuilder implements RequestBuilder, Mergeable 
 
 		MockHttpServletRequest request = createServletRequest(servletContext);
 
-		UriComponents uriComponents = this.uriComponentsBuilder.build();
-
-		String requestUri = uriComponents.getPath();
+		String requestUri = this.uriComponents.getPath();
 		request.setRequestURI(requestUri);
 
 		updatePathRequestProperties(request, requestUri);
 
-		if (uriComponents.getScheme() != null) {
-			request.setScheme(uriComponents.getScheme());
+		if (this.uriComponents.getScheme() != null) {
+			request.setScheme(this.uriComponents.getScheme());
 		}
-		if (uriComponents.getHost() != null) {
+		if (this.uriComponents.getHost() != null) {
 			request.setServerName(uriComponents.getHost());
 		}
-		if (uriComponents.getPort() != -1) {
-			request.setServerPort(uriComponents.getPort());
+		if (this.uriComponents.getPort() != -1) {
+			request.setServerPort(this.uriComponents.getPort());
 		}
 
 		request.setMethod(this.method.name());
@@ -553,12 +552,22 @@ public class MockHttpServletRequestBuilder implements RequestBuilder, Mergeable 
 			}
 		}
 
-		request.setQueryString(uriComponents.getQuery());
-
-		for (Entry<String, List<String>> entry : uriComponents.getQueryParams().entrySet()) {
-			for (String value : entry.getValue()) {
-				request.addParameter(entry.getKey(), value);
+		try {
+			if (this.uriComponents.getQuery() != null) {
+				String query = UriUtils.decode(this.uriComponents.getQuery(), "UTF-8");
+				request.setQueryString(query);
 			}
+
+			for (Entry<String, List<String>> entry : this.uriComponents.getQueryParams().entrySet()) {
+				for (String value : entry.getValue()) {
+					request.addParameter(
+							UriUtils.decode(entry.getKey(), "UTF-8"),
+							UriUtils.decode(value, "UTF-8"));
+				}
+			}
+		}
+		catch (UnsupportedEncodingException ex) {
+			// shouldn't happen
 		}
 
 		for (String name : this.parameters.keySet()) {
