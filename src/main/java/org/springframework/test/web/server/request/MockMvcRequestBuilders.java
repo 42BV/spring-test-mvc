@@ -17,7 +17,6 @@ package org.springframework.test.web.server.request;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.test.web.server.RequestBuilder;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
  * Static factory methods for {@link RequestBuilder}s.
