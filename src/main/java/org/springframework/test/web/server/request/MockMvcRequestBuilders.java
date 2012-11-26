@@ -17,6 +17,7 @@ package org.springframework.test.web.server.request;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.test.web.server.RequestBuilder;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
  * Static factory methods for {@link RequestBuilder}s.
@@ -71,6 +72,17 @@ public abstract class MockMvcRequestBuilders {
 	 */
 	public static MockHttpServletRequestBuilder delete(String urlTemplate, Object... urlVariables) {
 		return new MockHttpServletRequestBuilder(HttpMethod.DELETE, urlTemplate, urlVariables);
+	}
+
+	/**
+	 * Create a {@link MockHttpServletRequestBuilder} for a request with the given HTTP method.
+	 *
+	 * @param httpMethod the HTTP method
+	 * @param urlTemplate a URL template; the resulting URL will be encoded
+	 * @param urlVariables zero or more URL variables
+	 */
+	public static MockHttpServletRequestBuilder request(HttpMethod httpMethod, String urlTemplate, Object... urlVars) {
+		return new MockHttpServletRequestBuilder(httpMethod, urlTemplate, urlVars);
 	}
 
 	/**
