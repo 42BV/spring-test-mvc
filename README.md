@@ -1,12 +1,12 @@
 
 This project facilitates testing _Spring MVC_ server-side and client-side _RestTemplate_-based code.
 
-__NOTE: The project is now incorporated in the spring-test module of Spring Framework 3.2. Applications building against Spring Framework 3.1.x can continue to use this standalone project. However, applications building with Spring Framework 3.2 should use the spring-test module of Spring Framework 3.2. See the Spring Framework [reference guide] for more details.__
+__NOTE: The project is now incorporated in the spring-test module of Spring Framework 3.2. Applications building against Spring Framework 3.1.x can continue to use this standalone project. However, applications building with Spring Framework 3.2 should use the spring-test module of Spring Framework 3.2 instead. See the Spring Framework [reference guide](http://static.springsource.org/spring-framework/docs/3.2.0.BUILD-SNAPSHOT/reference/htmlsingle/#spring-mvc-test-framework) for more details.__
 
-To get started, see sample [server-side tests](spring-test-mvc/tree/master/src/test/java/org/springframework/test/web/server/samples) and [client-side tests](spring-test-mvc/tree/master/src/test/java/org/springframework/test/web/client/samples). Also the [spring-mvc-showcase project](https://github.com/SpringSource/spring-mvc-showcase) has full test coverage using Spring MVC Test.
+To get started, see sample [server-side](spring-test-mvc/tree/master/src/test/java/org/springframework/test/web/server/samples) and [client-side](spring-test-mvc/tree/master/src/test/java/org/springframework/test/web/client/samples) tests. The [spring-mvc-showcase](https://github.com/SpringSource/spring-mvc-showcase) project also has many sample tests.
 
-To get the second milestone release, use the SpringSource Artifactory `libs-milestone` repository:
-http://repo.springsource.org/libs-milestone
+Milestone 2 can be obtained through the
+http://repo.springsource.org/libs-milestone repository.
 
     <dependency>
       <groupId>org.springframework</groupId>
@@ -15,8 +15,7 @@ http://repo.springsource.org/libs-milestone
       <scope>test</scope>
     </dependency>
 
-To get the latest snapshot (as well milestones), use the SpringSource Artifactory `libs-snapshot` repository:
-http://repo.springsource.org/libs-snapshot
+The latest snapshot can be obtained through the http://repo.springsource.org/libs-snapshot repository.
 
     <dependency>
       <groupId>org.springframework</groupId>
