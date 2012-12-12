@@ -1,15 +1,9 @@
 
-The goal of this project is to facilitate testing _Spring MVC_ code on the server side and _RestTemplate_ based code on the client side.
+This project facilitates testing _Spring MVC_ server-side and client-side _RestTemplate_-based code.
 
-__Note:__ The code in this project is now included in the _spring-test_ module of _Spring Framework 3.2_. See the Spring Framework [reference guide] for detailed documentation. Applications building against _Spring Framework 3.1.x_ can continue to use this standalone project. Applications building with _Spring Framework 3.2_ should use the _spring-test_ module of _Spring Framework 3.2_.
+__NOTE: The project is now incorporated in the spring-test module of Spring Framework 3.2. Applications building against Spring Framework 3.1.x can continue to use this standalone project. However, applications building with Spring Framework 3.2 should use the spring-test module of Spring Framework 3.2. See the Spring Framework [reference guide] for more details.__
 
-Tips on Getting Started
------------------------
-
-See sample [server-side tests](spring-test-mvc/tree/master/src/test/java/org/springframework/test/web/server/samples) and [client-side tests](spring-test-mvc/tree/master/src/test/java/org/springframework/test/web/client/samples). Also the [spring-mvc-showcase project](https://github.com/SpringSource/spring-mvc-showcase) has full test coverage using Spring MVC Test.
-
-Maven
-=====
+To get started, see sample [server-side tests](spring-test-mvc/tree/master/src/test/java/org/springframework/test/web/server/samples) and [client-side tests](spring-test-mvc/tree/master/src/test/java/org/springframework/test/web/client/samples). Also the [spring-mvc-showcase project](https://github.com/SpringSource/spring-mvc-showcase) has full test coverage using Spring MVC Test.
 
 To get the second milestone release, use the SpringSource Artifactory `libs-milestone` repository:
 http://repo.springsource.org/libs-milestone
@@ -17,7 +11,7 @@ http://repo.springsource.org/libs-milestone
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test-mvc</artifactId>
-      <version>1.0.0.M1</version>
+      <version>1.0.0.M2</version>
       <scope>test</scope>
     </dependency>
 
@@ -31,14 +25,4 @@ http://repo.springsource.org/libs-snapshot
       <scope>test</scope>
     </dependency>
 
-License
-=======
-
-The Spring MVC Test project is available under version 2.0 of the [Apache License](http://www.apache.org/licenses/LICENSE-2.0).
-
-Acknowledgements
-================
-
-This project draws inspiration from similar [server-side](http://static.springsource.org/spring-ws/sites/2.0/reference/html/server.html#d4e1487) and [client-side](http://static.springsource.org/spring-ws/sites/2.0/reference/html/client.html#d4e1860) test support introduced in Spring Web Services 2.0.
-
-
+This project is available under version 2.0 of the [Apache License](http://www.apache.org/licenses/LICENSE-2.0).
