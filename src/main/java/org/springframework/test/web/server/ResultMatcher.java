@@ -28,7 +28,7 @@ package org.springframework.test.web.server;
  * static imports: MockMvcRequestBuilders.*, MockMvcResultMatchers.*
  *
  * mockMvc.perform(get("/form"))
- *   .andExpect(status.isOk())
+ *   .andExpect(status().isOk())
  *   .andExpect(content().mimeType(MediaType.APPLICATION_JSON));
  * </pre>
  *
