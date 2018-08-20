@@ -1,66 +1,27 @@
 
-Spring MVC Test Support
-=======================
+This project facilitates testing _Spring MVC_ server-side and client-side _RestTemplate_-based code.
 
-The goal of this project is to faciliate the creation of integration tests for _Spring MVC_ applications. At present it contains server-side support only but will have client-side support added as well.
+__NOTE: The project is now incorporated in the spring-test module of Spring Framework 3.2. Applications building against Spring Framework 3.1.x can continue to use this standalone project. However, applications building with Spring Framework 3.2 should use the spring-test module of Spring Framework 3.2 instead. See the Spring Framework [reference guide](http://static.springsource.org/spring-framework/docs/3.2.0.BUILD-SNAPSHOT/reference/htmlsingle/#spring-mvc-test-framework) for more details.__
 
-This code is intended for inclusion in the `spring-test` module of the __Spring Framework__. Its present home here allows us to evolve it on a flexible release schedule and with community feedback potentially accommodating a wide range of scenarios.
+To get started, see sample [server-side](spring-test-mvc/tree/master/src/test/java/org/springframework/test/web/server/samples) and [client-side](spring-test-mvc/tree/master/src/test/java/org/springframework/test/web/client/samples) tests. The [spring-mvc-showcase](https://github.com/SpringSource/spring-mvc-showcase) project also has many sample tests.
 
-Server-Side
-===========
+Milestone 2 can be obtained through the
+http://repo.springsource.org/libs-milestone repository.
 
-Overview
---------
-Annotated-controllers depend on Spring MVC to handle many things such as mapping requests, performing data binding and validation, setting the response status, writing to the body of the response using the correct content type, and many more.
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test-mvc</artifactId>
+      <version>1.0.0.M2</version>
+      <scope>test</scope>
+    </dependency>
 
-To test all that you may instantiate an in-memory Servlet container driving requests with _JWebUnit_ or you may use a test tool such as _JMeter_ or _Selenium_. These options however require running a Servlet container and can only perform black-box testing.
+The latest snapshot can be obtained through the http://repo.springsource.org/libs-snapshot repository.
 
-The aim of this project is to provide a more "lightweight" and more integrated alternative by building on the familiar `MockHttpServletRequest` and the `MockHttpServletResponse` from the `spring-test` module and without the need for a Servlet container. Whether you want to point to one controller or to test with your complete web application context setup, it should be easy to send a request and verify the results.
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test-mvc</artifactId>
+      <version>1.0.0.BUILD-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
 
-Examples
---------
-
-Test an `@ResponseBody` method in a controller:
-
-    MockMvcBuilders.standaloneMvcSetup(new TestController()).build()
-        .perform(get("/form"))
-            .andExpect(status(200))
-            .andExpect(contentType("text/plain"))
-	        .andExpect(responseBody("content"));
-
-Test binding failure by pointing to Spring MVC XML-based context configuration:
-
-    MockMvcBuilders.xmlConfigMvcSetup("classpath:org/examples/servlet-context.xml").build()
-        .perform(get("/form"))
-            .andExpect(status(200))
-            .andExpect(modelAttributesWithErrors("formBean"))
-            .andExpect(viewName("form"));
-
-Test serving a resource by pointing to Spring MVC Java-based application configuration:
-
-    MockMvcBuilders.annotationConfigMvcSetup(TestConfiguration.class).build()
-        .perform(get("/resources/Spring.js"))
-            .andExpect(contentType("application/octet-stream"))
-            .andExpect(responseBodyContains("Spring={};"));
-
-For more examples see tests in the [org.springframework.test.web.server](spring-test-mvc/tree/master/src/test/java/org/springframework/test/web/server) package.
-
-Limitations
------------
-
-Most rendering technologies should work as expected. For _Tiles_ and _JSP_, while you can test with your existing configuration as is, no actual JSP-based rendering will take place. Instead you should verify the path the request was forwarded to (i.e. the path to the JSP page) or you can also verify the selected view name.
-
-Contributions
-=============
-
-If you see anything you'd like to change we encourage taking advantage of github's social coding features by making the change in a [fork of this repository](http://help.github.com/forking/) and sending a pull request. 
-
-To report an issue the Spring Framework forum or the Spring JIRA creating requests under the component _"SpringTEST"_.
-
-Before we accept a non-trivial patch or pull request we will need you to sign the [contributor's agreement] (https://support.springsource.com/spring_committer_signup). Signing the contributor's agreement does not grant anyone commit rights to the main repository, but it does mean that we can accept your contributions, and you will get an author credit if we do. Active contributors might be asked to join the core team, and given the ability to merge pull requests.
-
-Acknowledgements
-================
-
-This project draws inspiration from similar [server-side](http://static.springsource.org/spring-ws/sites/2.0/reference/html/server.html#d4e1487) and [client-side](http://static.springsource.org/spring-ws/sites/2.0/reference/html/client.html#d4e1860) test support introduced in Spring Web Services 2.0.
-
+This project is available under version 2.0 of the [Apache License](http://www.apache.org/licenses/LICENSE-2.0).

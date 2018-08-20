@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,205 +21,380 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletContext;
 
-import org.springframework.context.ApplicationContextAware;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.mock.web.MockServletContext;
-import org.springframework.test.web.server.AbstractMockMvcBuilder;
-import org.springframework.test.web.server.MockMvc;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.validation.Validator;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.support.ConfigurableWebBindingInitializer;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.GenericWebApplicationContext;
-import org.springframework.web.servlet.HandlerAdapter;
+import org.springframework.web.context.support.WebApplicationObjectSupport;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
+import org.springframework.web.servlet.DispatcherServlet;
+import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.RequestToViewNameTranslator;
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.ViewResolver;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import org.springframework.web.servlet.handler.MappedInterceptor;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
-import org.springframework.web.servlet.mvc.annotation.ResponseStatusExceptionResolver;
-import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver;
-import org.springframework.web.servlet.view.BeanNameViewResolver;
+import org.springframework.web.servlet.theme.FixedThemeResolver;
 import org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator;
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 /**
- * Builds a {@link MockMvc} by instantiating the required Spring MVC components directly rather than detecting
- * them in a Spring ApplicationContext. This makes it possible to build more "lightweight" and very focused tests
- * involving one or just a few controllers.
- * 
- * <p>The resulting setup is geared at supporting controllers with @{@link RequestMapping} methods. View resolution 
- * can be configured by providing a list of {@link ViewResolver}s. When view resolution is left not configured, a
- * fixed, no-op {@link View} is used effectively ignoring rendering.
- * 
- */ 
-public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
-	
+ * A MockMvcBuilder that can be configured with controller instances allowing
+ * full control over the instantiation and the initialization of controllers and
+ * their dependencies similar to plain unit tests, and also making it possible
+ * to test one controller at a time.
+ *
+ * <p>
+ * This builder creates the minimum infrastructure required by the
+ * {@link DispatcherServlet} to serve requests with annotated controllers and
+ * also provides various methods to customize it. The resulting configuration
+ * and customizations possible are equivalent to using the {@link EnableWebMvc
+ * MVC Java config} except with builder style methods rather than the callback.
+ *
+ * <p>
+ * To configure view resolution, either select a "fixed" view to use for every
+ * performed request (see {@link #setSingleView(View)}) or provide a list of
+ * {@code ViewResolver}'s, see {@link #setViewResolvers(ViewResolver...)}.
+ *
+ * @author Rossen Stoyanchev
+ */
+public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder<StandaloneMockMvcBuilder> {
+
 	private final Object[] controllers;
-	
-	private List<HttpMessageConverter<?>> messageConverters;
-	
-	private Validator validator;
-	
-	private FormattingConversionService conversionService = new DefaultFormattingConversionService();
-	
+
+	private List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
+
+	private List<HandlerMethodArgumentResolver> customArgumentResolvers = new ArrayList<HandlerMethodArgumentResolver>();
+
+	private List<HandlerMethodReturnValueHandler> customReturnValueHandlers = new ArrayList<HandlerMethodReturnValueHandler>();
+
 	private final List<MappedInterceptor> mappedInterceptors = new ArrayList<MappedInterceptor>();
 
-	private List<? extends ViewResolver> viewResolvers;
+	private Validator validator = null;
 
-	private GenericWebApplicationContext applicationContext;
+	private FormattingConversionService conversionService = null;
 
-	protected StandaloneMockMvcBuilder(Object[] controllers) {
+	private List<HandlerExceptionResolver> handlerExceptionResolvers = new ArrayList<HandlerExceptionResolver>();
+
+	private List<ViewResolver> viewResolvers;
+
+	private LocaleResolver localeResolver = new AcceptHeaderLocaleResolver();
+
+	private FlashMapManager flashMapManager = null;
+
+	private boolean useSuffixPatternMatch = true;
+
+	private boolean useTrailingSlashPatternMatch = true;
+
+
+	/**
+	 * Protected constructor. Not intended for direct instantiation.
+	 * @see MockMvcBuilders#standaloneSetup(Object...)
+	 */
+	protected StandaloneMockMvcBuilder(Object... controllers) {
 		Assert.isTrue(!ObjectUtils.isEmpty(controllers), "At least one controller is required");
 		this.controllers = controllers;
-		this.applicationContext = new GenericWebApplicationContext(new MockServletContext());
-		this.applicationContext.refresh();
 	}
 
+	/**
+	 * Set the message converters to use in argument resolvers and in return value
+	 * handlers, which support reading and/or writing to the body of the request
+	 * and response. If no message converters are added to the list, a default
+	 * list of converters is added instead.
+	 */
 	public StandaloneMockMvcBuilder setMessageConverters(HttpMessageConverter<?>...messageConverters) {
 		this.messageConverters = Arrays.asList(messageConverters);
 		return this;
 	}
 
+	/**
+	 * Provide a custom {@link Validator} instead of the one created by default.
+	 * The default implementation used, assuming JSR-303 is on the classpath, is
+	 * {@link org.springframework.validation.beanvalidation.LocalValidatorFactoryBean}.
+	 */
 	public StandaloneMockMvcBuilder setValidator(Validator validator) {
 		this.validator = validator;
-		this.applicationContext.getAutowireCapableBeanFactory().initializeBean(validator, "validator");
 		return this;
 	}
 
+	/**
+	 * Provide a conversion service with custom formatters and converters.
+	 * If not set, a {@link DefaultFormattingConversionService} is used by default.
+	 */
 	public StandaloneMockMvcBuilder setConversionService(FormattingConversionService conversionService) {
 		this.conversionService = conversionService;
 		return this;
 	}
-	
+
+	/**
+	 * Add interceptors mapped to all incoming requests.
+	 */
 	public StandaloneMockMvcBuilder addInterceptors(HandlerInterceptor... interceptors) {
-		mapInterceptors(null, interceptors);
+		addMappedInterceptors(null, interceptors);
 		return this;
 	}
 
-	public StandaloneMockMvcBuilder mapInterceptors(String[] pathPatterns, HandlerInterceptor... interceptors) {
+	/**
+	 * Add interceptors mapped to a set of path patterns.
+	 */
+	public StandaloneMockMvcBuilder addMappedInterceptors(String[] pathPatterns, HandlerInterceptor... interceptors) {
 		for (HandlerInterceptor interceptor : interceptors) {
-			mappedInterceptors.add(new MappedInterceptor(pathPatterns, interceptor));
+			this.mappedInterceptors.add(new MappedInterceptor(pathPatterns, interceptor));
 		}
 		return this;
 	}
-	
+
 	/**
-	 * Configures a single ViewResolver that always renders using the provided View implementation.
-	 * Provides a simple way to render generated content (e.g. JSON, XML, Atom, etc.) For URL-based view types, 
-	 * i.e. sub-classes of AbstractUrlBasedView, use {@link #setViewResolvers(ViewResolver...)} instead.
-	 * 
-	 * @param view the default View to return for any view name
+	 * Provide custom resolvers for controller method arguments.
 	 */
-	public StandaloneMockMvcBuilder configureFixedViewResolver(View view) {
-		viewResolvers = Collections.singletonList(new FixedViewResolver(view));
+	public StandaloneMockMvcBuilder setCustomArgumentResolvers(HandlerMethodArgumentResolver... argumentResolvers) {
+		this.customArgumentResolvers = Arrays.asList(argumentResolvers);
 		return this;
 	}
 
 	/**
-	 * Configures view resolution with the given {@link ViewResolver}s.
-	 * By default, if no ViewResolvers have been configured, a View that doesn't do anything is used.
-	 * 
-	 * <p>Most ViewResolver types should work as expected. This excludes {@link BeanNameViewResolver}
-	 * since there is no ApplicationContext.
-	 * 
+	 * Provide custom handlers for controller method return values.
+	 */
+	public StandaloneMockMvcBuilder setCustomReturnValueHandlers(HandlerMethodReturnValueHandler... handlers) {
+		this.customReturnValueHandlers = Arrays.asList(handlers);
+		return this;
+	}
+
+
+	/**
+	 * Set the HandlerExceptionResolver types to use.
+	 */
+	public void setHandlerExceptionResolvers(List<HandlerExceptionResolver> exceptionResolvers) {
+		this.handlerExceptionResolvers = exceptionResolvers;
+	}
+
+	/**
+	 * Set up view resolution with the given {@link ViewResolver}s.
+	 * If not set, an {@link InternalResourceViewResolver} is used by default.
 	 */
 	public StandaloneMockMvcBuilder setViewResolvers(ViewResolver...resolvers) {
-		viewResolvers = Arrays.asList(resolvers);
+		this.viewResolvers = Arrays.asList(resolvers);
 		return this;
 	}
-	
-	@Override
-	protected WebApplicationContext initApplicationContext() {
-		return applicationContext;
+
+	/**
+	 * Sets up a single {@link ViewResolver} that always returns the provided
+	 * view instance. This is a convenient shortcut if you need to use one
+	 * View instance only -- e.g. rendering generated content (JSON, XML, Atom).
+	 */
+	public StandaloneMockMvcBuilder setSingleView(View view) {
+		this.viewResolvers = Collections.<ViewResolver>singletonList(new StaticViewResolver(view));
+		return this;
+	}
+
+	/**
+	 * Provide a LocaleResolver instance.
+	 * If not provided, the default one used is {@link AcceptHeaderLocaleResolver}.
+	 */
+	public StandaloneMockMvcBuilder setLocaleResolver(LocaleResolver localeResolver) {
+		this.localeResolver = localeResolver;
+		return this;
+	}
+
+	/**
+	 * Provide a custom FlashMapManager instance.
+	 * If not provided, {@code SessionFlashMapManager} is used by default.
+	 */
+	public StandaloneMockMvcBuilder setFlashMapManager(FlashMapManager flashMapManager) {
+		this.flashMapManager = flashMapManager;
+		return this;
+	}
+
+	/**
+	 * Whether to use suffix pattern match (".*") when matching patterns to
+	 * requests. If enabled a method mapped to "/users" also matches to "/users.*".
+	 * <p>The default value is {@code true}.
+	 */
+	public StandaloneMockMvcBuilder setUseSuffixPatternMatch(boolean useSuffixPatternMatch) {
+		this.useSuffixPatternMatch = useSuffixPatternMatch;
+		return this;
+	}
+
+	/**
+	 * Whether to match to URLs irrespective of the presence of a trailing slash.
+	 * If enabled a method mapped to "/users" also matches to "/users/".
+	 * <p>The default value is {@code true}.
+	 */
+	public StandaloneMockMvcBuilder setUseTrailingSlashPatternMatch(boolean useTrailingSlashPatternMatch) {
+		this.useTrailingSlashPatternMatch = useTrailingSlashPatternMatch;
+		return this;
 	}
 
 	@Override
-	protected List<? extends HandlerMapping> initHandlerMappings() {
-		StaticRequestMappingHandlerMapping mapping = new StaticRequestMappingHandlerMapping();
-		mapping.registerHandlers(controllers);
-		mapping.setInterceptors(mappedInterceptors.toArray());
-		return Collections.singletonList(mapping);
+	protected WebApplicationContext initWebApplicationContext() {
+		ServletContext servletContext = new MockServletContext();
+		MockWebApplicationContext cxt = new MockWebApplicationContext(servletContext);
+		registerMvcSingletons(cxt);
+		servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, cxt);
+		return cxt;
 	}
 
-	@Override
-	protected List<? extends HandlerAdapter> initHandlerAdapters() {
-		RequestMappingHandlerAdapter adapter = new RequestMappingHandlerAdapter();
-		if (messageConverters != null) {
-			adapter.setMessageConverters(messageConverters);
+	private void registerMvcSingletons(MockWebApplicationContext cxt) {
+
+		StandaloneConfiguration configuration = new StandaloneConfiguration();
+
+		RequestMappingHandlerMapping handlerMapping = configuration.requestMappingHandlerMapping();
+		handlerMapping.setServletContext(cxt.getServletContext());
+		handlerMapping.setApplicationContext(cxt);
+		cxt.addBean("requestMappingHandlerMapping", handlerMapping);
+
+		RequestMappingHandlerAdapter handlerAdapter = configuration.requestMappingHandlerAdapter();
+		handlerAdapter.setServletContext(cxt.getServletContext());
+		handlerAdapter.setApplicationContext(cxt);
+		handlerAdapter.afterPropertiesSet();
+		cxt.addBean("requestMappingHandlerAdapter", handlerAdapter);
+
+		cxt.addBean("handlerExceptionResolver", configuration.handlerExceptionResolver());
+
+		cxt.addBeans(initViewResolvers(cxt));
+		cxt.addBean(DispatcherServlet.LOCALE_RESOLVER_BEAN_NAME, this.localeResolver);
+		cxt.addBean(DispatcherServlet.THEME_RESOLVER_BEAN_NAME, new FixedThemeResolver());
+		cxt.addBean(DispatcherServlet.REQUEST_TO_VIEW_NAME_TRANSLATOR_BEAN_NAME, new DefaultRequestToViewNameTranslator());
+
+		initFlashMapManager();
+		cxt.addBean(DispatcherServlet.FLASH_MAP_MANAGER_BEAN_NAME, this.flashMapManager);
+	}
+
+	// TODO: remove in 3.2
+
+	private void initFlashMapManager() {
+		if (this.flashMapManager == null) {
+			String className = "org.springframework.web.servlet.support.DefaultFlashMapManager";
+			if (ClassUtils.isPresent(className, getClass().getClassLoader())) {
+				this.flashMapManager = instantiateClass(className);
+			}
+			else {
+				className = "org.springframework.web.servlet.support.SessionFlashMapManager";
+				this.flashMapManager = instantiateClass(className);
+			}
 		}
-		
-		ConfigurableWebBindingInitializer initializer = new ConfigurableWebBindingInitializer();
-		initializer.setConversionService(conversionService);
-		initializer.setValidator(validator);
-		adapter.setWebBindingInitializer(initializer);
-		
-		adapter.setApplicationContext(applicationContext);	// for SpEL expressions in annotations
-		adapter.afterPropertiesSet();
-		
-		return Collections.singletonList(adapter);
 	}
 
-	@Override
-	protected List<? extends HandlerExceptionResolver> initHandlerExceptionResolvers() {
-		ExceptionHandlerExceptionResolver exceptionResolver = new ExceptionHandlerExceptionResolver();
-		if (messageConverters != null) {
-			exceptionResolver.setMessageConverters( messageConverters);
+	@SuppressWarnings("unchecked")
+	private <T> T instantiateClass(String className) {
+		Class<?> clazz;
+		try {
+			clazz = ClassUtils.forName(className, StandaloneMockMvcBuilder.class.getClassLoader());
 		}
-		exceptionResolver.afterPropertiesSet();
-		
-		List<HandlerExceptionResolver> resolvers = new ArrayList<HandlerExceptionResolver>();
-		resolvers.add(exceptionResolver);
-		resolvers.add(new ResponseStatusExceptionResolver());
-		resolvers.add(new DefaultHandlerExceptionResolver());
-
-		return resolvers;
+		catch (ClassNotFoundException e) {
+			throw new BeanInitializationException("Could not instantiate " + className, e);
+		}
+		catch (LinkageError e) {
+			throw new BeanInitializationException("Could not instantiate " + className, e);
+		}
+		return (T) BeanUtils.instantiate(clazz);
 	}
 
-	@Override
-	protected List<? extends ViewResolver> initViewResolvers() {
-		viewResolvers = (viewResolvers == null) ? 
-				Arrays.asList(new FixedViewResolver(NOOP_VIEW)) : viewResolvers;
-				
-		for (Object vr : viewResolvers) {
-			if (vr instanceof ApplicationContextAware) {
-				((ApplicationContextAware) vr).setApplicationContext(applicationContext);
+	private List<ViewResolver> initViewResolvers(WebApplicationContext wac) {
+
+		this.viewResolvers = (this.viewResolvers == null) ?
+				Arrays.<ViewResolver>asList(new InternalResourceViewResolver()) : viewResolvers;
+
+		for (Object viewResolver : this.viewResolvers) {
+			if (viewResolver instanceof WebApplicationObjectSupport) {
+				((WebApplicationObjectSupport) viewResolver).setApplicationContext(wac);
 			}
 		}
 
-		return viewResolvers;
+		return this.viewResolvers;
 	}
 
-	@Override
-	protected RequestToViewNameTranslator initViewNameTranslator() {
-		return new DefaultRequestToViewNameTranslator();
+
+	/** Using the MVC Java configuration as the starting point for the "standalone" setup */
+	private class StandaloneConfiguration extends WebMvcConfigurationSupport {
+
+		@Override
+		public RequestMappingHandlerMapping requestMappingHandlerMapping() {
+
+			StaticRequestMappingHandlerMapping handlerMapping = new StaticRequestMappingHandlerMapping();
+			handlerMapping.registerHandlers(controllers);
+
+			handlerMapping.setUseSuffixPatternMatch(useSuffixPatternMatch);
+			handlerMapping.setUseTrailingSlashMatch(useTrailingSlashPatternMatch);
+			handlerMapping.setOrder(0);
+			handlerMapping.setInterceptors(getInterceptors());
+
+			return handlerMapping;
+		}
+
+		@Override
+		protected void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+			converters.addAll(messageConverters);
+		}
+
+		@Override
+		protected void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
+			argumentResolvers.addAll(customArgumentResolvers);
+		}
+
+		@Override
+		protected void addReturnValueHandlers(List<HandlerMethodReturnValueHandler> returnValueHandlers) {
+			returnValueHandlers.addAll(customReturnValueHandlers);
+		}
+
+		@Override
+		protected void addInterceptors(InterceptorRegistry registry) {
+			for (MappedInterceptor interceptor : mappedInterceptors) {
+				InterceptorRegistration registration = registry.addInterceptor(interceptor.getInterceptor());
+				if (interceptor.getPathPatterns() != null) {
+					registration.addPathPatterns(interceptor.getPathPatterns());
+				}
+			}
+		}
+
+		@Override
+		public FormattingConversionService mvcConversionService() {
+			return (conversionService != null) ? conversionService : super.mvcConversionService();
+		}
+
+		@Override
+		public Validator mvcValidator() {
+			Validator mvcValidator = (validator != null) ? validator : super.mvcValidator();
+			if (mvcValidator instanceof InitializingBean) {
+				try {
+					((InitializingBean) mvcValidator).afterPropertiesSet();
+				}
+				catch (Exception e) {
+					throw new BeanInitializationException("Failed to initialize Validator", e);
+				}
+			}
+			return mvcValidator;
+		}
+
+		@Override
+		protected void configureHandlerExceptionResolvers(List<HandlerExceptionResolver> exceptionResolvers) {
+			exceptionResolvers.addAll(StandaloneMockMvcBuilder.this.handlerExceptionResolvers);
+		}
 	}
 
-	@Override
-	protected LocaleResolver initLocaleResolver() {
-		return new AcceptHeaderLocaleResolver();
-	}
-
-	/**
-	 * Allows registering controller instances.
-	 */
+	/** A {@code RequestMappingHandlerMapping} that allows registration of controllers */
 	private static class StaticRequestMappingHandlerMapping extends RequestMappingHandlerMapping {
-		
+
 		public void registerHandlers(Object...handlers) {
 			for (Object handler : handlers) {
 				super.detectHandlerMethods(handler);
@@ -227,34 +402,18 @@ public class StandaloneMockMvcBuilder extends AbstractMockMvcBuilder {
 		}
 	}
 
-	/**
-	 * Resolves all view names to the same fixed View.
-	 */
-	private static class FixedViewResolver implements ViewResolver {
-		
+	/** A {@link ViewResolver} that always returns same View */
+	private static class StaticViewResolver implements ViewResolver {
+
 		private final View view;
-		
-		public FixedViewResolver(View view) {
+
+		public StaticViewResolver(View view) {
 			this.view = view;
 		}
 
 		public View resolveViewName(String viewName, Locale locale) throws Exception {
-			return view;
+			return this.view;
 		}
 	}
-	
-	/**
-	 * A View implementation that doesn't do anything.
-	 */
-	private static final View NOOP_VIEW = new View() {
-
-		public String getContentType() {
-			return null;
-		}
-
-		public void render(Map<String, ?> model, HttpServletRequest request, HttpServletResponse response)
-				throws Exception {
-		}
-	};
 
 }

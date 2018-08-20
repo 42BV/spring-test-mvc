@@ -15,11 +15,9 @@
  */
 package org.springframework.test.web;
 
-import java.util.Map;
-
 /**
  * JUnit independent assertion class.
- * 
+ *
  * @author Lukas Krecan
  * @author Arjen Poutsma
  */
@@ -39,7 +37,7 @@ public abstract class AssertionErrors {
 
 	/**
 	 * Fails a test with the given message passing along expected and actual values to be added to the message.
-	 * 
+	 *
 	 * @param message the message
 	 * @param expected the expected value
 	 * @param actual   the actual value
@@ -76,33 +74,5 @@ public abstract class AssertionErrors {
         }
         fail(message, expected, actual);
     }
-    
 
-    /**
-     * Assert the given names are present in the provided map of named values.
-     * @param label a label describing the named value - e.g. "Request attribute", "Response header", etc.
-     * @param namedValues a map containing all name-value pairs   
-     * @param names the names to check
-     */
-	public static void assertNameValuesPresent(String label, Map<String, Object> namedValues, String...names) {
-		for (String name : names) {
-			if (!namedValues.containsKey(name)) {
-				fail(label + " '" + name + "' was not found. Actual " + label.toLowerCase() + "s: <" + namedValues + ">.");
-			}
-		}
-	}
-	
-    /**
-     * Assert the given names are not present in the provided map of named values.
-     * @param label a label describing the named value - e.g. "Request attribute", "Response header", etc.
-     * @param namedValues a map containing all name-value pairs   
-     * @param names the names to check
-     */
-	public static void assertNameValuesNotPresent(String label, Map<String, Object> namedValues, String...names) {
-		for (String name : names) {
-			if (namedValues.containsKey(name)) {
-				fail(label + " '" + name + "' found but was not expected. Actual value: <" + namedValues.get(name) + ">.");
-			}
-		}
-	}
 }

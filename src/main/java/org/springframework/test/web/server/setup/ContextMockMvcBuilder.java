@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,127 +16,113 @@
 
 package org.springframework.test.web.server.setup;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
 
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.core.OrderComparator;
-import org.springframework.test.web.server.AbstractMockMvcBuilder;
-import org.springframework.test.web.server.MockMvc;
-import org.springframework.util.Assert;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.FileSystemResourceLoader;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.mock.web.MockRequestDispatcher;
+import org.springframework.mock.web.MockServletContext;
+import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.servlet.DispatcherServlet;
-import org.springframework.web.servlet.HandlerAdapter;
-import org.springframework.web.servlet.HandlerExceptionResolver;
-import org.springframework.web.servlet.HandlerMapping;
-import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.RequestToViewNameTranslator;
-import org.springframework.web.servlet.ViewResolver;
-import org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping;
-import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
-import org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter;
-import org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter;
-import org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter;
-import org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerExceptionResolver;
-import org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping;
-import org.springframework.web.servlet.mvc.annotation.ResponseStatusExceptionResolver;
-import org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver;
-import org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator;
-import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 /**
- * Builds a {@link MockMvc} by detecting Spring MVC infrastructure components in a Spring 
- * {@link WebApplicationContext}. 
- * 
+ * A MockMvcBuilder that discovers controllers and Spring MVC infrastructure
+ * components in a WebApplicationContext.
+ *
+ * <p>Unlike {@link InitializedContextMockMvcBuilder}, which expects a fully
+ * initialized WebApplicationContext, this MockMvcBuilder provides methods to
+ * initialize various aspects of the WebApplicationContext such activating
+ * profiles, configuring the root of the webapp directory (classpath or file
+ * system-relative), and others.
+ *
+ * @author Rossen Stoyanchev
  */
-public class ContextMockMvcBuilder extends AbstractMockMvcBuilder {
+public class ContextMockMvcBuilder extends AbstractMockMvcBuilder<ContextMockMvcBuilder> {
 
-	private final WebApplicationContext applicationContext;
+	private final ConfigurableWebApplicationContext webAppContext;
 
-	public ContextMockMvcBuilder(WebApplicationContext applicationContext) {
-		Assert.notNull(applicationContext, "ApplicationContext is required");
-		this.applicationContext = applicationContext;
+	private String webResourceBasePath = "";
+
+	private ResourceLoader webResourceLoader = new FileSystemResourceLoader();
+
+
+	/**
+     * Protected constructor. Not intended for direct instantiation.
+     * @see MockMvcBuilders#annotationConfigSetup(Class...)
+     * @see MockMvcBuilders#xmlConfigSetup(String...)
+	 */
+	public ContextMockMvcBuilder(ConfigurableWebApplicationContext applicationContext) {
+		this.webAppContext = applicationContext;
 	}
+
+	/**
+	 * Specify the location of the web application root directory.
+	 * <p>If {@code isClasspathRelative} is "false" the directory is interpreted either as being
+	 * relative to the JVM working directory (e.g. "src/main/webapp") or as a fully qualified
+	 * file system path (e.g. "file:///home/user/webapp").
+	 * <p>Otherwise if {@code isClasspathRelative} is "true" the directory should be relative
+	 * to the classpath (e.g. "org/examples/myapp/config").
+	 *
+	 * @param warRootDir the Web application root directory (should not end with a slash)
+	 */
+	public ContextMockMvcBuilder configureWebAppRootDir(String warRootDir, boolean isClasspathRelative) {
+		this.webResourceBasePath = warRootDir;
+		this.webResourceLoader = isClasspathRelative ? new DefaultResourceLoader() : new FileSystemResourceLoader();
+		return this;
+	}
+
+	/**
+	 * Activate the given profiles before the application context is "refreshed".
+	 */
+	public ContextMockMvcBuilder activateProfiles(String...profiles) {
+		this.webAppContext.getEnvironment().setActiveProfiles(profiles);
+		return this;
+	}
+
+	/**
+	 * Apply the given {@link ApplicationContextInitializer}s before the application context is "refreshed".
+	 */
+	@SuppressWarnings("unchecked")
+	public <T extends ConfigurableWebApplicationContext>
+			ContextMockMvcBuilder applyInitializers(ApplicationContextInitializer<T>... initializers) {
+
+		for (ApplicationContextInitializer<T> initializer : initializers) {
+			initializer.initialize((T) this.webAppContext);
+		}
+		return this;
+	}
+
 
 	@Override
-	protected WebApplicationContext initApplicationContext() {
-		return applicationContext;
-	}
-	
-	@Override
-	protected List<HandlerMapping> initHandlerMappings() {
-		List<HandlerMapping> result = getOrderedBeans(HandlerMapping.class);
-		if (result.isEmpty()) {
-			result.add(new BeanNameUrlHandlerMapping());
-			result.add(new DefaultAnnotationHandlerMapping());
-		}
-		return result;
-	}
-	
-	@Override
-	protected List<HandlerAdapter> initHandlerAdapters() {
-		List<HandlerAdapter> result = getOrderedBeans(HandlerAdapter.class);
-		if (result.isEmpty()) {
-			result.add(new HttpRequestHandlerAdapter());
-			result.add(new SimpleControllerHandlerAdapter());
-			result.add(new AnnotationMethodHandlerAdapter());
-		}
-		return result;
-	}
-	
-	@Override
-	protected List<HandlerExceptionResolver> initHandlerExceptionResolvers() {
-		List<HandlerExceptionResolver> result = getOrderedBeans(HandlerExceptionResolver.class);
-		if (result.isEmpty()) {
-			result.add(new AnnotationMethodHandlerExceptionResolver());
-			result.add(new ResponseStatusExceptionResolver());
-			result.add(new DefaultHandlerExceptionResolver());
-		}
-		return result;
+	protected WebApplicationContext initWebApplicationContext() {
+
+		ServletContext servletContext =  new MockServletContext(this.webResourceBasePath, this.webResourceLoader) {
+			// Required for DefaultServletHttpRequestHandler...
+			public RequestDispatcher getNamedDispatcher(String path) {
+				return (path.equals("default")) ? new MockRequestDispatcher(path) : super.getNamedDispatcher(path);
+			}
+		};
+
+		this.webAppContext.setServletContext(servletContext);
+		this.webAppContext.refresh();
+
+		return this.webAppContext;
 	}
 
-	@Override
-	protected List<ViewResolver> initViewResolvers() {
-		List<ViewResolver> result = getOrderedBeans(ViewResolver.class);
-		if (result.isEmpty()) {
-			result.add(new InternalResourceViewResolver());
-		}
-		return result;
+	/**
+	 * Set a parent context before the application context is "refreshed".
+	 *
+	 * <p>The parent context is expected to have be fully initialized.
+	 *
+	 * <p>Caution: this method is potentially subject to change depending
+	 * on the outcome of SPR-5243 and SPR-5613.
+	 */
+	public ContextMockMvcBuilder setParentContext(ApplicationContext parentContext) {
+		this.webAppContext.setParent(parentContext);
+		return this;
 	}
-
-	private <T> List<T> getOrderedBeans(Class<T> beanType) {
-		List<T> components = new ArrayList<T>();
-		Map<String, T> beans =
-			BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, beanType, true, false);
-		if (!beans.isEmpty()) {
-			components.addAll(beans.values());
-			OrderComparator.sort(components);
-		}
-		return components;
-	}
-
-	@Override
-	protected RequestToViewNameTranslator initViewNameTranslator() {
-		String name = DispatcherServlet.REQUEST_TO_VIEW_NAME_TRANSLATOR_BEAN_NAME;
-		return getBeanByName(name, RequestToViewNameTranslator.class, DefaultRequestToViewNameTranslator.class);
-	}
-
-	@Override
-	protected LocaleResolver initLocaleResolver() {
-		String name = DispatcherServlet.LOCALE_RESOLVER_BEAN_NAME;
-		return getBeanByName(name, LocaleResolver.class, AcceptHeaderLocaleResolver.class);
-	}
-
-	private <T> T getBeanByName(String name, Class<T> requiredType, Class<? extends T> defaultType) {
-		try {
-			return applicationContext.getBean(name, requiredType);
-		}
-		catch (NoSuchBeanDefinitionException ex) {
-			return (defaultType != null) ? BeanUtils.instantiate(defaultType) : null;
-		}
-	}
-	
 }
